@@ -237,7 +237,9 @@ class Rusher(Object):
     
     def __init__(self, engine, pos):
         Object.__init__(self, engine)
-        self.images = [rgl.util.load_image("data/rusher-%d.png" % i) for i in range(1, 4)]
+        self.left_images = [rgl.util.load_image("data/rusher-%d.png" % i) for i in range(1, 4)]
+        self.right_images = flip_images(self.left_images)
+        self.images = self.left_images
         self.image = self.images[0]
         self.rect = self.image.get_rect(topleft=pos)
         self.dx = random.choice([-1, 1])
@@ -254,29 +256,27 @@ class Rusher(Object):
         self.image = self.images[self.frame/4%2]
         if self.hitframe > 0:
             self.image = self.images[2]
+        if self.dx > 0:
+            self.images = self.right_images
+        else:
+            self.images = self.left_images
         self.frame += 1
     
     def on_collision(self, dx, dy, tile):
         start_dx = self.dx
         if self.rect.bottom >= tile.rect.top and dy > 0:
-            self.images = flip_images(self.images)
             if tile.on_end[2] == True and self.rect.left <= tile.rect.left:
                 self.dx = abs(start_dx)
             elif tile.on_end[3] == True and self.rect.right >= tile.rect.right:
                 self.dx = -abs(start_dx)
-            else:
-                self.images = flip_images(self.images)
         else:
             if tile.on_end[2] or tile.on_end[3] and dx != 0:
-                self.images = flip_images(self.images)
                 if self.rect.centerx < tile.rect.centerx:
                     self.dx = -abs(start_dx)
                     self.rect.right = tile.rect.left
                 elif self.rect.centerx > tile.rect.centerx:
                     self.dx = abs(start_dx)
                     self.rect.left = tile.rect.right
-                else:
-                    self.images = flip_images(self.images)
 
     def hit(self):
         if self.hitframe <= 0:
