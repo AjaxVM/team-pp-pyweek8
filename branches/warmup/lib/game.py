@@ -14,9 +14,11 @@ class Game(object):
         
         # Assign some groups to the global objects' `groups` attributes
         Player.groups = [self.objects]
+        Wall.groups = [self.objects]
         
         # Create some starting objects
         self.engine = Engine()
+        self.engine.parse_level()
         self.player = Player(self.engine)
     
     def loop(self):
