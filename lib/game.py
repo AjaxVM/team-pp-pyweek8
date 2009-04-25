@@ -58,6 +58,11 @@ class Game(object):
             baddie.do_ai(self.player)
             if baddie.rect.colliderect(self.player.rect):
                 self.player.hit()
+        for s in self.shots:
+            for b in self.baddies:
+                if s.rect.colliderect(b.rect):
+                    b.hit()
+                    s.kill()
     
     def handle_input(self):
         
@@ -101,12 +106,6 @@ class Game(object):
         if self.player.rect.top < 0:
             self.player.rect.bottom = 240
             self.move_view(0, -1)
-            
-        for s in self.shots:
-            for b in self.baddies:
-                if s.rect.colliderect(b.rect):
-                    b.hit()
-                    s.kill()
     
     def draw(self):
         
