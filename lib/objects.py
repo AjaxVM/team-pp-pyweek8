@@ -84,7 +84,7 @@ class Player(Object):
         
         self.right_legs = [li("data/spaceman-legs-%d.png" % i) for i in range(1, 6)]
         self.left_legs = flip_images(self.right_legs)
-        self.right_tops = [li("data/spaceman-top-%d.png" % i) for i in range(1, 2)]
+        self.right_tops = [li("data/spaceman-top-%d.png" % i) for i in range(1, 3)]
         self.left_tops = flip_images(self.right_tops)
         self.legs = self.right_legs
         self.tops = self.right_tops
@@ -107,10 +107,11 @@ class Player(Object):
         self.facing = 1
         self.frame = 0
         self.moving = False
+        self.lookup = False
         
     def draw(self, surface):
         surface.blit(self.legs_image, self.rect.move(self.offset))
-        surface.blit(self.top_image, self.rect.move(self.offset))
+        surface.blit(self.top_image, self.rect.move(self.offset[0], self.offset[1]-14))
         
     def update(self):
         
@@ -150,6 +151,8 @@ class Player(Object):
         # Set the image to the animation frame
         self.legs_image = self.legs[frame]
         self.top_image = self.tops[0]
+        if self.lookup:
+            self.top_image = self.tops[1]
     
     def on_collision(self, dx, dy, tile):
         if dy > 0:
