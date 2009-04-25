@@ -585,7 +585,7 @@ class Boss(Object):
     
     def __init__(self, engine, pos):
         Object.__init__(self, engine)
-        self.images = [rgl.util.load_image("data/squatter-%d.png" % i) for i in range(1, 5)]
+        self.images = [rgl.util.load_image("data/boss-%d.png" % i) for i in range(1, 4)]
         self.image = self.images[0]
         self.rect = self.image.get_rect(topleft=pos)
         self.frame = 0
@@ -599,7 +599,7 @@ class Boss(Object):
         self.hitframe -= 1
         self.image = self.images[self.frame/8%2]
         if self.hitframe > 0:
-            self.image = self.images[3]
+            self.image = self.images[2]
         self.frame += 1
     
     def on_collision(self, dx, dy, tile):
