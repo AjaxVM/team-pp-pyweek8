@@ -48,6 +48,8 @@ class Engine(object):
                     Rusher(self, (x*16, y*16))
                 if color == [0, 255, 0]:
                     Bat(self, (x*16, y*16))
+                if color == [0, 200, 0]:
+                    Boss(self, (x*16, y*16))
                 if color == [255, 200, 0]:
                     if not self.game.player.has_missile:
                         Missile(self, (x*16, y*16))

@@ -31,6 +31,7 @@ class Game(object):
         HealthUp.groups = [self.objects, self.powerups]
         Door.groups = [self.objects]
         Missile.groups = [self.objects, self.missiles]
+        Boss.groups = [self.objects, self.baddies]
         
         # Create some starting objects
         self.engine = Engine(self)
