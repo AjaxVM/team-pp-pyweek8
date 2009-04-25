@@ -16,6 +16,7 @@ class Game(object):
         self.badshots = rgl.gameobject.Group()
         self.baddies = rgl.gameobject.Group()
         self.powerups = rgl.gameobject.Group()
+        self.missiles = rgl.gameobject.Group()
         
         # Assign some groups to the global objects' `groups` attributes
         Player.groups = [self.objects]
@@ -29,11 +30,12 @@ class Game(object):
         Squatter.groups = [self.objects, self.baddies]
         HealthUp.groups = [self.objects, self.powerups]
         Door.groups = [self.objects]
+        Missile.groups = [self.objects, self.missiles]
         
         # Create some starting objects
-        self.engine = Engine()
-        self.engine.parse_level()
+        self.engine = Engine(self)
         self.player = Player(self.engine)
+        self.engine.parse_level()
         self.font = rgl.font.Font(NES_FONT, (255, 255, 255))
         rgl.util.play_music("data/metroid.mod", -1)
     
@@ -80,6 +82,10 @@ class Game(object):
                 self.player.energy += 15
                 if self.player.energy > 100:
                     self.player.energy = 100
+        for m in self.missiles:
+            if self.player.rect.colliderect(m.rect):
+                m.kill()
+                self.player.has_missile = True
     
     def handle_input(self):
         

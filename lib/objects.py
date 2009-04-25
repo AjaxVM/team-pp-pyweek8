@@ -226,6 +226,13 @@ class Wall(Object):
         self.rect = self.image.get_rect(topleft=pos)
         self.on_end = [False, False, False, False]
 
+class Missile(Object):
+    
+    def __init__(self, engine, pos):
+        Object.__init__(self, engine)
+        self.image = rgl.util.load_image("data/missile.png")
+        self.rect = self.image.get_rect(topleft=pos)
+
 class Door(Object):
     
     def __init__(self, engine, pos, facing, hard=False):

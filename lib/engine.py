@@ -3,10 +3,11 @@ from objects import *
 
 class Engine(object):
     
-    def __init__(self):
+    def __init__(self, game):
         self.tiles = []
         self.image = rgl.util.load_image("data/world.png")
         self.pos = [0, 0]
+        self.game = game
 
     def parse_level(self):
         tiles = []
@@ -47,6 +48,9 @@ class Engine(object):
                     Rusher(self, (x*16, y*16))
                 if color == [0, 255, 0]:
                     Bat(self, (x*16, y*16))
+                if color == [255, 200, 0]:
+                    if not self.game.player.has_missile:
+                        Missile(self, (x*16, y*16))
                 if color == [255, 0, 0]:
                     if self.get_at(wx-1, wy) != [0, 0, 0]:
                         side = 1
