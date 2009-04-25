@@ -21,11 +21,16 @@ LAYOUT = [
 class Engine(object):
     
     def __init__(self):
-        self.tiles = LAYOUT
+        self.tiles = []
 
     def parse_level(self):
-        for y in range(len(self.tiles)):
-            for x in range(len(self.tiles[0])):
-                char = self.tiles[y][x]
+        tiles = []
+        for y in range(len(LAYOUT)):
+            tiles.append([])
+            for x in range(len(LAYOUT[0])):
+                char = LAYOUT[y][x]
                 if char == "W":
-                    Wall(self, (x*16, y*16))
+                    tiles[-1].append(Wall(self, (x*16, y*16)))
+                else:
+                    tiles[-1].append(None)
+        self.tiles = tiles
