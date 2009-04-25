@@ -237,7 +237,7 @@ class Door(Object):
         self.offset = (-4*facing, 0)
         self.frame = 0
         self.rect = self.image.get_rect(topleft=pos)
-        self.on_end = [False, False, False, False]
+        self.on_end = [False, False, True, True]
         self.open = False
         self.z = 2
     
