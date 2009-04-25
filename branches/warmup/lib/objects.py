@@ -398,3 +398,81 @@ class Crawly(Object):
     
     def do_ai(self, player):
         pass
+
+
+class BadShot(Object):
+    
+    def __init__(self, engine, pos, angle):
+        Object.__init__(self, engine)
+        self.image = rgl.util.load_image("data/shot.png")
+        self.rect = self.image.get_rect(center=pos)
+        self.dx = self.dy = 0
+        if angle == 0:
+            self.dy = -1
+        elif angle == 90:
+            self.dx = 1
+        elif angle == 270:
+            self.dx = -1
+        self.rect.x += 16*self.dx
+        self.rect.y += 16*self.dy
+        self.speed = 8
+        self.life = 10
+        self.move(0.1, 0)
+    
+    def update(self):
+        self.move(self.dx*self.speed, self.dy*self.speed)
+        self.life -= 1
+        if self.life <= 0:
+            self.kill()
+    
+    def on_collision(self, dx, dy, tile):
+        self.kill()
+
+
+class Squatter(Object):
+    
+    def __init__(self, engine, pos):
+        Object.__init__(self, engine)
+        self.images = [rgl.util.load_image("data/bat-%d.png" % i) for i in range(1, 5)]
+        self.image = self.images[0]
+        self.rect = self.image.get_rect(topleft=pos)
+        self.frame = 0
+        self.hitframe = 0
+        self.hp = 3
+        self.dy = 0
+
+        self.shot_count = 0
+    
+    def update(self):
+        self.hitframe -= 1
+        if self.hitframe <= 0:
+            self.move(0, self.dy)
+        self.image = self.images[self.frame/4%2 + 1]
+        if self.dy == 0:
+            self.image = self.images[0]
+        if self.hitframe > 0:
+            self.image = self.images[3]
+        self.frame += 1
+    
+    def on_collision(self, dx, dy, tile):
+        self.dy = 0
+
+    def hit(self):
+        if self.hitframe <= 0:
+            self.hitframe = 3
+            self.hp -= 1
+            if self.hp <= 0:
+                self.kill()
+
+    def do_ai(self, player):
+        if self.rect.colliderect(player.rect.move(self.rect.left-player.rect.left, 0)):
+            self.shot_count += 1
+            if self.shot_count >= 15:
+                self.shot_count = 0
+                if self.rect.centerx < player.rect.centerx:
+                    angle = 90
+                else:
+                    angle = 270
+                BadShot(self.engine, self.rect.center, angle)
+        else:
+            self.shot_count = 0
