@@ -53,10 +53,13 @@ class Game(object):
         rgl.button.handle_input()
         
         self.player.moving = False
+        self.player.lookup = False
         if rgl.button.is_held(LEFT):
             self.player.move(-3, 0)
         if rgl.button.is_held(RIGHT):
             self.player.move(3, 0)
+        if rgl.button.is_held(UP):
+            self.player.lookup = True
             
         # Make the player jump if you press the A Button/Z Key
         if rgl.button.is_pressed(A_BUTTON):
