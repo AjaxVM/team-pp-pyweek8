@@ -1,4 +1,4 @@
-import pygame
+import pygame, random
 import retrogamelib as rgl
 
 def flip_images(images):
@@ -191,6 +191,19 @@ class Wall(Object):
         Object.__init__(self, engine)
         self.image = rgl.util.load_image("data/wall.png")
         self.rect = self.image.get_rect(topleft=pos)
+        self.on_end = [False, False, False, False]
+   
+    '''def draw(self, surface):
+        image = pygame.Surface((16, 16))
+        if self.on_end[0]:
+            pygame.draw.line(image, (255, 255, 255), (0, 0), (15, 0))
+        if self.on_end[1]:
+            pygame.draw.line(image, (255, 255, 255), (0, 15), (15, 15))
+        if self.on_end[2]:
+            pygame.draw.line(image, (255, 255, 255), (0, 0), (0, 15))
+        if self.on_end[3]:
+            pygame.draw.line(image, (255, 255, 255), (15, 0), (15, 15))
+        surface.blit(image, self.rect)'''
 
 class Shot(Object):
     
@@ -209,6 +222,7 @@ class Shot(Object):
         self.rect.y += 16*self.dy
         self.speed = 8
         self.life = 10
+        self.move(0.1, 0)
     
     def update(self):
         self.move(self.dx*self.speed, self.dy*self.speed)
@@ -219,3 +233,54 @@ class Shot(Object):
     def on_collision(self, dx, dy, tile):
         self.kill()
 
+class Rusher(Object):
+    
+    def __init__(self, engine, pos):
+        Object.__init__(self, engine)
+        self.images = [rgl.util.load_image("data/rusher-%d.png" % i) for i in range(1, 4)]
+        self.image = self.images[0]
+        self.rect = self.image.get_rect(topleft=pos)
+        self.dx = random.choice([-1, 1])
+        if self.dx > 0:
+            self.images = flip_images(self.images)
+        self.speed = 1
+        self.frame = 0
+        self.hitframe = 0
+        self.hp = 3
+    
+    def update(self):
+        self.hitframe -= 1
+        self.move(self.dx*self.speed, 4)
+        self.image = self.images[self.frame/4%2]
+        if self.hitframe > 0:
+            self.image = self.images[2]
+        self.frame += 1
+    
+    def on_collision(self, dx, dy, tile):
+        start_dx = self.dx
+        if self.rect.bottom >= tile.rect.top and dy > 0:
+            self.images = flip_images(self.images)
+            if tile.on_end[2] == True and self.rect.left <= tile.rect.left:
+                self.dx = abs(start_dx)
+            elif tile.on_end[3] == True and self.rect.right >= tile.rect.right:
+                self.dx = -abs(start_dx)
+            else:
+                self.images = flip_images(self.images)
+        else:
+            if tile.on_end[2] or tile.on_end[3] and dx != 0:
+                self.images = flip_images(self.images)
+                if self.rect.centerx < tile.rect.centerx:
+                    self.dx = -abs(start_dx)
+                    self.rect.right = tile.rect.left
+                elif self.rect.centerx > tile.rect.centerx:
+                    self.dx = abs(start_dx)
+                    self.rect.left = tile.rect.right
+                else:
+                    self.images = flip_images(self.images)
+
+    def hit(self):
+        if self.hitframe <= 0:
+            self.hitframe = 3
+            self.hp -= 1
+            if self.hp <= 0:
+                self.kill()
