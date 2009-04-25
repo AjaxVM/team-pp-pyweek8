@@ -82,7 +82,7 @@ class Player(Object):
         Object.__init__(self, engine)
         li = rgl.util.load_image
         
-        self.right_images = [li("data/spaceman-%d.png" % i) for i in range(1, 5)]
+        self.right_images = [li("data/spaceman-%d.png" % i) for i in range(1, 6)]
         self.left_images = flip_images(self.right_images)
         self.images = self.right_images
         
@@ -105,20 +105,39 @@ class Player(Object):
         self.moving = False
         
     def update(self):
+        
+        # Increase the animation frame
         self.frame += 1
+        
+        # Move the Y axis by the jump speed, and apply gravity
         if self.jump_speed < self.max_fall:
             self.jump_speed += self.jump_accel
         self.move(0, self.jump_speed)
         
+        # If our jump velocity is greater than a certain amount, we must
+        # have fallen off a cliff - so set the jumping value to true.
+        if self.jump_speed > self.jump_accel:
+            self.jumping = True
+        
+        # Set the images value to left or right depending on which way we're facing
         if self.facing > 0:
             self.images = self.right_images
         else:
             self.images = self.left_images
         
+        # Set the default frame to zero
         frame = 0
-        if self.moving:
-            frame = -self.frame/2%3 + 1
         
+        # If we're moving, set the frame to the moving animation frame
+        if self.moving:
+            frame = self.frame/2%3 + 1
+        
+        # If we're jumping, override the previous moving animation and set 
+        # the frame to the jump one.
+        if self.jumping:
+            frame = 4
+        
+        # Set the image to the animation frame
         self.image = self.images[frame]
     
     def on_collision(self, dx, dy, tile):
