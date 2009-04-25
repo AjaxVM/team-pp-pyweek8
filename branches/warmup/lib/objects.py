@@ -623,6 +623,6 @@ class Boss(Object):
                 else:
                     angle = 270
                 for x in xrange(5):
-                    BadShot(self.engine, (self.rect.centerx, self.rect.top-16+x*8), angle)
+                    BadShot(self.engine, (self.rect.centerx, self.rect.top+16+x*8), angle)
         else:
             self.shot_count = 0
