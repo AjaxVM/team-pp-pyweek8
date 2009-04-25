@@ -95,6 +95,8 @@ class Player(Object):
         self.rect.midtop = (128, 16)
         self.offset = (-11, -4)
         self.z = 1
+        self.energy = 30
+        self.flicker = 50
         
         self.jump_speed = 0.0
         self.jump_accel_slow = 0.35
@@ -110,8 +112,22 @@ class Player(Object):
         self.lookup = False
         
     def draw(self, surface):
+        if self.flicker <= 0:
+            self.draw_imgs(surface)
+        else:
+            if self.flicker % 3 < 2:
+                self.draw_imgs(surface)
+    
+    def draw_imgs(self, surface):
         surface.blit(self.legs_image, self.rect.move(self.offset))
         surface.blit(self.top_image, self.rect.move(self.offset[0], self.offset[1]-14))
+    
+    def hit(self, damage=5):
+        if self.flicker <= 0:
+            self.flicker = 10
+            self.energy -= damage
+            if self.energy <= 0:
+                self.kill()
         
     def update(self):
         
@@ -153,6 +169,8 @@ class Player(Object):
         self.top_image = self.tops[0]
         if self.lookup:
             self.top_image = self.tops[1]
+    
+        self.flicker -= 1
     
     def on_collision(self, dx, dy, tile):
         if dy > 0:
