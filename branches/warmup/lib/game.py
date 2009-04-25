@@ -24,6 +24,7 @@ class Game(object):
         Rusher.groups = [self.objects, self.baddies]
         Bat.groups = [self.objects, self.baddies]
         Crawly.groups = [self.objects, self.baddies]
+        Explosion.groups = [self.objects]
         Squatter.groups = [self.objects, self.baddies]
         
         # Create some starting objects

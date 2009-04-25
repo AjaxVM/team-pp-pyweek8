@@ -7,6 +7,12 @@ def flip_images(images):
         new.append(pygame.transform.flip(i, 1, 0))
     return new
 
+def scale_images(images, scale):
+    new = []
+    for i in images:
+        new.append(pygame.transform.scale(i, (int(i.get_width()*scale), int(i.get_height()*scale))))
+    return new
+
 class Object(rgl.gameobject.Object):
     
     def __init__(self, engine):
@@ -303,6 +309,7 @@ class Rusher(Object):
             self.hp -= 1
             if self.hp <= 0:
                 self.kill()
+                Explosion(self.engine, self.rect.center, 1.5)
     
     def do_ai(self, player):
         pass
@@ -339,6 +346,7 @@ class Bat(Object):
             self.hp -= 1
             if self.hp <= 0:
                 self.kill()
+                Explosion(self.engine, self.rect.center)
 
     def do_ai(self, player):
         if player.rect.left < self.rect.right and player.rect.right > self.rect.left:
@@ -395,10 +403,26 @@ class Crawly(Object):
             self.hp -= 1
             if self.hp <= 0:
                 self.kill()
+                Explosion(self.engine, self.rect.center)
     
     def do_ai(self, player):
         pass
 
+class Explosion(Object):
+    
+    def __init__(self, engine, pos, scale=1.0):
+        Object.__init__(self, engine)
+        self.images = [rgl.util.load_image("data/cloud-%d.png" % i) for i in range(1, 5)]
+        self.images = scale_images(self.images, scale)
+        self.image = self.images[0]
+        self.rect = self.image.get_rect(center=pos)
+        self.frame = 0
+    
+    def update(self):
+        self.image = self.images[self.frame/2%4]
+        self.frame += 1
+        if self.frame > 8:
+            self.kill()
 
 class BadShot(Object):
     
@@ -428,12 +452,11 @@ class BadShot(Object):
     def on_collision(self, dx, dy, tile):
         self.kill()
 
-
 class Squatter(Object):
     
     def __init__(self, engine, pos):
         Object.__init__(self, engine)
-        self.images = [rgl.util.load_image("data/bat-%d.png" % i) for i in range(1, 5)]
+        self.images = [rgl.util.load_image("data/squatter-%d.png" % i) for i in range(1, 5)]
         self.image = self.images[0]
         self.rect = self.image.get_rect(topleft=pos)
         self.frame = 0
@@ -445,11 +468,7 @@ class Squatter(Object):
     
     def update(self):
         self.hitframe -= 1
-        if self.hitframe <= 0:
-            self.move(0, self.dy)
-        self.image = self.images[self.frame/4%2 + 1]
-        if self.dy == 0:
-            self.image = self.images[0]
+        self.image = self.images[self.frame/8%2]
         if self.hitframe > 0:
             self.image = self.images[3]
         self.frame += 1
