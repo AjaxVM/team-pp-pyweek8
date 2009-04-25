@@ -325,3 +325,58 @@ class Bat(Object):
     def do_ai(self, player):
         if player.rect.left < self.rect.right and player.rect.right > self.rect.left:
             self.dy = 5
+
+class Crawly(Object):
+    
+    def __init__(self, engine, pos, side):
+        Object.__init__(self, engine)
+        self.left_images = [rgl.util.load_image("data/crawly-%d.png" % i) for i in range(1, 4)]
+        self.right_images = flip_images(self.left_images)
+        self.images = self.left_images
+        self.image = self.images[0]
+        self.rect = self.image.get_rect(topleft=pos)
+        self.dy = random.choice([-1, 1])
+        self.speed = 1
+        self.frame = 0
+        self.hitframe = 0
+        self.hp = 3
+        self.side = side
+    
+    def update(self):
+        self.hitframe -= 1
+        if self.hitframe <= 0:
+            self.move(1*self.side, self.dy*self.speed)
+        self.image = self.images[self.frame/4%2]
+        if self.hitframe > 0:
+            self.image = self.images[2]
+        if self.side > 0:
+            self.images = self.right_images
+        else:
+            self.images = self.left_images
+        self.frame += 1
+    
+    def on_collision(self, dx, dy, tile):
+        start_dy = self.dy
+        if dx != 0:
+            if tile.on_end[0] and self.rect.top <= tile.rect.top+1:
+                self.dy = abs(start_dy)
+            elif tile.on_end[1]:
+                self.dy = -abs(start_dy)
+        else:
+            if tile.on_end[0] or tile.on_end[1] and dy != 0:
+                if self.rect.centery < tile.rect.centery:
+                    self.dy = -abs(start_dy)
+                    self.rect.bottom = tile.rect.top
+                elif self.rect.centery > tile.rect.centery:
+                    self.dy = abs(start_dy)
+                    self.rect.top = tile.rect.bottom
+
+    def hit(self):
+        if self.hitframe <= 0:
+            self.hitframe = 3
+            self.hp -= 1
+            if self.hp <= 0:
+                self.kill()
+    
+    def do_ai(self, player):
+        pass
