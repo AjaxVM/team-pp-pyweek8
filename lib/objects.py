@@ -88,9 +88,9 @@ class Player(Object):
         
         self.image = self.images[0]
         self.rect = self.image.get_rect(midtop=(128, 32))
-        self.rect.w = 12
+        self.rect.w = 10
         self.rect.h = 28
-        self.offset = (-10, -4)
+        self.offset = (-11, -4)
         
         self.jump_speed = 0.0
         self.jump_accel_slow = 0.35
