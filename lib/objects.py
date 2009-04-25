@@ -1,4 +1,11 @@
+import pygame
 import retrogamelib as rgl
+
+def flip_images(images):
+    new = []
+    for i in images:
+        new.append(pygame.transform.flip(i, 1, 0))
+    return new
 
 class Object(rgl.gameobject.Object):
     
@@ -73,7 +80,13 @@ class Player(Object):
     
     def __init__(self, engine):
         Object.__init__(self, engine)
-        self.image = rgl.util.load_image("data/spaceman-1.png")
+        li = rgl.util.load_image
+        
+        self.right_images = [li("data/spaceman-%d.png" % i) for i in range(1, 5)]
+        self.left_images = flip_images(self.right_images)
+        self.images = self.right_images
+        
+        self.image = self.images[0]
         self.rect = self.image.get_rect(midtop=(128, 32))
         self.rect.w = 12
         self.rect.h = 28
@@ -87,10 +100,26 @@ class Player(Object):
         self.jump_force = 8.0
         self.jumping = True
         
+        self.facing = 1
+        self.frame = 0
+        self.moving = False
+        
     def update(self):
+        self.frame += 1
         if self.jump_speed < self.max_fall:
             self.jump_speed += self.jump_accel
         self.move(0, self.jump_speed)
+        
+        if self.facing > 0:
+            self.images = self.right_images
+        else:
+            self.images = self.left_images
+        
+        frame = 0
+        if self.moving:
+            frame = -self.frame/2%3 + 1
+        
+        self.image = self.images[frame]
     
     def on_collision(self, dx, dy, tile):
         if dy > 0:
@@ -103,6 +132,15 @@ class Player(Object):
         if not self.jumping:
             self.jumping = True
             self.jump_speed = -self.jump_force
+    
+    def move(self, dx, dy):
+        Object.move(self, dx, dy)
+        if dx != 0:
+            self.moving = True
+        if dx < 0:
+            self.facing = -1
+        elif dx > 0:
+            self.facing = 1
 
 class Wall(Object):
     

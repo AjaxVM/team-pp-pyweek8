@@ -44,6 +44,7 @@ class Game(object):
         # Have rgl check and handle the input for us
         rgl.button.handle_input()
         
+        self.player.moving = False
         if rgl.button.is_held(LEFT):
             self.player.move(-3, 0)
         if rgl.button.is_held(RIGHT):
