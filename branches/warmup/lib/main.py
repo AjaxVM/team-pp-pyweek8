@@ -1,4 +1,4 @@
-
+import game
 
 def run_game():
-    print "hello world!"
+    game.Game().loop()
