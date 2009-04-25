@@ -1,4 +1,6 @@
 import retrogamelib as rgl
+from objects import *
+from engine import *
 
 class Game(object):
     
@@ -6,6 +8,16 @@ class Game(object):
         
         # Setup the display
         rgl.display.init(2.0, "Lunaroid")
+        
+        # Create some groups to hold objects
+        self.objects = rgl.gameobject.Group()
+        
+        # Assign some groups to the global objects' `groups` attributes
+        Player.groups = [self.objects]
+        
+        # Create some starting objects
+        self.engine = Engine()
+        self.player = Player(self.engine)
     
     def loop(self):
         while 1:
@@ -32,7 +44,13 @@ class Game(object):
         
         # Get the surface to draw to
         surface = rgl.display.get_surface()
+        
+        # Do basic pygame drawing
         surface.fill((0, 0, 0))
+        
+        # Draw all the objects
+        for obj in self.objects:
+            obj.draw(surface)
         
         # Update the display
         rgl.display.update()
