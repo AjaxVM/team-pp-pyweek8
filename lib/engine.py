@@ -33,6 +33,12 @@ class Engine(object):
                     Rusher(self, (x*16, y*16))
                 if color == [0, 255, 0]:
                     Bat(self, (x*16, y*16))
+                if color == [255, 0, 0]:
+                    if self.get_at(wx-1, wy) != [0, 0, 0]:
+                        side = 1
+                    else:
+                        side = -1
+                    Crawly(self, (x*16, y*16), side)
         self.tiles = tiles
 
     def get_at(self, x, y):
