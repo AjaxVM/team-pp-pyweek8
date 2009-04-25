@@ -580,3 +580,49 @@ class Squatter(Object):
                 BadShot(self.engine, self.rect.center, angle)
         else:
             self.shot_count = 0
+
+class Boss(Object):
+    
+    def __init__(self, engine, pos):
+        Object.__init__(self, engine)
+        self.images = [rgl.util.load_image("data/squatter-%d.png" % i) for i in range(1, 5)]
+        self.image = self.images[0]
+        self.rect = self.image.get_rect(topleft=pos)
+        self.frame = 0
+        self.hitframe = 0
+        self.hp = 20
+        self.dy = 0
+
+        self.shot_count = 0
+    
+    def update(self):
+        self.hitframe -= 1
+        self.image = self.images[self.frame/8%2]
+        if self.hitframe > 0:
+            self.image = self.images[3]
+        self.frame += 1
+    
+    def on_collision(self, dx, dy, tile):
+        self.respond(dx, dy, tile)
+        self.dy = 0
+
+    def hit(self):
+        if self.hitframe <= 0:
+            self.hitframe = 3
+            self.hp -= 1
+            if self.hp <= 0:
+                self.kill()
+
+    def do_ai(self, player):
+        if self.rect.colliderect(player.rect.inflate(10,10).move(self.rect.left-player.rect.left, 0)):
+            self.shot_count += 1
+            if self.shot_count >= 20:
+                self.shot_count = 0
+                if self.rect.centerx < player.rect.centerx:
+                    angle = 90
+                else:
+                    angle = 270
+                for x in xrange(5):
+                    BadShot(self.engine, (self.rect.centerx, self.rect.top-16+x*8), angle)
+        else:
+            self.shot_count = 0
