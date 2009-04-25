@@ -77,9 +77,9 @@ class Game(object):
         for p in self.powerups:
             if self.player.rect.colliderect(p.rect):
                 p.kill()
-                self.player.energy += 5
-                if self.player.energy > 30:
-                    self.player.energy = 30
+                self.player.energy += 15
+                if self.player.energy > 100:
+                    self.player.energy = 100
     
     def handle_input(self):
         

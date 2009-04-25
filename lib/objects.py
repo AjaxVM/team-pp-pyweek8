@@ -103,7 +103,7 @@ class Player(Object):
         self.rect.midtop = (128, 16)
         self.offset = (-11, -4)
         self.z = 1
-        self.energy = 30
+        self.energy = 100
         self.flicker = 50
         
         self.jump_speed = 0.0
@@ -118,6 +118,7 @@ class Player(Object):
         self.frame = 0
         self.moving = False
         self.lookup = False
+        self.has_missile = False
         
     def draw(self, surface):
         if self.flicker <= 0:
@@ -200,13 +201,13 @@ class Player(Object):
     
     def shoot(self):
         if self.lookup:
-            Shot(self.engine, self.rect.midtop, 0)
+            Shot(self.engine, self.rect.midtop, 0, self.has_missile)
         else:
             y = self.rect.top + 7
             if self.facing > 0:
-                Shot(self.engine, (self.rect.centerx, y), 90)
+                Shot(self.engine, (self.rect.centerx, y), 90, self.has_missile)
             else:
-                Shot(self.engine, (self.rect.centerx, y), 270)
+                Shot(self.engine, (self.rect.centerx, y), 270, self.has_missile)
     
     def move(self, dx, dy):
         Object.move(self, dx, dy)
@@ -227,9 +228,12 @@ class Wall(Object):
 
 class Door(Object):
     
-    def __init__(self, engine, pos, facing):
+    def __init__(self, engine, pos, facing, hard=False):
         Object.__init__(self, engine)
-        self.images = [rgl.util.load_image("data/door-%d.png" % i) for i in range(1, 5)]
+        if not hard:
+            self.images = [rgl.util.load_image("data/door-%d.png" % i) for i in range(1, 5)]
+        else:
+            self.images = [rgl.util.load_image("data/door-hard-%d.png" % i) for i in range(1, 5)]
         self.facing = facing
         if self.facing > 0:
             self.images = flip_images(self.images)
@@ -240,6 +244,7 @@ class Door(Object):
         self.on_end = [False, False, True, True]
         self.open = False
         self.z = 2
+        self.hard = hard
     
     def hit(self):
         self.open = True
@@ -254,10 +259,14 @@ class Door(Object):
 
 class Shot(Object):
     
-    def __init__(self, engine, pos, angle):
+    def __init__(self, engine, pos, angle, missile=0):
         Object.__init__(self, engine)
-        self.image = rgl.util.load_image("data/shot.png")
+        if missile:
+            self.image = rgl.util.load_image("data/missile.png")
+        else:
+            self.image = rgl.util.load_image("data/shot.png")
         self.rect = self.image.get_rect(center=pos)
+        self.missile = missile
         self.dx = self.dy = 0
         if angle == 0:
             self.dy = -1
@@ -265,6 +274,10 @@ class Shot(Object):
             self.dx = 1
         elif angle == 270:
             self.dx = -1
+        if angle == 0:
+            angle = 180
+        self.image = pygame.transform.rotate(self.image, angle-90)
+        self.rect = self.image.get_rect(center = self.rect.center)
         self.rect.x += 16*self.dx
         self.rect.y += 16*self.dy
         self.speed = 8
@@ -280,7 +293,11 @@ class Shot(Object):
     def on_collision(self, dx, dy, tile):
         self.kill()
         if isinstance(tile, Door):
-            tile.hit()
+            if tile.hard:
+                if self.missile == True:
+                    tile.hit()
+            else:
+                tile.hit()
 
 class Rusher(Object):
     
