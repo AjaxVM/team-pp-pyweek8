@@ -36,7 +36,8 @@ class Game(object):
             self.draw()
     
     def update(self):
-        pass
+        for obj in self.objects:
+            obj.update()
     
     def handle_input(self):
         
@@ -47,10 +48,14 @@ class Game(object):
             self.player.move(-3, 0)
         if rgl.button.is_held(RIGHT):
             self.player.move(3, 0)
-        if rgl.button.is_held(UP):
-            self.player.move(0, -3)
-        if rgl.button.is_held(DOWN):
-            self.player.move(0, 3)
+            
+        # Make the player jump if you press the A Button/Z Key
+        if rgl.button.is_pressed(A_BUTTON):
+            self.player.jump()
+        if rgl.button.is_held(A_BUTTON):
+            self.player.jump_accel = self.player.jump_accel_slow
+        else:
+            self.player.jump_accel = self.player.jump_accel_fast
     
     def draw(self):
         
