@@ -1,4 +1,5 @@
 import retrogamelib as rgl
+from retrogamelib.constants import *
 from objects import *
 from engine import *
 
@@ -41,6 +42,15 @@ class Game(object):
         
         # Have rgl check and handle the input for us
         rgl.button.handle_input()
+        
+        if rgl.button.is_held(LEFT):
+            self.player.move(-3, 0)
+        if rgl.button.is_held(RIGHT):
+            self.player.move(3, 0)
+        if rgl.button.is_held(UP):
+            self.player.move(0, -3)
+        if rgl.button.is_held(DOWN):
+            self.player.move(0, 3)
     
     def draw(self):
         
