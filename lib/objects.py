@@ -21,6 +21,22 @@ class Object(rgl.gameobject.Object):
         ########################################
         #### Collision detection goes here #####
         ########################################
+
+        #size = 16x16
+        poss_tile = int(self.rect.centerx / 16), int(self.rect.bottom/16)
+        #This causes the top half of the player to not register a hit, if you want that, then
+        #do poss_tile +/- 2
+        for x in xrange(poss_tile[0]-1, poss_tile[0]+1):
+            for y in xrange(poss_tile[1]-1, poss_tile[1]+1):
+                if x < 0 or x >= len(tiles[0]) or\
+                   y < 0 or y >= len(tiles):
+                    continue
+
+                tile = tiles[y][x]
+                if not tile:
+                    continue
+                if tile.rect.colliderect(self.rect):
+                    print "collision!", tile.rect
     
     def draw(self, surface):
         surface.blit(self.image, self.rect)
