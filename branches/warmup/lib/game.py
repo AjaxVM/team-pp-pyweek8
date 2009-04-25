@@ -22,6 +22,14 @@ class Game(object):
         self.engine.parse_level()
         self.player = Player(self.engine)
     
+    def move_view(self, dx, dy):
+        for obj in self.objects:
+            if obj != self.player:
+                obj.kill()
+        self.engine.pos[0] += dx
+        self.engine.pos[1] += dy
+        self.engine.parse_level()
+    
     def loop(self):
         while 1:
             
@@ -57,6 +65,19 @@ class Game(object):
             self.player.jump_accel = self.player.jump_accel_slow
         else:
             self.player.jump_accel = self.player.jump_accel_fast
+    
+        if self.player.rect.left > 256:
+            self.player.rect.left = 0
+            self.move_view(1, 0)
+        if self.player.rect.right < 0:
+            self.player.rect.right = 256
+            self.move_view(-1, 0)
+        if self.player.rect.top > 240:
+            self.player.rect.top = 0
+            self.move_view(0, 1)
+        if self.player.rect.bottom < 0:
+            self.player.rect.bottom = 240
+            self.move_view(0, -1)
     
     def draw(self):
         
