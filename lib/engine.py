@@ -31,6 +31,8 @@ class Engine(object):
                     tiles[-1].append(None)
                 if color == [0, 0, 255]:
                     Rusher(self, (x*16, y*16))
+                if color == [0, 255, 0]:
+                    Bat(self, (x*16, y*16))
         self.tiles = tiles
 
     def get_at(self, x, y):

@@ -252,7 +252,8 @@ class Rusher(Object):
     
     def update(self):
         self.hitframe -= 1
-        self.move(self.dx*self.speed, 4)
+        if self.hitframe <= 0:
+            self.move(self.dx*self.speed, 4)
         self.image = self.images[self.frame/4%2]
         if self.hitframe > 0:
             self.image = self.images[2]
@@ -284,3 +285,43 @@ class Rusher(Object):
             self.hp -= 1
             if self.hp <= 0:
                 self.kill()
+    
+    def do_ai(self, player):
+        pass
+
+class Bat(Object):
+    
+    def __init__(self, engine, pos):
+        Object.__init__(self, engine)
+        self.images = [rgl.util.load_image("data/bat-%d.png" % i) for i in range(1, 5)]
+        self.image = self.images[0]
+        self.rect = self.image.get_rect(topleft=pos)
+        self.frame = 0
+        self.hitframe = 0
+        self.hp = 3
+        self.dy = 0
+    
+    def update(self):
+        self.hitframe -= 1
+        if self.hitframe <= 0:
+            self.move(0, self.dy)
+        self.image = self.images[self.frame/4%2 + 1]
+        if self.dy == 0:
+            self.image = self.images[0]
+        if self.hitframe > 0:
+            self.image = self.images[3]
+        self.frame += 1
+    
+    def on_collision(self, dx, dy, tile):
+        self.dy = 0
+
+    def hit(self):
+        if self.hitframe <= 0:
+            self.hitframe = 3
+            self.hp -= 1
+            if self.hp <= 0:
+                self.kill()
+
+    def do_ai(self, player):
+        if player.rect.left < self.rect.right and player.rect.right > self.rect.left:
+            self.dy = 5
