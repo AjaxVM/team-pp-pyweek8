@@ -82,15 +82,19 @@ class Player(Object):
         Object.__init__(self, engine)
         li = rgl.util.load_image
         
-        self.right_images = [li("data/spaceman-%d.png" % i) for i in range(1, 6)]
-        self.left_images = flip_images(self.right_images)
-        self.images = self.right_images
+        self.right_legs = [li("data/spaceman-legs-%d.png" % i) for i in range(1, 6)]
+        self.left_legs = flip_images(self.right_legs)
+        self.right_tops = [li("data/spaceman-top-%d.png" % i) for i in range(1, 2)]
+        self.left_tops = flip_images(self.right_tops)
+        self.legs = self.right_legs
+        self.tops = self.right_tops
         
-        self.image = self.images[0]
-        self.rect = self.image.get_rect(midtop=(128, 32))
-        self.rect.w = 10
-        self.rect.h = 28
+        self.top_image = self.tops[0]
+        self.legs_image = self.legs[0]
+        self.rect = pygame.Rect(0, 0, 10, 28)
+        self.rect.midtop = (128, 16)
         self.offset = (-11, -4)
+        self.z = 1
         
         self.jump_speed = 0.0
         self.jump_accel_slow = 0.35
@@ -103,6 +107,10 @@ class Player(Object):
         self.facing = 1
         self.frame = 0
         self.moving = False
+        
+    def draw(self, surface):
+        surface.blit(self.legs_image, self.rect.move(self.offset))
+        surface.blit(self.top_image, self.rect.move(self.offset))
         
     def update(self):
         
@@ -121,9 +129,11 @@ class Player(Object):
         
         # Set the images value to left or right depending on which way we're facing
         if self.facing > 0:
-            self.images = self.right_images
+            self.legs = self.right_legs
+            self.tops = self.right_tops
         else:
-            self.images = self.left_images
+            self.legs = self.left_legs
+            self.tops = self.left_tops
         
         # Set the default frame to zero
         frame = 0
@@ -138,7 +148,8 @@ class Player(Object):
             frame = 4
         
         # Set the image to the animation frame
-        self.image = self.images[frame]
+        self.legs_image = self.legs[frame]
+        self.top_image = self.tops[0]
     
     def on_collision(self, dx, dy, tile):
         if dy > 0:
