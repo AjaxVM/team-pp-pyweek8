@@ -34,6 +34,13 @@ class Engine(object):
                         side = -1
                     d = Door(self, (x*16, y*16), side)
                     tiles[-1].append(d)
+                elif color == [255, 255, 0]:
+                    if self.get_at(wx-1, wy) == [255, 255, 0]:
+                        side = 1
+                    else:
+                        side = -1
+                    d = Door(self, (x*16, y*16), side, True)
+                    tiles[-1].append(d)
                 else:
                     tiles[-1].append(None)
                 if color == [0, 0, 255]:
