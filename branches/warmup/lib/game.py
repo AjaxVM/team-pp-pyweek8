@@ -26,6 +26,7 @@ class Game(object):
         Crawly.groups = [self.objects, self.baddies]
         Explosion.groups = [self.objects]
         Squatter.groups = [self.objects, self.baddies]
+        Door.groups = [self.objects]
         
         # Create some starting objects
         self.engine = Engine()
@@ -103,10 +104,10 @@ class Game(object):
     
         # Create a new area if you go off the screen
         if self.player.rect.right > 256:
-            self.player.rect.left = 0
+            self.player.rect.left = 16
             self.move_view(1, 0)
         if self.player.rect.left < 0:
-            self.player.rect.right = 256
+            self.player.rect.right = 240
             self.move_view(-1, 0)
         if self.player.rect.bottom > 240:
             self.player.rect.top = 0
