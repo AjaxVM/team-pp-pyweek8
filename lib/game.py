@@ -12,16 +12,21 @@ class Game(object):
         
         # Create some groups to hold objects
         self.objects = rgl.gameobject.Group()
+        self.shots = rgl.gameobject.Group()
+        self.baddies = rgl.gameobject.Group()
         
         # Assign some groups to the global objects' `groups` attributes
         Player.groups = [self.objects]
         Wall.groups = [self.objects]
-        Shot.groups = [self.objects]
+        Shot.groups = [self.objects, self.shots]
+        Rusher.groups = [self.objects, self.baddies]
+        
         
         # Create some starting objects
         self.engine = Engine()
         self.engine.parse_level()
         self.player = Player(self.engine)
+        rgl.util.play_music("data/metroid.mod", -1)
     
     def move_view(self, dx, dy):
         for obj in self.objects:
@@ -90,6 +95,12 @@ class Game(object):
         if self.player.rect.top < 0:
             self.player.rect.bottom = 240
             self.move_view(0, -1)
+            
+        for s in self.shots:
+            for b in self.baddies:
+                if s.rect.colliderect(b.rect):
+                    b.hit()
+                    s.kill()
     
     def draw(self):
         
