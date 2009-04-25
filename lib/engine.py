@@ -39,6 +39,8 @@ class Engine(object):
                     else:
                         side = -1
                     Crawly(self, (x*16, y*16), side)
+                if color == [255,0,255]:
+                    Squatter(self, (x*16, y*16))
         self.tiles = tiles
 
     def get_at(self, x, y):
