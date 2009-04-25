@@ -27,6 +27,7 @@ class Game(object):
         self.engine = Engine()
         self.engine.parse_level()
         self.player = Player(self.engine)
+        self.font = rgl.font.Font(NES_FONT, (255, 255, 255))
         rgl.util.play_music("data/metroid.mod", -1)
     
     def move_view(self, dx, dy):
@@ -55,6 +56,8 @@ class Game(object):
             obj.update()
         for baddie in self.baddies:
             baddie.do_ai(self.player)
+            if baddie.rect.colliderect(self.player.rect):
+                self.player.hit()
     
     def handle_input(self):
         
@@ -116,6 +119,9 @@ class Game(object):
         # Draw all the objects
         for obj in self.objects:
             obj.draw(surface)
+        
+        ren = self.font.render("Energy %02d" % self.player.energy)
+        surface.blit(ren, (10, 10))
         
         # Update the display
         rgl.display.update()
