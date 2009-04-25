@@ -20,7 +20,7 @@ class Game(object):
         Wall.groups = [self.objects]
         Shot.groups = [self.objects, self.shots]
         Rusher.groups = [self.objects, self.baddies]
-        
+        Bat.groups = [self.objects, self.baddies]
         
         # Create some starting objects
         self.engine = Engine()
@@ -52,6 +52,8 @@ class Game(object):
     def update(self):
         for obj in self.objects:
             obj.update()
+        for baddie in self.baddies:
+            baddie.do_ai(self.player)
     
     def handle_input(self):
         
