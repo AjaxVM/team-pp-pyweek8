@@ -15,21 +15,32 @@ class Object(rgl.gameobject.Object):
     def move_one_axis(self, dx, dy):
         self.rect.move_ip(dx, dy)
         
-        #TODO: Add response
+        # Get all the tiles you're colliding with
         tiles = self.check_collisions()
         
-        
+        # Collision response
+        for t in tiles:
+            if t.rect.colliderect(self.rect):
+                if dx > 0:
+                    self.rect.right = t.rect.left
+                if dx < 0:
+                    self.rect.left = t.rect.right
+                if dy > 0:
+                    self.rect.bottom = t.rect.top
+                if dy < 0:
+                    self.rect.top = t.rect.bottom
     
     def draw(self, surface):
         surface.blit(self.image, self.rect)
         
     def check_collisions(self):
         tiles = self.engine.tiles
+        collide_tiles = []
         
         #size = 16x16
         pos_tile = int(self.rect.centerx / 16), int(self.rect.bottom/16)
       
-       #This causes the top half of the player to not register a hit, if you want that, then
+        #This causes the top half of the player to not register a hit, if you want that, then
         #do pos_tile +/- 2
         for x in xrange(pos_tile[0]-2, pos_tile[0]+2):
             for y in xrange(pos_tile[1]-2, pos_tile[1]+2):
@@ -41,7 +52,9 @@ class Object(rgl.gameobject.Object):
                 if not tile:
                     continue
                 if tile.rect.colliderect(self.rect):
-                    print "collision!", tile.rect
+                    collide_tiles.append(tile)
+        
+        return collide_tiles
 
 class Player(Object):
     
