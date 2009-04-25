@@ -42,19 +42,21 @@ class Object(rgl.gameobject.Object):
         # Collision response
         for t in tiles:
             if t.rect.colliderect(self.rect):
-                if dx > 0:
-                    self.rect.right = t.rect.left
-                if dx < 0:
-                    self.rect.left = t.rect.right
-                if dy > 0:
-                    self.rect.bottom = t.rect.top
-                if dy < 0:
-                    self.rect.top = t.rect.bottom
                 self.on_collision(dx, dy, t)
     
     # Called when a collision occurs
     def on_collision(self, dx, dy, tile):
-        pass
+        self.respond(dx, dy, tile)
+    
+    def respond(self, dx, dy, t):
+        if dx > 0:
+            self.rect.right = t.rect.left
+        if dx < 0:
+            self.rect.left = t.rect.right
+        if dy > 0:
+            self.rect.bottom = t.rect.top
+        if dy < 0:
+            self.rect.top = t.rect.bottom
     
     def draw(self, surface):
         surface.blit(self.image, self.rect.move(*self.offset))
@@ -134,6 +136,7 @@ class Player(Object):
             self.energy -= damage
             if self.energy <= 0:
                 self.kill()
+                Explosion(self.engine, self.rect.center, 1.5)
         
     def update(self):
         
@@ -179,6 +182,11 @@ class Player(Object):
         self.flicker -= 1
     
     def on_collision(self, dx, dy, tile):
+        if isinstance(tile, Door):
+            if tile.open == False:
+                self.respond(dx, dy, tile)
+        else:
+            self.respond(dx, dy, tile)
         if dy > 0:
             self.jump_speed = 0
             self.jumping = False
@@ -216,18 +224,33 @@ class Wall(Object):
         self.image = rgl.util.load_image("data/wall.png")
         self.rect = self.image.get_rect(topleft=pos)
         self.on_end = [False, False, False, False]
-   
-    '''def draw(self, surface):
-        image = pygame.Surface((16, 16))
-        if self.on_end[0]:
-            pygame.draw.line(image, (255, 255, 255), (0, 0), (15, 0))
-        if self.on_end[1]:
-            pygame.draw.line(image, (255, 255, 255), (0, 15), (15, 15))
-        if self.on_end[2]:
-            pygame.draw.line(image, (255, 255, 255), (0, 0), (0, 15))
-        if self.on_end[3]:
-            pygame.draw.line(image, (255, 255, 255), (15, 0), (15, 15))
-        surface.blit(image, self.rect)'''
+
+class Door(Object):
+    
+    def __init__(self, engine, pos, facing):
+        Object.__init__(self, engine)
+        self.images = [rgl.util.load_image("data/door-%d.png" % i) for i in range(1, 5)]
+        self.facing = facing
+        if self.facing > 0:
+            self.images = flip_images(self.images)
+        self.image = self.images[0]
+        self.offset = (-4*facing, 0)
+        self.frame = 0
+        self.rect = self.image.get_rect(topleft=pos)
+        self.on_end = [False, False, False, False]
+        self.open = False
+        self.z = 2
+    
+    def hit(self):
+        self.open = True
+    
+    def update(self):
+        if self.open and self.frame < 4:
+            self.image = self.images[self.frame]
+            self.frame += 1
+        if self.open and self.frame >= 4:
+            self.image = self.images[3]
+            self.frame = 4
 
 class Shot(Object):
     
@@ -256,6 +279,8 @@ class Shot(Object):
     
     def on_collision(self, dx, dy, tile):
         self.kill()
+        if isinstance(tile, Door):
+            tile.hit()
 
 class Rusher(Object):
     
@@ -288,6 +313,7 @@ class Rusher(Object):
         self.frame += 1
     
     def on_collision(self, dx, dy, tile):
+        self.respond(dx, dy, tile)
         start_dx = self.dx
         if self.rect.bottom >= tile.rect.top and dy > 0:
             if tile.on_end[2] == True and self.rect.left <= tile.rect.left:
@@ -382,6 +408,7 @@ class Crawly(Object):
         self.frame += 1
     
     def on_collision(self, dx, dy, tile):
+        self.respond(dx, dy, tile)
         start_dy = self.dy
         if dx != 0:
             if tile.on_end[0] and self.rect.top <= tile.rect.top+1:
@@ -474,6 +501,7 @@ class Squatter(Object):
         self.frame += 1
     
     def on_collision(self, dx, dy, tile):
+        self.respond(dx, dy, tile)
         self.dy = 0
 
     def hit(self):

@@ -27,6 +27,13 @@ class Engine(object):
                     if self.get_at(wx+1, wy) != [0, 0, 0]:
                         w.on_end[3] = True
                     tiles[-1].append(w)
+                elif color == [0, 255, 255]:
+                    if self.get_at(wx-1, wy) == [0, 255, 255]:
+                        side = 1
+                    else:
+                        side = -1
+                    d = Door(self, (x*16, y*16), side)
+                    tiles[-1].append(d)
                 else:
                     tiles[-1].append(None)
                 if color == [0, 0, 255]:
@@ -39,7 +46,7 @@ class Engine(object):
                     else:
                         side = -1
                     Crawly(self, (x*16, y*16), side)
-                if color == [255,0,255]:
+                if color == [255, 0, 255]:
                     Squatter(self, (x*16, y*16))
         self.tiles = tiles
 
