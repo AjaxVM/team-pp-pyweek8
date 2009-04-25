@@ -335,6 +335,8 @@ class Rusher(Object):
             self.hp -= 1
             if self.hp <= 0:
                 self.kill()
+                if not random.randrange(5):
+                    HealthUp(self.engine, self.rect.center)
                 Explosion(self.engine, self.rect.center, 1.5)
     
     def do_ai(self, player):
@@ -372,6 +374,8 @@ class Bat(Object):
             self.hp -= 1
             if self.hp <= 0:
                 self.kill()
+                if not random.randrange(125):
+                    HealthUp(self.engine, self.rect.center)
                 Explosion(self.engine, self.rect.center)
 
     def do_ai(self, player):
@@ -429,6 +433,8 @@ class Crawly(Object):
             self.hitframe = 3
             self.hp -= 1
             if self.hp <= 0:
+                if not random.randrange(5):
+                    HealthUp(self.engine, self.rect.center)
                 self.kill()
                 Explosion(self.engine, self.rect.center)
     
@@ -479,6 +485,31 @@ class BadShot(Object):
     def on_collision(self, dx, dy, tile):
         self.kill()
 
+class HealthUp(Object):
+    def __init__(self, engine, pos):
+        Object.__init__(self, engine)
+        self.reg_image = pygame.Surface((13, 13)).convert()
+        self.blink_image = self.reg_image.copy()
+        self.reg_image.fill((255,0,0))
+        self.image = self.reg_image
+        self.rect = self.image.get_rect(center = pos)
+
+        self.life = 150
+
+    def update(self):
+        self.life -= 1
+        if self.life < 50:
+            if self.life % 5 == 0:
+                if self.image == self.reg_image:
+                    self.image = self.blink_image
+                else:
+                    self.image = self.reg_image
+        if self.life <= 0:
+            self.kill()
+
+    def on_collision(self, dx, dy, tile):
+        self.kill()
+
 class Squatter(Object):
     
     def __init__(self, engine, pos):
@@ -509,6 +540,8 @@ class Squatter(Object):
             self.hitframe = 3
             self.hp -= 1
             if self.hp <= 0:
+                if not random.randrange(5):
+                    HealthUp(self.engine, self.rect.center)
                 self.kill()
 
     def do_ai(self, player):

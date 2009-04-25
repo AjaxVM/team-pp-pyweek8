@@ -15,6 +15,7 @@ class Game(object):
         self.shots = rgl.gameobject.Group()
         self.badshots = rgl.gameobject.Group()
         self.baddies = rgl.gameobject.Group()
+        self.powerups = rgl.gameobject.Group()
         
         # Assign some groups to the global objects' `groups` attributes
         Player.groups = [self.objects]
@@ -26,6 +27,7 @@ class Game(object):
         Crawly.groups = [self.objects, self.baddies]
         Explosion.groups = [self.objects]
         Squatter.groups = [self.objects, self.baddies]
+        HealthUp.groups = [self.objects, self.powerups]
         Door.groups = [self.objects]
         
         # Create some starting objects
@@ -72,6 +74,12 @@ class Game(object):
             if s.rect.colliderect(self.player.rect):
                 s.kill()
                 self.player.hit()
+        for p in self.powerups:
+            if self.player.rect.colliderect(p.rect):
+                p.kill()
+                self.player.energy += 5
+                if self.player.energy > 30:
+                    self.player.energy = 30
     
     def handle_input(self):
         
