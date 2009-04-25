@@ -166,6 +166,16 @@ class Player(Object):
             self.jumping = True
             self.jump_speed = -self.jump_force
     
+    def shoot(self):
+        if self.lookup:
+            Shot(self.engine, self.rect.midtop, 0)
+        else:
+            y = self.rect.top + 7
+            if self.facing > 0:
+                Shot(self.engine, (self.rect.centerx, y), 90)
+            else:
+                Shot(self.engine, (self.rect.centerx, y), 270)
+    
     def move(self, dx, dy):
         Object.move(self, dx, dy)
         if dx != 0:
@@ -181,4 +191,31 @@ class Wall(Object):
         Object.__init__(self, engine)
         self.image = rgl.util.load_image("data/wall.png")
         self.rect = self.image.get_rect(topleft=pos)
+
+class Shot(Object):
+    
+    def __init__(self, engine, pos, angle):
+        Object.__init__(self, engine)
+        self.image = rgl.util.load_image("data/shot.png")
+        self.rect = self.image.get_rect(center=pos)
+        self.dx = self.dy = 0
+        if angle == 0:
+            self.dy = -1
+        elif angle == 90:
+            self.dx = 1
+        elif angle == 270:
+            self.dx = -1
+        self.rect.x += 16*self.dx
+        self.rect.y += 16*self.dy
+        self.speed = 8
+        self.life = 10
+    
+    def update(self):
+        self.move(self.dx*self.speed, self.dy*self.speed)
+        self.life -= 1
+        if self.life <= 0:
+            self.kill()
+    
+    def on_collision(self, dx, dy, tile):
+        self.kill()
 

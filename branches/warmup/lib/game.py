@@ -16,6 +16,7 @@ class Game(object):
         # Assign some groups to the global objects' `groups` attributes
         Player.groups = [self.objects]
         Wall.groups = [self.objects]
+        Shot.groups = [self.objects]
         
         # Create some starting objects
         self.engine = Engine()
@@ -52,8 +53,11 @@ class Game(object):
         # Have rgl check and handle the input for us
         rgl.button.handle_input()
         
+        # Reset some of the player's variables
         self.player.moving = False
         self.player.lookup = False
+        
+        # Move around
         if rgl.button.is_held(LEFT):
             self.player.move(-3, 0)
         if rgl.button.is_held(RIGHT):
@@ -69,16 +73,21 @@ class Game(object):
         else:
             self.player.jump_accel = self.player.jump_accel_fast
     
-        if self.player.rect.left > 256:
+        # Shoot if you press the B Button/X key
+        if rgl.button.is_pressed(B_BUTTON):
+            self.player.shoot()
+    
+        # Create a new area if you go off the screen
+        if self.player.rect.right > 256:
             self.player.rect.left = 0
             self.move_view(1, 0)
-        if self.player.rect.right < 0:
+        if self.player.rect.left < 0:
             self.player.rect.right = 256
             self.move_view(-1, 0)
-        if self.player.rect.top > 240:
+        if self.player.rect.bottom > 240:
             self.player.rect.top = 0
             self.move_view(0, 1)
-        if self.player.rect.bottom < 0:
+        if self.player.rect.top < 0:
             self.player.rect.bottom = 240
             self.move_view(0, -1)
     
