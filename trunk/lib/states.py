@@ -1,7 +1,7 @@
 import pygame
 from pygame.locals import *
 
-import data, ui
+import data, ui, objects
 
 class GameState(object):
     def __init__(self, parent=None):
@@ -65,10 +65,24 @@ class Game(GameState):
     def __init__(self, parent):
         GameState.__init__(self, parent)
 
+        self.screen = self.get_root().screen
+
         self.background = data.image("data/background1.png")
 
-        self.app = ui.App(self.get_root().screen)
-        ui.Button(self.app, "GoBack!", callback=self.goback)
+        self.app = ui.App(self.screen)
+        ui.Button(self.app, "GoBack!", pos=(0,500), callback=self.goback)
+
+        self.main_group = objects.GameGroup()
+        self.hero_group = objects.GameGroup()
+        self.hive_group = objects.GameGroup()
+
+        self.hero = objects.Hero(self)
+        self.hero_group.add(self.hero)
+        self.main_group.add(self.hero)
+
+        self.hive = objects.Hive(self)
+        self.hive_group.add(self.hive)
+        self.main_group.add(self.hive)
 
     def update(self):
         for event in pygame.event.get():
@@ -78,6 +92,12 @@ class Game(GameState):
                 self.get_root().shutdown()
                 return
 
-        self.get_root().screen.blit(self.background, (0,0))
+        self.hero_group.update()
+        self.hive_group.update()
+        self.main_group.sort()
+
+        self.screen.blit(self.background, (0,0))
+        self.main_group.render()
+        pygame.draw.rect(self.screen, (125,125,125), (0,500,800,600))
         self.app.render()
         pygame.display.flip()
