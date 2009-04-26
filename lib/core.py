@@ -16,10 +16,14 @@ class GameStateEngine(states.GameState):
                          "game": states.Game}
         self.use_child("menu")
 
+        self.clock = pygame.time.Clock()
+
     def shutdown(self):
         pygame.quit()
         self.running = False
 
     def run(self):
         while self.running:
+            self.clock.tick(60)
+            pygame.display.set_caption("FPS: %s"%round(self.clock.get_fps(), 1))
             self.do_update()
