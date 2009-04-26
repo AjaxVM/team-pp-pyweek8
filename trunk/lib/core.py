@@ -12,7 +12,8 @@ class GameStateEngine(states.GameState):
         self.running = True
 
         self.children = {"menu":states.Menu,
-                         None: states.Menu} #this makes sure that if any of the states goback to root the menu always runs!
+                         None: states.Menu, #this makes sure that if any of the states goback to root the menu always runs!
+                         "game": states.Game}
         self.use_child("menu")
 
     def shutdown(self):
