@@ -65,6 +65,8 @@ class Game(GameState):
     def __init__(self, parent):
         GameState.__init__(self, parent)
 
+        self.background = data.image("data/background1.png")
+
         self.app = ui.App(self.get_root().screen)
         ui.Button(self.app, "GoBack!", callback=self.goback)
 
@@ -76,6 +78,6 @@ class Game(GameState):
                 self.get_root().shutdown()
                 return
 
-        self.get_root().screen.fill((0,0,0))
+        self.get_root().screen.blit(self.background, (0,0))
         self.app.render()
         pygame.display.flip()
