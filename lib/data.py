@@ -2,7 +2,7 @@ import pygame
 from pygame.locals import *
 
 _images = {}
-def load_image(filename):
+def image(filename):
     if filename in _images:
         return _images[filename]
     image = pygame.image.load(filename).convert_alpha()
