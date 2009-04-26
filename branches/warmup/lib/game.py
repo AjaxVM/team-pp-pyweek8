@@ -1,4 +1,5 @@
 import retrogamelib as rgl
+import sys
 from retrogamelib.constants import *
 from objects import *
 from engine import *
@@ -17,6 +18,8 @@ class Game(object):
         self.baddies = rgl.gameobject.Group()
         self.powerups = rgl.gameobject.Group()
         self.missiles = rgl.gameobject.Group()
+        self.bosses = rgl.gameobject.Group()
+        self.explosions = rgl.gameobject.Group()
         
         # Assign some groups to the global objects' `groups` attributes
         Player.groups = [self.objects]
@@ -26,12 +29,12 @@ class Game(object):
         Rusher.groups = [self.objects, self.baddies]
         Bat.groups = [self.objects, self.baddies]
         Crawly.groups = [self.objects, self.baddies]
-        Explosion.groups = [self.objects]
+        Explosion.groups = [self.objects, self.explosions]
         Squatter.groups = [self.objects, self.baddies]
         HealthUp.groups = [self.objects, self.powerups]
         Door.groups = [self.objects]
         Missile.groups = [self.objects, self.missiles]
-        Boss.groups = [self.objects, self.baddies]
+        Boss.groups = [self.objects, self.baddies, self.bosses]
         
         # Create some starting objects
         self.engine = Engine(self)
@@ -39,6 +42,8 @@ class Game(object):
         self.engine.parse_level()
         self.font = rgl.font.Font(NES_FONT, (255, 255, 255))
         rgl.util.play_music("data/metroid.mod", -1)
+        self.boss_mode = False
+        self.move_view(0, 0)
     
     def move_view(self, dx, dy):
         for obj in self.objects:
@@ -47,6 +52,10 @@ class Game(object):
         self.engine.pos[0] += dx
         self.engine.pos[1] += dy
         self.engine.parse_level()
+        if len(self.bosses) == 1:
+            self.boss_mode = True
+        else:
+            self.boss_mode = False
     
     def loop(self):
         while 1:
@@ -83,9 +92,11 @@ class Game(object):
                 self.player.energy += 15
                 if self.player.energy > 100:
                     self.player.energy = 100
+                rgl.util.play_sound("data/health.ogg")
         for m in self.missiles:
             if self.player.rect.colliderect(m.rect):
                 m.kill()
+                rgl.util.play_sound("data/missiles.ogg")
                 self.player.has_missile = True
     
     def handle_input(self):
@@ -98,24 +109,25 @@ class Game(object):
         self.player.lookup = False
         
         # Move around
-        if rgl.button.is_held(LEFT):
-            self.player.move(-3, 0)
-        if rgl.button.is_held(RIGHT):
-            self.player.move(3, 0)
-        if rgl.button.is_held(UP):
-            self.player.lookup = True
+        if self.player.alive():
+            if rgl.button.is_held(LEFT):
+                self.player.move(-3, 0)
+            if rgl.button.is_held(RIGHT):
+                self.player.move(3, 0)
+            if rgl.button.is_held(UP):
+                self.player.lookup = True
             
-        # Make the player jump if you press the A Button/Z Key
-        if rgl.button.is_pressed(A_BUTTON):
-            self.player.jump()
-        if rgl.button.is_held(A_BUTTON):
-            self.player.jump_accel = self.player.jump_accel_slow
-        else:
-            self.player.jump_accel = self.player.jump_accel_fast
-    
-        # Shoot if you press the B Button/X key
-        if rgl.button.is_pressed(B_BUTTON):
-            self.player.shoot()
+            # Make the player jump if you press the A Button/Z Key
+            if rgl.button.is_pressed(A_BUTTON):
+                self.player.jump()
+            if rgl.button.is_held(A_BUTTON):
+                self.player.jump_accel = self.player.jump_accel_slow
+            else:
+                self.player.jump_accel = self.player.jump_accel_fast
+        
+            # Shoot if you press the B Button/X key
+            if rgl.button.is_pressed(B_BUTTON):
+                self.player.shoot()
     
         # Create a new area if you go off the screen
         if self.player.rect.right > 256:
@@ -145,6 +157,34 @@ class Game(object):
         
         ren = self.font.render("Energy %02d" % self.player.energy)
         surface.blit(ren, (10, 10))
+        
+        if not self.player.alive():
+            ren = self.font.render("game over")
+            surface.blit(ren, (128 - ren.get_width()/2, 120 - ren.get_height()/2))
+        if self.boss_mode and len(self.bosses) <= 0 and len(self.explosions) <= 0:
+            for obj in self.objects:
+                obj.draw(surface)
+                obj.update()
+            pygame.time.wait(1000)
+            surface.fill((0, 0, 0))
+            ren = self.font.render("you defeated the")
+            surface.blit(ren, (128 - ren.get_width()/2, 110 - ren.get_height()/2))
+            ren = self.font.render("mama brain")
+            surface.blit(ren, (128 - ren.get_width()/2, 120 - ren.get_height()/2))
+            ren = self.font.render("and escaped from the moon")
+            surface.blit(ren, (128 - ren.get_width()/2, 140 - ren.get_height()/2))
+            ren = self.font.render("riding it piggy back")
+            surface.blit(ren, (128 - ren.get_width()/2, 150 - ren.get_height()/2))
+            rgl.display.update()
+            pygame.time.wait(4000)
+            surface = rgl.display.get_surface()
+            surface.fill((0, 0, 0))
+            ren = self.font.render("the end!")
+            surface.blit(ren, (128 - ren.get_width()/2, 120 - ren.get_height()/2))
+            rgl.display.update()
+            pygame.time.wait(3000)
+            pygame.quit()
+            sys.exit()
         
         # Update the display
         rgl.display.update()

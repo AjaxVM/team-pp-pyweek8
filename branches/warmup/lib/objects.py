@@ -1,5 +1,6 @@
 import pygame, random
 import retrogamelib as rgl
+rgl.util.set_global_sound_volume(0.5)
 
 def flip_images(images):
     new = []
@@ -135,6 +136,7 @@ class Player(Object):
         if self.flicker <= 0:
             self.flicker = 10
             self.energy -= damage
+            rgl.util.play_sound("data/hit.ogg")
             if self.energy <= 0:
                 self.kill()
                 Explosion(self.engine, self.rect.center, 1.5)
@@ -196,6 +198,7 @@ class Player(Object):
 
     def jump(self):
         if not self.jumping:
+            rgl.util.play_sound("data/jump.ogg")
             self.jumping = True
             self.jump_speed = -self.jump_force
     
@@ -290,6 +293,10 @@ class Shot(Object):
         self.speed = 8
         self.life = 10
         self.move(0.1, 0)
+        if not self.missile:
+            rgl.util.play_sound("data/shoot.ogg")
+        else:
+            rgl.util.play_sound("data/missile.ogg")
     
     def update(self):
         self.move(self.dx*self.speed, self.dy*self.speed)
@@ -357,6 +364,7 @@ class Rusher(Object):
         if self.hitframe <= 0:
             self.hitframe = 3
             self.hp -= 1
+            rgl.util.play_sound("data/hit.ogg")
             if self.hp <= 0:
                 self.kill()
                 if not random.randrange(5):
@@ -390,12 +398,14 @@ class Bat(Object):
         self.frame += 1
     
     def on_collision(self, dx, dy, tile):
+        self.respond(dx, dy, tile)
         self.dy = 0
 
     def hit(self):
         if self.hitframe <= 0:
             self.hitframe = 3
             self.hp -= 1
+            rgl.util.play_sound("data/hit.ogg")
             if self.hp <= 0:
                 self.kill()
                 if not random.randrange(125):
@@ -456,6 +466,7 @@ class Crawly(Object):
         if self.hitframe <= 0:
             self.hitframe = 3
             self.hp -= 1
+            rgl.util.play_sound("data/hit.ogg")
             if self.hp <= 0:
                 if not random.randrange(5):
                     HealthUp(self.engine, self.rect.center)
@@ -474,6 +485,7 @@ class Explosion(Object):
         self.image = self.images[0]
         self.rect = self.image.get_rect(center=pos)
         self.frame = 0
+        rgl.util.play_sound("data/explode.ogg")
     
     def update(self):
         self.image = self.images[self.frame/2%4]
@@ -563,6 +575,7 @@ class Squatter(Object):
         if self.hitframe <= 0:
             self.hitframe = 3
             self.hp -= 1
+            rgl.util.play_sound("data/hit.ogg")
             if self.hp <= 0:
                 if not random.randrange(5):
                     HealthUp(self.engine, self.rect.center)
@@ -610,8 +623,10 @@ class Boss(Object):
         if self.hitframe <= 0:
             self.hitframe = 3
             self.hp -= 1
+            rgl.util.play_sound("data/hit.ogg")
             if self.hp <= 0:
                 self.kill()
+                Explosion(self.engine, self.rect.center, 3.0)
 
     def do_ai(self, player):
         if self.rect.colliderect(player.rect.inflate(10,10).move(self.rect.left-player.rect.left, 0)):
