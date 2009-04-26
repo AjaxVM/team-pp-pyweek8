@@ -1,7 +1,7 @@
 import pygame
 from pygame.locals import *
 
-import data
+import data, ui
 
 class GameState(object):
     def __init__(self, parent=None):
@@ -43,15 +43,18 @@ class Menu(GameState):
     def __init__(self, parent):
         GameState.__init__(self, parent)
 
-        self.text = data.font(None, 32).render("Test!", 1, [255,0,0])
+        self.app = ui.App(self.get_root().screen)
+        ui.Label(self.app, "Testing, 123", text_color=(255,0,0), pos=(0,0), anchor="topleft")
 
     def update(self):
         for event in pygame.event.get():
+            if self.app.update(event):
+                continue
             if event.type == QUIT:
                 self.get_root().shutdown()
                 return
 
         screen = self.get_root().screen
         screen.fill((0,0,0))
-        screen.blit(self.text, (0,0))
+        self.app.render()
         pygame.display.flip()
