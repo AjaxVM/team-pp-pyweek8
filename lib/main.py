@@ -1,5 +1,5 @@
-
+import core
 
 def run():
-    print "running..."
-    raw_input()
+    game = core.GameStateEngine()
+    game.run()
