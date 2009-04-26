@@ -97,8 +97,14 @@ class Widget(object):
 
     def load_text_and_image(self, text, image):
         if text:
-            text = self.font.render(text, 1, self.text_color)
-            rect = text.get_rect()
+            text = [self.font.render(t, 1, self.text_color) for t in text.split("\n")]
+            rects = [t.get_rect() for t in text]
+            w, h = 0,0
+            for i in rects:
+                if i.width > w:
+                    w = i.width
+                h += i.height
+            rect = pygame.rect.Rect(0,0,w,h)
         else:
             text = None
             rect = None
@@ -152,7 +158,10 @@ class Widget(object):
             x, y = self.rect.topleft
             x += self.tsize[0]
             y += self.tsize[1]
-            self.app.surf.blit(self.text, (x, y))
+            down = 0
+            for t in self.text:
+                self.app.surf.blit(t, (x, y+down))
+                down += t.get_height()
 
 class Label(Widget):
     def __init__(self, app, text, background_image=None, text_color=(255,255,255,255),
@@ -164,4 +173,37 @@ class Label(Widget):
 
         self.text, self.image, self.rect, self.tsize = self.load_text_and_image(text, background_image)
         self.set_pos(pos)
-        
+
+
+class Button(Label):
+    def __init__(self, app, text=None, image=None, image_hover=None, image_click=None,
+                 text_color=(255,255,255), text_color_hover=(255,255,255),
+                 text_color_click=(255,255,255), image_border=None, pos=(0,0), anchor="topleft",
+                 callback=None):
+        Widget.__init__(self, app, anchor)
+
+        self.text_color = text_color
+        self.reg_atts = self.load_text_and_image(text, image)
+        self.text_color = text_color_hover
+        self.hov_atts = self.load_text_and_image(text, image_hover)
+        self.text_color = text_color_click
+        self.cli_atts = self.load_text_and_image(text, image_click)
+
+        if callback:
+            self.events["click"] = callback
+        self._pos = pos
+        self.set_atts(self.reg_atts)
+
+    def set_atts(self, atts):
+        self.text, self.image, self.rect, self.tsize = atts
+        self.set_pos(self._pos)
+
+    def update(self, event):
+        Widget.update(self, event)
+
+        if self.hover and self.click:
+            self.set_atts(self.cli_atts)
+        elif self.hover:
+            self.set_atts(self.hov_atts)
+        else:
+            self.set_atts(self.reg_atts)
