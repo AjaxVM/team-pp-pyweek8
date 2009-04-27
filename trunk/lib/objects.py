@@ -64,6 +64,79 @@ class GameObject(object):
         else:
             self.kill()
 
+class MapGrid(object):
+    """This object stores all map related stuff, as well as "open"
+       spaces for towers/traps to be built on..."""
+    def __init__(self, game):
+        self.size = (800/20, 500/20)
+
+        self.make_base_grid()
+        self.fill((0,0), (10, 10)) #fill in the enemy area so we can't build there!
+        self.fill((self.size[0]-8, self.size[1]-8), (8,8))
+
+    def make_base_grid(self):
+        """This creates the base grid.
+           Each grid must have one of 3 states:
+               0: empty
+               1: occupied, non-momement-blocking
+               2: occupied, blocking"""
+        grid = []
+        for x in xrange(self.size[0]):
+            grid.append([])
+            for y in xrange(self.size[1]):
+                grid[-1].append(0)
+
+        self.grid = grid
+
+    def fill(self, start, size, code=1):
+        """Fill area from start to start + size with occupied stuffs..."""
+        for x in xrange(size[0]):
+            for y in xrange(size[1]):
+                _x=x+start[0]
+                _y=y+start[1]
+                if not self.out_of_bounds((_x,_y)):
+                    self.grid[_x][_y] = code
+
+    def set(self, pos, code=1):
+        if self.out_of_bounds(pos):
+            return
+        self.grid[pos[0]][pos[1]] = code
+
+    def out_of_bounds(self, pos):
+        return pos[0] < 0 or pos[0] >= self.size[0] or pos[1] < 0 or pos[1] >= self.size[1]
+
+    def is_open(self, pos):
+        return self.grid[pos[0]][pos[1]] == 0
+
+    def is_blocking(self, pos):
+        return self.grid[pos[0]][pos[1]] == 2
+
+    def screen_to_grid(self, pos):
+        x, y = pos
+        x = (int(x/20) if x else 0)
+        y = (int(y/20) if y else 0)
+        return x, y
+
+    def grid_to_screen(self, pos):
+        x, y = pos
+        #TODO: why do we need to be adding 10 here - obviously because it is wrong on screen otherwise, but why?
+        x = x * 20
+        y = y * 20
+        return x, y
+
+    def screen_to_screen(self, pos):
+        """This just makes sure the screen pos is moved to the nearest grid pos..."""
+        return self.grid_to_screen(self.screen_to_grid(pos))
+
+    def empty_around(self, pos):
+        """Return wether there are no filled spaces +/- 1 of pos."""
+        for x in xrange(pos[0]-1, pos[0]+2):
+            for y in xrange(pos[1]-1, pos[1]+2):
+                if not self.out_of_bounds((x, y)):
+                    if self.grid[x][y]:
+                        return False
+        return True
+
 class Hero(GameObject):
     def __init__(self, game):
         self.groups = game.main_group, game.hero_group
@@ -109,7 +182,14 @@ class BuildTower(GameObject):
         pygame.draw.rect(self.image, (255,0,0), (0,0,20,20), 3)
 
         self.rect = self.image.get_rect()
-        self.rect.midbottom = pos
+        x, y = pos
+        x += 10
+        y += 20 #so we can put it at center...
+        self.rect.midbottom = x, y
+
+    def kill(self):
+        GameObject.kill(self)
+        self.game.map_grid.set(self.game.map_grid.screen_to_grid(self.rect.topleft), 0)
 
 class Tower(GameObject):
     def __init__(self, game, pos):
@@ -123,6 +203,14 @@ class Tower(GameObject):
         self.rect.midbottom = pos
 
         self.hp = 200
+
+    def kill(self):
+        GameObject.kill(self)
+        x, y = self.rect.midbottom
+        x -= 10
+        y -= 20 #midbottom of grid size
+        grid = self.game.map_grid.screen_to_grid((x, y))
+        self.game.map_grid.set(grid, 0)
 
 class Worker(GameObject):
     used_build_targets = []

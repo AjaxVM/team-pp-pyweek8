@@ -83,6 +83,10 @@ class Game(GameState):
         self.tower_group = objects.GameGroup()
         self.insect_group = objects.GameGroup()
 
+        self.font = data.font(None, 32)
+
+        self.map_grid = objects.MapGrid(self)
+
         self.hero = objects.Hero(self)
         self.hive = objects.Hive(self)
 
@@ -98,10 +102,10 @@ class Game(GameState):
                 if event.pos[1] <= 500: #this is for us!
                     if event.button == 1:
                         if self.build_active:
-                            x, y = event.pos
-                            x = (int(x/20) if x else 0) + 1
-                            y = (int(y/20) if y else 0) + 1
-                            objects.BuildTower(self, (x*20-10, y*20))
+                            grid = self.map_grid.screen_to_grid(event.pos)
+                            if self.map_grid.empty_around(grid):
+                                objects.BuildTower(self, self.map_grid.grid_to_screen(grid))
+                                self.map_grid.set(grid, 2)
                     if event.button == 3: #left
                         self.build_active = False
 
@@ -113,6 +117,16 @@ class Game(GameState):
         self.main_group.sort()
 
         self.screen.blit(self.background, (0,0))
+
+        ##DEBUG tile rendering
+        pygame.draw.rect(self.screen, (255,0,255), (self.map_grid.screen_to_screen(pygame.mouse.get_pos()), (20,20)), 2)
+
+        for x in xrange(self.map_grid.size[0]):
+            for y in xrange(self.map_grid.size[1]):
+                if not self.map_grid.is_open((x, y)):
+                    pygame.draw.rect(self.screen, (255,255,255), (self.map_grid.screen_to_screen((x*20, y*20)), (20, 20)), 2)
+        ##END DEBUG
+
         self.main_group.render()
         pygame.draw.rect(self.screen, (125,125,125), (0,500,800,600))
         self.app.render()
