@@ -205,22 +205,39 @@ class Insect(GameObject):
 
         self.target = self.game.hero
 
+        gofor = None
+
         for i in self.game.worker_group.objects:
             if misc.distance(i.rect.center, self.rect.center) < 100:
-                self.target = i
-                break
+                if not gofor:
+                    gofor = (i, misc.distance(i.rect.center, self.rect.center))
+                else:
+                    x = misc.distance(i.rect.center, self.rect.center)
+                    if x < gofor[1]:
+                        gofor = (i, x)
 
         if self.target == self.game.hero:
             for i in self.game.build_tower_group.objects:
                 if misc.distance(i.rect.center, self.rect.center) < 100:
-                    self.target = i
-                    break
+                    if not gofor:
+                        gofor = (i, misc.distance(i.rect.center, self.rect.center))
+                    else:
+                        x = misc.distance(i.rect.center, self.rect.center)
+                        if x < gofor[1]:
+                            gofor = (i, x)
 
         if self.target == self.game.hero:
             for i in self.game.tower_group.objects:
                 if misc.distance(i.rect.center, self.rect.center) < 100:
-                    self.target = i
-                    break
+                    if not gofor:
+                        gofor = (i, misc.distance(i.rect.center, self.rect.center))
+                    else:
+                        x = misc.distance(i.rect.center, self.rect.center)
+                        if x < gofor[1]:
+                            gofor = (i, x)
+
+        if gofor:
+            self.target = gofor[0]
 
         if not self.rect.colliderect(self.target.rect):
             #TODO: replace with pathfinding!
