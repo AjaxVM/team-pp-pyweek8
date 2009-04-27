@@ -56,6 +56,14 @@ class GameObject(object):
         if self.image and self.rect:
             self.game.screen.blit(self.image, self.rect)
 
+    def hit(self, damage):
+        if hasattr(self, "hp"):
+            self.hp -= damage
+            if self.hp <= 0:
+                self.kill()
+        else:
+            self.kill()
+
 class Hero(GameObject):
     def __init__(self, game):
         self.groups = game.main_group, game.hero_group
@@ -69,7 +77,7 @@ class Hero(GameObject):
         self.rect = self.image.get_rect()
         self.rect.bottomright = (800,500) #bottom 100 is the ui bar!
 
-        self.hp = 100
+        self.hp = 50
 
 class Hive(GameObject):
     def __init__(self, game):
@@ -82,13 +90,13 @@ class Hive(GameObject):
         self.rect = self.image.get_rect()
         self.rect.topleft = (5,5)
 
-        self.hp = 100
+        self.hp = 75
 
         self.counter = 0
 
     def update(self):
         self.counter += 1
-        if self.counter >= 30:
+        if self.counter >= 200:
             self.counter = 0
             Insect(self.game)
 
@@ -114,7 +122,7 @@ class Tower(GameObject):
         self.rect = self.image.get_rect()
         self.rect.midbottom = pos
 
-        self.hp = 50
+        self.hp = 200
 
 class Worker(GameObject):
     used_build_targets = []
@@ -129,6 +137,7 @@ class Worker(GameObject):
         self.rect.center = self.game.hero.rect.topleft
 
         self.target = None
+        self.move_timer = 0
 
     def update(self):
         if not self.target:
@@ -165,15 +174,18 @@ class Worker(GameObject):
 
         if not self.rect.colliderect(self.target.rect):
             #TODO: replace with pathfinding!
-            if self.target.rect.centerx < self.rect.centerx:
-                self.rect.move_ip(-1, 0)
-            else:
-                self.rect.move_ip(1, 0)
+            self.move_timer += 1
+            if self.move_timer >= 5:
+                self.move_timer = 0
+                if self.target.rect.centerx < self.rect.centerx:
+                    self.rect.move_ip(-1, 0)
+                else:
+                    self.rect.move_ip(1, 0)
 
-            if self.target.rect.centery < self.rect.centery:
-                self.rect.move_ip(0, -1)
-            else:
-                self.rect.move_ip(0, 1)
+                if self.target.rect.centery < self.rect.centery:
+                    self.rect.move_ip(0, -1)
+                else:
+                    self.rect.move_ip(0, 1)
         else:
             t = Tower(self.game, self.target.rect.midbottom)
             self.game.tower_group.add(t)
@@ -200,61 +212,52 @@ class Insect(GameObject):
         self.rect.center = self.game.hive.rect.bottomright
 
         self.target = None
+        self.move_timer = 0
+        self.attack_timer = 0
 
     def update(self):
 
         self.target = self.game.hero
 
-        gofor = None
+        do_hit = []
 
         for i in self.game.worker_group.objects:
-            if misc.distance(i.rect.center, self.rect.center) < 100:
-                if not gofor:
-                    gofor = (i, misc.distance(i.rect.center, self.rect.center))
-                else:
-                    x = misc.distance(i.rect.center, self.rect.center)
-                    if x < gofor[1]:
-                        gofor = (i, x)
+            if misc.distance(i.rect.center, self.rect.center) <= 20:
+                do_hit.append(i)
 
         if self.target == self.game.hero:
             for i in self.game.build_tower_group.objects:
-                if misc.distance(i.rect.center, self.rect.center) < 100:
-                    if not gofor:
-                        gofor = (i, misc.distance(i.rect.center, self.rect.center))
-                    else:
-                        x = misc.distance(i.rect.center, self.rect.center)
-                        if x < gofor[1]:
-                            gofor = (i, x)
+                if misc.distance(i.rect.center, self.rect.center) <= 20:
+                    do_hit.append(i)
 
         if self.target == self.game.hero:
             for i in self.game.tower_group.objects:
-                if misc.distance(i.rect.center, self.rect.center) < 100:
-                    if not gofor:
-                        gofor = (i, misc.distance(i.rect.center, self.rect.center))
-                    else:
-                        x = misc.distance(i.rect.center, self.rect.center)
-                        if x < gofor[1]:
-                            gofor = (i, x)
+                if misc.distance(i.rect.center, self.rect.center) <=20:
+                    do_hit.append(i)
 
-        if gofor:
-            self.target = gofor[0]
+        if do_hit:
+            self.attack_timer += 1
+            if self.attack_timer >= 5:
+                self.attack_timer = 0
+                for i in do_hit:
+                    i.hit(1)
+        else:
+            self.attack_timer = 0
 
         if not self.rect.colliderect(self.target.rect):
             #TODO: replace with pathfinding!
-            if self.target.rect.centerx < self.rect.centerx:
-                self.rect.move_ip(-1, 0)
-            else:
-                self.rect.move_ip(1, 0)
+            self.move_timer += 1
+            if self.move_timer >= 3:
+                self.move_timer = 0
+                if self.target.rect.centerx < self.rect.centerx:
+                    self.rect.move_ip(-1, 0)
+                else:
+                    self.rect.move_ip(1, 0)
 
-            if self.target.rect.centery < self.rect.centery:
-                self.rect.move_ip(0, -1)
-            else:
-                self.rect.move_ip(0, 1)
+                if self.target.rect.centery < self.rect.centery:
+                    self.rect.move_ip(0, -1)
+                else:
+                    self.rect.move_ip(0, 1)
         else:
-            try: #this is so that only objects with HP are tested...
-                self.target.hp -= 5 #or whatever
-                if self.target.hp <= 0:
-                    self.target.kill()
-            except:
-                self.target.kill()
+            self.hit(1) #or whatever
             self.kill()
