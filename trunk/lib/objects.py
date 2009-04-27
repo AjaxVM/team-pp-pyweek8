@@ -171,3 +171,9 @@ class Worker(GameObject):
             self.target.kill()
             self.target = None
 
+    def kill(self):
+        if self.target in self.used_build_targets:
+            self.used_build_targets.remove(self.target)
+
+        GameObject.kill(self)
+
