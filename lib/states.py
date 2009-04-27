@@ -81,6 +81,7 @@ class Game(GameState):
         self.build_tower_group = objects.GameGroup()
         self.worker_group = objects.GameGroup()
         self.tower_group = objects.GameGroup()
+        self.insect_group = objects.GameGroup()
 
         self.hero = objects.Hero(self)
         self.hive = objects.Hive(self)
@@ -108,6 +109,7 @@ class Game(GameState):
         self.hive_group.update()
         self.build_tower_group.update()
         self.worker_group.update()
+        self.insect_group.update()
         self.main_group.sort()
 
         self.screen.blit(self.background, (0,0))

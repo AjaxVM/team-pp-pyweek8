@@ -69,6 +69,8 @@ class Hero(GameObject):
         self.rect = self.image.get_rect()
         self.rect.bottomright = (800,500) #bottom 100 is the ui bar!
 
+        self.hp = 100
+
 class Hive(GameObject):
     def __init__(self, game):
         self.groups = game.main_group, game.hive_group
@@ -79,6 +81,16 @@ class Hive(GameObject):
         pygame.draw.circle(self.image, (255,0,0), (23,22), 25, 3)
         self.rect = self.image.get_rect()
         self.rect.topleft = (5,5)
+
+        self.hp = 100
+
+        self.counter = 0
+
+    def update(self):
+        self.counter += 1
+        if self.counter >= 30:
+            self.counter = 0
+            Insect(self.game)
 
 class BuildTower(GameObject):
     def __init__(self, game, pos):
@@ -177,3 +189,55 @@ class Worker(GameObject):
 
         GameObject.kill(self)
 
+
+class Insect(GameObject):
+    def __init__(self, game):
+        self.groups = game.main_group, game.insect_group
+        GameObject.__init__(self, game)
+
+        self.image = pygame.transform.rotate(pygame.Surface((17,17)).convert_alpha(), 45)
+        self.rect = self.image.get_rect()
+        self.rect.center = self.game.hive.rect.bottomright
+
+        self.target = None
+
+    def update(self):
+
+        self.target = self.game.hero
+
+        for i in self.game.worker_group.objects:
+            if misc.distance(i.rect.center, self.rect.center) < 100:
+                self.target = i
+                break
+
+        if self.target == self.game.hero:
+            for i in self.game.build_tower_group.objects:
+                if misc.distance(i.rect.center, self.rect.center) < 100:
+                    self.target = i
+                    break
+
+        if self.target == self.game.hero:
+            for i in self.game.tower_group.objects:
+                if misc.distance(i.rect.center, self.rect.center) < 100:
+                    self.target = i
+                    break
+
+        if not self.rect.colliderect(self.target.rect):
+            #TODO: replace with pathfinding!
+            if self.target.rect.centerx < self.rect.centerx:
+                self.rect.move_ip(-1, 0)
+            else:
+                self.rect.move_ip(1, 0)
+
+            if self.target.rect.centery < self.rect.centery:
+                self.rect.move_ip(0, -1)
+            else:
+                self.rect.move_ip(0, 1)
+        else:
+            try: #this is so that only objects with HP are tested...
+                self.target.hp -= 5 #or whatever
+                if self.target.hp <= 0:
+                    self.target.kill()
+            except:
+                self.target.kill()
+            self.kill()
