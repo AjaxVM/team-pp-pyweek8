@@ -1,7 +1,7 @@
 import pygame
 from pygame.locals import *
 
-import data
+import data, misc
 
 class GameGroup(object):
     def __init__(self):
@@ -75,3 +75,58 @@ class Hive(GameObject):
         pygame.draw.circle(self.image, (255,0,0), (23,22), 25, 3)
         self.rect = self.image.get_rect()
         self.rect.topleft = (5,5)
+
+class BuildTower(GameObject):
+    def __init__(self, game, pos):
+        GameObject.__init__(self, game)
+
+        self.image = pygame.Surface((20,20)) #tile size...
+        pygame.draw.rect(self.image, (255,0,0), (0,0,20,20), 3)
+
+        self.rect = self.image.get_rect()
+        self.rect.midbottom = pos
+
+class Worker(GameObject):
+    def __init__(self, game):
+        GameObject.__init__(self, game)
+
+        self.image = pygame.Surface((10,10))
+        self.image.fill((100,100,255))
+
+        self.rect = self.image.get_rect()
+        self.rect.center = self.game.hero.rect.topleft
+
+        self.target = None
+
+    def update(self):
+        if not self.target:
+            diso = None
+            for i in self.game.build_tower_group.objects: #will need to add scraps and whatnot later...
+                if not diso:
+                    diso = (i, misc.distance(self.rect.center, i.rect.center))
+                    continue
+                x = misc.distance(self.rect.center, i.rect.center)
+                if x < diso[1]:
+                    diso = (i, x)
+
+            if diso:
+                self.target = diso[0]
+            else:
+                self.kill()
+                return
+
+        if not self.rect.colliderect(self.target.rect):
+            #TODO: replace with pathfinding!
+            if self.target.rect.centerx < self.rect.centerx:
+                self.rect.move_ip(-1, 0)
+            else:
+                self.rect.move_ip(1, 0)
+
+            if self.target.rect.centery < self.rect.centery:
+                self.rect.move_ip(0, -1)
+            else:
+                self.rect.move_ip(0, 1)
+        else:
+            print "built!"
+            self.target.kill()
+            self.target = None
