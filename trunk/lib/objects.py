@@ -246,6 +246,7 @@ class Insect(GameObject):
 
         if not self.rect.colliderect(self.target.rect):
             #TODO: replace with pathfinding!
+            # shouldn't update pathfinding every frame -- should only update when something significant changes
             self.move_timer += 1
             if self.move_timer >= 3:
                 self.move_timer = 0
