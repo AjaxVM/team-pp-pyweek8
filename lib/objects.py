@@ -86,6 +86,18 @@ class BuildTower(GameObject):
         self.rect = self.image.get_rect()
         self.rect.midbottom = pos
 
+class Tower(GameObject):
+    def __init__(self, game, pos):
+        GameObject.__init__(self, game)
+
+        self.image = pygame.Surface((20, 30))
+        pygame.draw.circle(self.image, (255,0,0), (10, 20), 20)
+
+        self.rect = self.image.get_rect()
+        self.rect.midbottom = pos
+
+        self.hp = 50
+
 class Worker(GameObject):
     def __init__(self, game):
         GameObject.__init__(self, game)
@@ -127,6 +139,8 @@ class Worker(GameObject):
             else:
                 self.rect.move_ip(0, 1)
         else:
-            print "built!"
+            t = Tower(self.game, self.target.rect.midbottom)
+            self.game.tower_group.add(t)
+            self.game.main_group.add(t)
             self.target.kill()
             self.target = None
