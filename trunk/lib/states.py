@@ -80,6 +80,7 @@ class Game(GameState):
         self.hive_group = objects.GameGroup()
         self.build_tower_group = objects.GameGroup()
         self.worker_group = objects.GameGroup()
+        self.tower_group = objects.GameGroup()
 
         self.hero = objects.Hero(self)
         self.hero_group.add(self.hero)
