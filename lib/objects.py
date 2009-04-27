@@ -9,7 +9,6 @@ class GameGroup(object):
 
     def add(self, obj):
         self.objects.append(obj)
-        obj._groups.append(self)
 
     def remove(self, obj):
         if obj in self.objects:
@@ -40,11 +39,11 @@ class GameObject(object):
         self.game = game
         self.image = None
         self.rect = None
-
-        self._groups = []
+        for i in self.groups:
+            i.add(self)
 
     def kill(self):
-        for i in self._groups:
+        for i in self.groups:
             i.remove(self)
 
     def update(self):
@@ -56,6 +55,7 @@ class GameObject(object):
 
 class Hero(GameObject):
     def __init__(self, game):
+        self.groups = game.main_group, game.hero_group
         GameObject.__init__(self, game)
 
         self.image = pygame.Surface((50,50)).convert_alpha()
@@ -68,6 +68,7 @@ class Hero(GameObject):
 
 class Hive(GameObject):
     def __init__(self, game):
+        self.groups = game.main_group, game.hive_group
         GameObject.__init__(self, game)
 
         self.image = pygame.Surface((45, 45))
@@ -78,6 +79,7 @@ class Hive(GameObject):
 
 class BuildTower(GameObject):
     def __init__(self, game, pos):
+        self.groups = game.main_group, game.build_tower_group
         GameObject.__init__(self, game)
 
         self.image = pygame.Surface((20,20)) #tile size...
@@ -88,6 +90,7 @@ class BuildTower(GameObject):
 
 class Tower(GameObject):
     def __init__(self, game, pos):
+        self.groups = game.main_group, game.tower_group
         GameObject.__init__(self, game)
 
         self.image = pygame.Surface((20, 30))
@@ -100,6 +103,7 @@ class Tower(GameObject):
 
 class Worker(GameObject):
     def __init__(self, game):
+        self.groups = game.main_group, game.worker_group
         GameObject.__init__(self, game)
 
         self.image = pygame.Surface((10,10))

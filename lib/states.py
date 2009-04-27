@@ -73,7 +73,7 @@ class Game(GameState):
         self.app = ui.App(self.screen)
         ui.Button(self.app, "GoBack!", pos=(0,500), callback=self.goback)
         ui.Button(self.app, "Build Tower!", pos=(150,500), callback=lambda: setattr(self, "build_active", True))
-        ui.Button(self.app, "Build Worker!", pos=(300, 500), callback=self.make_worker)
+        ui.Button(self.app, "Build Worker!", pos=(300, 500), callback=lambda: objects.Worker(self))
 
         self.main_group = objects.GameGroup()
         self.hero_group = objects.GameGroup()
@@ -83,17 +83,7 @@ class Game(GameState):
         self.tower_group = objects.GameGroup()
 
         self.hero = objects.Hero(self)
-        self.hero_group.add(self.hero)
-        self.main_group.add(self.hero)
-
         self.hive = objects.Hive(self)
-        self.hive_group.add(self.hive)
-        self.main_group.add(self.hive)
-
-    def make_worker(self):
-        w = objects.Worker(self)
-        self.worker_group.add(w)
-        self.main_group.add(w)
 
     def update(self):
         for event in pygame.event.get():
@@ -110,9 +100,7 @@ class Game(GameState):
                             x, y = event.pos
                             x = (int(x/20) if x else 0) + 1
                             y = (int(y/20) if y else 0) + 1
-                            bt = objects.BuildTower(self, (x*20-10, y*20))
-                            self.build_tower_group.add(bt)
-                            self.main_group.add(bt)
+                            objects.BuildTower(self, (x*20-10, y*20))
                     if event.button == 3: #left
                         self.build_active = False
 
