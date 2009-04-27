@@ -42,9 +42,12 @@ class GameObject(object):
         for i in self.groups:
             i.add(self)
 
+        self.was_killed = False
+
     def kill(self):
         for i in self.groups:
             i.remove(self)
+        self.was_killed = True
 
     def update(self):
         pass
@@ -102,6 +105,7 @@ class Tower(GameObject):
         self.hp = 50
 
 class Worker(GameObject):
+    used_build_targets = []
     def __init__(self, game):
         self.groups = game.main_group, game.worker_group
         GameObject.__init__(self, game)
@@ -117,19 +121,35 @@ class Worker(GameObject):
     def update(self):
         if not self.target:
             diso = None
+            passed = []
             for i in self.game.build_tower_group.objects: #will need to add scraps and whatnot later...
-                if not diso:
-                    diso = (i, misc.distance(self.rect.center, i.rect.center))
-                    continue
-                x = misc.distance(self.rect.center, i.rect.center)
-                if x < diso[1]:
-                    diso = (i, x)
+                if not i in self.used_build_targets:
+                    if not diso:
+                        diso = (i, misc.distance(self.rect.center, i.rect.center))
+                        continue
+                    x = misc.distance(self.rect.center, i.rect.center)
+                    if x < diso[1]:
+                        diso = (i, x)
+                else:
+                    passed.append(i)
+            if not diso:
+                for i in passed:
+                    if not diso:
+                        diso = (i, misc.distance(self.rect.center, i.rect.center))
+                        continue
+                    x = misc.distance(self.rect.center, i.rect.center)
+                    if x < diso[1]:
+                        diso = (i, x)
 
             if diso:
                 self.target = diso[0]
+                self.used_build_targets.append(self.target)
             else:
-                self.kill()
                 return
+
+        if self.target.was_killed:
+            self.target = None
+            return
 
         if not self.rect.colliderect(self.target.rect):
             #TODO: replace with pathfinding!
@@ -146,5 +166,8 @@ class Worker(GameObject):
             t = Tower(self.game, self.target.rect.midbottom)
             self.game.tower_group.add(t)
             self.game.main_group.add(t)
+            if self.target in self.used_build_targets:
+                self.used_build_targets.remove(self.target)
             self.target.kill()
             self.target = None
+
