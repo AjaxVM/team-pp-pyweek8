@@ -2,12 +2,10 @@ import pygame
 from pygame.locals import *
 
 import math
+import random
 
 def distance(a, b):
     return math.sqrt((a[0]-b[0])**2 + (a[1]-b[1])**2)
-
-
-
 
 import heapq
 
@@ -77,9 +75,13 @@ def calculatePath(start, end, blockedmap):
     inlist[start[0]][start[1]] = INOPENLIST
 
     # loop through map until path is found
-    adjacent = [ (-1, -1, DIAGONALMOVE), (0,-1, ORTHOGONALMOVE), (1,-1, DIAGONALMOVE),
-                 (-1, 0, ORTHOGONALMOVE),                        (1, 0, ORTHOGONALMOVE),
-                 (-1, 1, DIAGONALMOVE),  (0, 1, ORTHOGONALMOVE), (1, 1, DIAGONALMOVE)]
+    r = random.randrange
+    group = r(5)
+    if not group:
+        r = lambda x: 0
+    adjacent = [ (-1, -1, DIAGONALMOVE+r(25)), (0,-1, ORTHOGONALMOVE+r(25)), (1,-1, DIAGONALMOVE+r(25)),
+                 (-1, 0, ORTHOGONALMOVE+r(25)),                              (1, 0, ORTHOGONALMOVE+r(25)),
+                 (-1, 1, DIAGONALMOVE+r(25)),  (0, 1, ORTHOGONALMOVE+r(25)), (1, 1, DIAGONALMOVE+r(25))]
 
     while True:
         # if open heap is empty, no path is available
