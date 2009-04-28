@@ -394,19 +394,14 @@ class Insect(GameObject):
 
         if self.path == None or not self.target:
             self.target = self.game.hero
+            if not self.path:
+                start = self.game.map_grid.screen_to_grid(self.rect.center)
+            else:
+                start = self.path[0]
             self.path = misc.calculatePath(
-                self.game.map_grid.screen_to_grid(self.rect.center),
+                start,
                 self.game.map_grid.screen_to_grid(self.game.hero.rect.center),
                 self.game.map_grid.grid)
-
-            if self.path:
-                x, y = self.game.map_grid.grid_to_screen(self.path[0])
-                mini_rect = pygame.Rect(0,0,20,20)
-                mini_rect2 = pygame.Rect(x,y,20,20)
-                mini_rect.center = self.rect.center
-                grid_pos = x+10, y+10
-                if mini_rect == mini_rect2:
-                    self.path.pop(0)
             
 
         if not self.rect.colliderect(self.target.rect):
