@@ -270,8 +270,12 @@ class Worker(Animation):
             data.image("data/worker-1.png"),
             data.image("data/worker-2.png"),
             ]
+        self.stand_images = [
+            data.image("data/worker-1.png"),
+            ]
         self.image = self.walk_images[0]
         self.add_animation("walk", self.walk_images)
+        self.add_animation("stand", self.stand_images)
 
         self.rect = self.image.get_rect()
         self.rect.center = self.game.hero.rect.topleft
@@ -280,7 +284,6 @@ class Worker(Animation):
         self.move_timer = 0
 
     def update(self):
-        self.animate("walk", 5, -1)
         if not self.target:
             diso = None
             passed = []
@@ -311,28 +314,22 @@ class Worker(Animation):
 
         if self.target.was_killed:
             self.target = None
+            self.animate("stand", 1, 1)
             return
 
         if not self.rect.colliderect(self.target.rect):
             #TODO: replace with pathfinding!
             prev_pos = self.rect.center
             self.move_timer += 1
-            if self.move_timer >= 5:
+            self.animate("walk", 5, 1)
+            if self.move_timer >= 3:
                 self.move_timer = 0
-                if self.target.rect.centerx < self.rect.centerx:
-                    self.rect.move_ip(-1, 0)
-                else:
-                    self.rect.move_ip(1, 0)
-
-                if self.target.rect.centery < self.rect.centery:
-                    self.rect.move_ip(0, -1)
-                else:
-                    self.rect.move_ip(0, 1)
-            ydiff = prev_pos[1] - self.rect.centery
-            xdiff = prev_pos[0] - self.rect.centerx
-            if xdiff != 0 and ydiff != 0:
-                angle = math.atan2(ydiff, xdiff)
+                ydiff = self.target.rect.centery - self.rect.centery
+                xdiff = self.target.rect.centerx - self.rect.centerx
+                angle = math.atan2(xdiff, ydiff)
                 self.angle = math.degrees(angle)
+                self.rect.x += math.sin(math.radians(self.angle))*3
+                self.rect.y += math.cos(math.radians(self.angle))*3
         else:
             t = Tower(self.game, self.target.rect.midbottom)
             self.game.tower_group.add(t)
@@ -340,6 +337,7 @@ class Worker(Animation):
             if self.target in self.used_build_targets:
                 self.used_build_targets.remove(self.target)
             self.target.kill()
+            self.animate("stand", 1, 1)
             self.target = None
 
     def kill(self):
