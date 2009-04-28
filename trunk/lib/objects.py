@@ -384,17 +384,6 @@ class Insect(GameObject):
     def reset_target(self):
         self.target = None
 
-    def find_obstacles(self):
-        r = pygame.Rect(0,0,21,21) #allow a little overlapping!
-        r.center = self.rect.center
-        r2 = pygame.Rect(0,0,20,20)
-        o = []
-        for i in self.game.blocking_group.objects:
-            r2.midbottom = i.rect.midbottom #so all objects work with this!
-            if r.colliderect(r2):
-                o.append(r2)
-        return o
-
     def update(self):
 
         do_hit = []
@@ -460,19 +449,6 @@ class Insect(GameObject):
                         self.rect.move_ip(0, -1)
                     elif grid_pos[1] > self.rect.centery:
                         self.rect.move_ip(0, 1)
-
-                    if not self.game.map_grid.empty_around(self.game.map_grid.screen_to_grid(self.rect.center)):
-                        for i in self.find_obstacles():
-                            r.center = self.rect.center
-                            adjx = r.move(0, -r.top).inflate(-2,-2).colliderect(i.move(0, -i.top).inflate(-2,-2))
-                            if r.bottom > i.top and not adjx:
-                                self.rect.move_ip(0, -1)
-                            if r.top < i.bottom and not adjx:
-                                self.rect.move_ip(0, 1)
-                            if r.right > i.left and adjx:
-                                self.rect.move_ip(-1, 0)
-                            if r.left < i.right and adjx:
-                                self.rect.move_ip(1, 0)
         else:
             self.hit(1) #or whatever
             self.kill()
