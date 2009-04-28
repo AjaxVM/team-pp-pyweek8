@@ -1,6 +1,7 @@
 import pygame, math
 from pygame.locals import *
 
+import random, heapq
 import data, misc
 
 class GameGroup(object):
@@ -186,6 +187,163 @@ class MapGrid(object):
                         return False
         return True
 
+    def calculate_path(self, start, end):
+        """Calculates a path using an a* like algorithm.
+        @param start: coordinates of start
+        @param end: coordinates of end
+        @returns: a list of coordinates for the path, or false if no path was found
+        @todo:  return multiple paths? variation?
+
+        Used this for reference: http://www.gamedev.net/reference/articles/article2003.asp
+
+        We need more info to implement this effectively. When are we calculating paths?
+        Should they be pre-calculated? I can make this function return a couple different
+        paths to the target -- we could use that to pre-bake the paths from the spawn
+        points to whatever targets we have. This would drastically cut down on the
+        pathfinding time, which is usually a massive part of the CPU time, especially
+        if we are using tons of guys.
+
+        Maybe as simple as a list of paths from point A to B that a unit can lookup
+        if they need a path. Decide on the memory used vs the cpu time.
+
+        Currently horizontal movement costs a bit less than diagonal movement -- this
+        really depends on how we implement the actual unit movement, so tweak the
+        constants below for that as necessary. We can also tweak the movement cost
+        for each direction if needed via the adjacent list.
+
+        Options:
+            add random weights in the nodelist to generate tweaked paths?
+            just add some 'wobble'?
+
+
+        """
+
+        blockedmap = self.grid
+
+        # type checking
+        tupletype = type(())
+        listtype = type([])
+        if type(start) != tupletype or len(start) != 2:
+            raise Exception('Start parameter must be a 2 tuple representing the coordinates of the start position')
+        if type(end) != tupletype or len(end) != 2:
+            raise Exception('End parameter must be a 2 tuple representing the coordinates of the end position')
+
+        # some useful info
+        numcols = self.size[0]
+        numrows = self.size[1]
+
+        ORTHOGONALMOVE = 10
+        DIAGONALMOVE = 25 #so they don't keep cutting across the blasted towers all the time!
+
+        # create open and closed lists
+        openlist = []       # cost, coords, parentcoords
+        closedlist = []
+        INOPENLIST = 1
+        INCLOSEDLIST = 2
+        inlist = [ [-1 for j in xrange(numrows)] for i in xrange(numcols)]
+        nodelist = [ [(0,0, ORTHOGONALMOVE * (abs(end[1]-i) + abs(end[0]-j))) for j in xrange(numrows)] for i in xrange(numcols)]
+        parentlist = [ [(-1,-1) for j in xrange(numrows)] for i in xrange(numcols)]
+        # todo: do I really need all these lists? this got so messy trying to keep object overhead out of it...
+
+        # add starting location to open list-- hopefully it is on our map...
+        openlist.append( (-1, start, False))
+        parentlist[start[0]][start[1]] = False
+        inlist[start[0]][start[1]] = INOPENLIST
+
+        # loop through map until path is found
+        r = random.randrange
+        group = r(5)
+        if not group:
+            r = lambda x: 0
+        adjacent = [ (-1, -1, DIAGONALMOVE+r(25)), (0,-1, ORTHOGONALMOVE+r(25)), (1,-1, DIAGONALMOVE+r(25)),
+                     (-1, 0, ORTHOGONALMOVE+r(25)),                              (1, 0, ORTHOGONALMOVE+r(25)),
+                     (-1, 1, DIAGONALMOVE+r(25)),  (0, 1, ORTHOGONALMOVE+r(25)), (1, 1, DIAGONALMOVE+r(25))]
+
+        while True:
+            # if open heap is empty, no path is available
+            if len(openlist) == 0:
+                return False
+
+            # pop lowest open node from the heap
+            cost, coordinates, parentcoordinates = heapq.heappop(openlist)
+            costs = nodelist[coordinates[0]][coordinates[1]]
+
+            # if this is target, build path and return
+            if coordinates == end:
+                path = []
+
+                path.append(end)
+                while parentcoordinates:
+                    path.append(parentcoordinates)
+                    parentcoordinates = parentlist[parentcoordinates[0]][parentcoordinates[1]]
+
+                path.reverse()
+                return path
+
+            # add it to the closed list
+            closedlist.append( (coordinates, parentcoordinates) )
+            inlist[coordinates[0]][coordinates[1]] = INCLOSEDLIST
+
+            # check adjacent nodes
+            for modx, mody, modmovecost in adjacent:
+                newx = coordinates[0] + modx
+                newy = coordinates[1] + mody
+
+                # skip if off map
+                if newx < 0 or newx >= numcols or newy < 0 or newy >= numrows:
+                    continue
+
+                # skip if not walkable
+                if blockedmap[newx][newy] == 2:
+                    continue
+
+                # skip if on closed list
+                if inlist[newx][newy] == INCLOSEDLIST:
+                    continue
+
+                # if on open list
+                if inlist[newx][newy] == INOPENLIST:
+
+                    # get existing info for this
+                    newcost, newmovecost, newhcost = nodelist[newx][newy]
+
+                    # check if this path is cheaper, update it
+                    if nodelist[newx][newy][1] + modmovecost < newmovecost:
+                        # find node in openlist and update it
+                        for index in xrange(len(openlist)):
+                            if openlist[index][3] == (newx, newy):
+                                updatedmovecost = costs[1] + modmovecost
+                                updatedcost = updatedmovecost + newhcost
+
+                                # update node -- cost, coords, parentcoords
+                                openlist[index] = ( updatedcost, (newx,newy), coordinates)
+                                parentlist[newx][newy] = coordinates
+                                nodelist[newx][newy] = updatedcost, updatedmovecost, newhcost
+
+                                # re-sort openlist
+                                openlist.sort()
+
+                                break
+
+                # not on open list
+                else:
+                    # calculate costs
+                    newcost, newmovecost, newhcost = nodelist[newx][newy]
+                    newmovecost = costs[1] + modmovecost
+                    if not self.empty_around((newx, newy)):
+                        newmovecost += 75
+                    newcost = newmovecost + newhcost
+
+                    # add to open list
+                    heapq.heappush(openlist, (newcost, (newx,newy), coordinates))
+                    inlist[newx][newy] = INOPENLIST
+                    parentlist[newx][newy] = coordinates
+                    # save cost info
+                    nodelist[newx][newy] = (newcost, newmovecost, newhcost)
+
+
+        return False
+
 class Hero(GameObject):
     def __init__(self, game):
         self.groups = game.main_group, game.hero_group
@@ -265,9 +423,6 @@ class Tower(GameObject):
         y -= 20 #midbottom of grid size
         grid = self.game.map_grid.screen_to_grid((x, y))
         self.game.map_grid.set(grid, 0)
-##        for i in self.game.insect_group.objects:
-##            i.target = None
-##            i.path = None
 
 class Scraps(GameObject):
     def __init__(self, game, pos):
@@ -492,10 +647,7 @@ class Insect(GameObject):
                 start = self.game.map_grid.screen_to_grid(self.rect.center)
             else:
                 start = self.path[0]
-            self.path = misc.calculatePath(
-                start,
-                self.game.map_grid.screen_to_grid(self.game.hero.rect.center),
-                self.game.map_grid.grid)
+            self.path = self.game.map_grid.calculate_path(start, self.game.map_grid.screen_to_grid(self.game.hero.rect.center))
             
 
         if not self.rect.colliderect(self.target.rect):
