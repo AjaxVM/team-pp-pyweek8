@@ -331,7 +331,7 @@ class Worker(Animation):
             prev_pos = self.rect.center
             self.move_timer += 1
             self.animate("walk", 15, 1)
-            if self.move_timer >= 8:
+            if self.move_timer >= 4:
                 self.move_timer = 0
                 ydiff = self.target.rect.centery - self.rect.centery
                 xdiff = self.target.rect.centerx - self.rect.centerx
@@ -438,7 +438,7 @@ class Insect(GameObject):
             if grid_pos:
                 r = pygame.Rect(0,0,20,20)
                 self.move_timer += 1
-                if self.move_timer >= 3:
+                if self.move_timer >= 2:
                     self.move_timer = 0
                     if grid_pos[0] < self.rect.centerx:
                         self.rect.move_ip(-1, 0)
