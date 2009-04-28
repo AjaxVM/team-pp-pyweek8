@@ -1,7 +1,7 @@
 import pygame
 from pygame.locals import *
 
-import random
+import random, time
 
 import data, ui, objects, map_grid
 
@@ -103,6 +103,7 @@ class Game(GameState):
                 objects.Boulder(self, self.map_grid.grid_to_screen(pos))
 
     def update(self):
+
         for event in pygame.event.get():
             if self.app.update(event):
                 continue
@@ -141,4 +142,5 @@ class Game(GameState):
         self.main_group.render()
         pygame.draw.rect(self.screen, (125,125,125), (0,500,800,600))
         self.app.render()
+
         pygame.display.flip()

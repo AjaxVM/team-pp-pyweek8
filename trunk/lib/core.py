@@ -2,6 +2,7 @@ import pygame
 from pygame.locals import *
 
 import states
+import time
 
 class GameStateEngine(states.GameState):
     def __init__(self):
@@ -11,12 +12,12 @@ class GameStateEngine(states.GameState):
         self.screen = pygame.display.set_mode((800,600))
         self.running = True
 
+        self.fps = 1.0 / 60
+
         self.children = {"menu":states.Menu,
                          None: states.Menu, #this makes sure that if any of the states goback to root the menu always runs!
                          "game": states.Game}
         self.use_child("menu")
-
-        self.clock = pygame.time.Clock()
 
     def shutdown(self):
         pygame.quit()
@@ -24,6 +25,8 @@ class GameStateEngine(states.GameState):
 
     def run(self):
         while self.running:
-            self.clock.tick(60)
-            pygame.display.set_caption("FPS: %s"%round(self.clock.get_fps(), 1))
+            start = time.time()
             self.do_update()
+            while time.time() - start < self.fps:
+                time.sleep(0.025)
+            pygame.display.set_caption("FPS: %s"%round(self.fps/(time.time()-start)*100, 1))
