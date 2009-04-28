@@ -82,6 +82,7 @@ class Game(GameState):
         self.worker_group = objects.GameGroup()
         self.tower_group = objects.GameGroup()
         self.insect_group = objects.GameGroup()
+        self.scraps_group = objects.GameGroup()
 
         self.font = data.font(None, 32)
 
@@ -89,6 +90,10 @@ class Game(GameState):
 
         self.hero = objects.Hero(self)
         self.hive = objects.Hive(self)
+
+        for i in ((25, 5), (17, 22), (34, 15)):
+            objects.Scraps(self, self.map_grid.grid_to_screen(i))
+            self.map_grid.set(i, 1)
 
     def update(self):
         for event in pygame.event.get():
@@ -107,10 +112,9 @@ class Game(GameState):
                                 objects.BuildTower(self, self.map_grid.grid_to_screen(grid))
                                 self.map_grid.set(grid, 2)
                                 for i in self.worker_group.objects:
-                                    i.target = None #reset all workers so to regather!
-                                    objects.Worker.used_build_targets = []
+                                    i.reset_target()
                                 for i in self.insect_group.objects:
-                                    i.target = None
+                                    i.reset_target()
                     if event.button == 3: #left
                         self.build_active = False
 
@@ -119,6 +123,7 @@ class Game(GameState):
         self.build_tower_group.update()
         self.worker_group.update()
         self.insect_group.update()
+        self.scraps_group.update()
         self.main_group.sort()
 
         self.screen.blit(self.background, (0,0))

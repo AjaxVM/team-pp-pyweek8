@@ -267,8 +267,29 @@ class Tower(GameObject):
 ##            i.target = None
 ##            i.path = None
 
+class Scraps(GameObject):
+    def __init__(self, game, pos):
+        self.groups = game.main_group, game.scraps_group
+        GameObject.__init__(self, game)
+
+        self.image = pygame.Surface((20,20))
+        pygame.draw.polygon(self.image, (200,200,200), ((3, 3), (17, 17), (3, 17), (15, 3), (3,3)), 1)
+
+        self.rect = self.image.get_rect()
+        self.rect.topleft = pos
+
+        self.cooldown = False
+        self.timer = 0
+
+    def update(self):
+        if self.cooldown:
+            self.timer += 1
+            if self.timer >= 200:
+                self.timer = 0
+                self.cooldown = False
+
 class Worker(Animation):
-    used_build_targets = []
+    used_targets = []
     def __init__(self, game):
         self.groups = game.main_group, game.worker_group
         Animation.__init__(self, game)
@@ -288,13 +309,22 @@ class Worker(Animation):
 
         self.target = None
         self.move_timer = 0
+        self.have_scraps = False
+
+    def reset_target(self):
+        if not self.target == self.game.hero:
+            if self.target in self.used_targets:
+                self.used_targets.remove(self.target)
+            self.target = None
 
     def update(self):
-        if not self.target:
+        if not self.target or isinstance(self.target, Scraps):
+            #if we have no target, or are just going for scraps, see if something more important is needed of us!
+            self.reset_target() #in case it is a scrap O.o
             diso = None
             passed = []
             for i in self.game.build_tower_group.objects: #will need to add scraps and whatnot later...
-                if not i in self.used_build_targets:
+                if not i in self.used_targets:
                     if not diso:
                         diso = (i, misc.distance(self.rect.center, i.rect.center))
                         continue
@@ -312,14 +342,27 @@ class Worker(Animation):
                     if x < diso[1]:
                         diso = (i, x)
 
+            if not diso:
+                #we need to find some scraps!
+                for i in self.game.scraps_group.objects:
+                    if not i in self.used_targets:
+                        if not i.cooldown:
+                            if not diso:
+                                diso = (i, misc.distance(self.rect.center, i.rect.center))
+                                continue
+                            x = misc.distance(self.rect.center, i.rect.center)
+                            if x < diso[1]:
+                                diso = (i,x)
+
             if diso:
                 self.target = diso[0]
-                self.used_build_targets.append(self.target)
+                self.used_targets.append(self.target)
             else:
+                #ok, can't do ANYTHING
                 return
 
         if self.target.was_killed:
-            self.target = None
+            self.reset_target()
             self.animate("stand", 1, 1)
             return
 
@@ -337,18 +380,27 @@ class Worker(Animation):
                 self.rect.x += math.sin(math.radians(self.angle))*3
                 self.rect.y += math.cos(math.radians(self.angle))*3
         else:
-            t = Tower(self.game, self.target.rect.midbottom)
-            self.game.tower_group.add(t)
-            self.game.main_group.add(t)
-            if self.target in self.used_build_targets:
-                self.used_build_targets.remove(self.target)
-            self.target.kill()
-            self.animate("stand", 1, 1)
-            self.target = None
+            if isinstance(self.target, BuildTower):
+                t = Tower(self.game, self.target.rect.midbottom)
+                self.game.tower_group.add(t)
+                self.game.main_group.add(t)
+                self.target.kill()
+                self.reset_target()
+                self.animate("stand", 1, 1)
+                self.target = None
+            elif isinstance(self.target, Scraps):
+                self.have_scraps = True
+                self.target.cooldown = True
+                self.reset_target()
+                self.target = self.game.hero
+            elif isinstance(self.target, Hero):
+                self.have_scraps = False
+                self.reset_target()
+                self.target = None
+                #do addition of scraps to inventory stuff here!!!
 
     def kill(self):
-        if self.target in self.used_build_targets:
-            self.used_build_targets.remove(self.target)
+        self.reset_target()
 
         GameObject.kill(self)
 
@@ -366,6 +418,9 @@ class Insect(GameObject):
         self.move_timer = 0
         self.attack_timer = 0
         self.path = None
+
+    def reset_target(self):
+        self.target = None
 
     def update(self):
 
