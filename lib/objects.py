@@ -77,9 +77,17 @@ class Animation(GameObject):
         self.angle = 0
 
     def add_animation(self, name, images):
+        """Add a sequence of images and assign a name to it
+        """
+        
         self.images[name] = images
     
     def animate(self, name, delay, loops):
+        """Animate a sequence of images identified by `name`.
+        Set `loops` to -1 for an infinite animation. `delay` is how many
+        frames to delay progressing to the next image.
+        """
+        
         if self.current_name != name:
             self.current_name = name
             self.loops = loops
@@ -88,7 +96,9 @@ class Animation(GameObject):
             self.num_loops = 0
     
     def render(self):
-        print self.angle
+        """Render the animation.
+        """
+        
         self.frame += 1
         if self.num_loops < self.loops and self.loops > -1:
             if self.frame > len(self.images[self.current_name]):
