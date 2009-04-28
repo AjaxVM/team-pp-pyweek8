@@ -79,6 +79,15 @@ class MapGrid(object):
                         return False
         return True
 
+    def should_avoid(self, pos):
+        """Return wether there are no filled spaces +/- 1 of pos."""
+        for x in xrange(pos[0]-2, pos[0]+3):
+            for y in xrange(pos[1]-2, pos[1]+3):
+                if not self.out_of_bounds((x, y)):
+                    if self.grid[x][y] == 3:
+                        return True
+        return False
+
     def calculate_path(self, start, end):
         """Calculates a path using an a* like algorithm.
         @param start: coordinates of start
@@ -133,12 +142,12 @@ class MapGrid(object):
         # loop through map until path is found
         group = random.randrange(5)
         if not group:
-            r = 0
+            r = lambda x: 0
         else:
-            r = random.randrange(25)
-        adjacent = [ (-1, -1, DIAGONALMOVE+r), (0,-1, ORTHOGONALMOVE+r), (1,-1, DIAGONALMOVE+r),
-                     (-1, 0, ORTHOGONALMOVE+r),                          (1, 0, ORTHOGONALMOVE+r),
-                     (-1, 1, DIAGONALMOVE+r),  (0, 1, ORTHOGONALMOVE+r), (1, 1, DIAGONALMOVE+r)]
+            r = random.randrange
+        adjacent = [ (-1, -1, DIAGONALMOVE+r(25)), (0,-1, ORTHOGONALMOVE+r(25)), (1,-1, DIAGONALMOVE+r(25)),
+                     (-1, 0, ORTHOGONALMOVE+r(25)),                             (1, 0, ORTHOGONALMOVE+r(25)),
+                     (-1, 1, DIAGONALMOVE+r(25)),  (0, 1, ORTHOGONALMOVE+r(25)), (1, 1, DIAGONALMOVE+r(25))]
 
         while True:
             # if open heap is empty, no path is available
@@ -212,6 +221,9 @@ class MapGrid(object):
                     newcost, newmovecost, newhcost = nodelist[newx][newy]
                     newmovecost = costs[1] + modmovecost
                     newcost = newmovecost + newhcost
+
+                    if self.should_avoid((newx, newy)):
+                        newcost += 75
 
                     # add to open list
                     heapq.heappush(openlist, (newcost, (newx,newy), coordinates))

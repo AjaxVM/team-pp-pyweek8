@@ -120,7 +120,8 @@ class Game(GameState):
                                 for i in self.worker_group.objects:
                                     i.reset_target()
                                 for i in self.insect_group.objects:
-                                    i.reset_target()
+##                                    i.reset_target()
+                                    i.update_path(grid)
                     if event.button == 3: #left
                         self.build_active = False
 
