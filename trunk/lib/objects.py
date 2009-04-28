@@ -1,6 +1,6 @@
 import pygame, math
 from pygame.locals import *
-
+import random
 import data, misc
 
 class GameGroup(object):
@@ -63,6 +63,14 @@ class GameObject(object):
                 self.kill()
         else:
             self.kill()
+
+    def update_path(self, grid):
+        if hasattr(self, "path"):
+            if self.path and grid in self.path:
+                p = self.path.index(grid)
+                t = random.choice((-1, 1))
+                changes = [(grid[0]-1, grid[1]+t), (grid[0], grid[1]+t), (grid[0]+1, grid[1]+t)]
+                self.path = self.path[0:p] + changes + self.path[p+1::]
 
 class Animation(GameObject):
     
@@ -191,8 +199,7 @@ class Tower(GameObject):
         x, y = self.rect.midbottom
         x -= 10
         y -= 20 #midbottom of grid size
-        grid = self.game.map_grid.screen_to_grid((x, y))
-        self.game.map_grid.set(grid, 0)
+        self.game.map_grid.set(self.game.map_grid.screen_to_grid((x, y)), 0)
 
 class Scraps(GameObject):
     def __init__(self, game, pos):
@@ -380,10 +387,12 @@ class Insect(GameObject):
     def find_obstacles(self):
         r = pygame.Rect(0,0,21,21) #allow a little overlapping!
         r.center = self.rect.center
+        r2 = pygame.Rect(0,0,20,20)
         o = []
         for i in self.game.blocking_group.objects:
-            if r.colliderect(i.rect):
-                o.append(i)
+            r2.midbottom = i.rect.midbottom #so all objects work with this!
+            if r.colliderect(r2):
+                o.append(r2)
         return o
 
     def update(self):
@@ -438,44 +447,32 @@ class Insect(GameObject):
                     else:
                         grid_pos = None
             if grid_pos:
-                go_right = go_left = go_up = go_down = True
-                if not self.game.map_grid.empty_around(self.game.map_grid.screen_to_grid(self.rect.center)):
-                    obs = self.find_obstacles()
-                else:
-                    obs = []
                 r = pygame.Rect(0,0,20,20)
                 self.move_timer += 1
                 if self.move_timer >= 3:
                     self.move_timer = 0
-                    if grid_pos[0] < self.rect.centerx and go_left:
+                    if grid_pos[0] < self.rect.centerx:
                         self.rect.move_ip(-1, 0)
-                        r.center = self.rect.center
-                        for i in obs:
-                            if r.colliderect(i):
-                                self.rect.move_ip(1,0)
-                                break
-                    elif grid_pos[0] > self.rect.centerx and go_right:
+                    elif grid_pos[0] > self.rect.centerx:
                         self.rect.move_ip(1, 0)
-                        r.center = self.rect.center
-                        for i in obs:
-                            if r.colliderect(i):
-                                self.rect.move_ip(-1,0)
-                                break
 
-                    if grid_pos[1] < self.rect.centery and go_up:
+                    if grid_pos[1] < self.rect.centery:
                         self.rect.move_ip(0, -1)
-                        r.center = self.rect.center
-                        for i in obs:
-                            if r.colliderect(i):
-                                self.rect.move_ip(0,1)
-                                break
-                    elif grid_pos[1] > self.rect.centery and go_down:
+                    elif grid_pos[1] > self.rect.centery:
                         self.rect.move_ip(0, 1)
-                        r.center = self.rect.center
-                        for i in obs:
-                            if r.colliderect(i):
-                                self.rect.move_ip(0,-1)
-                                break
+
+                    if not self.game.map_grid.empty_around(self.game.map_grid.screen_to_grid(self.rect.center)):
+                        for i in self.find_obstacles():
+                            r.center = self.rect.center
+                            adjx = r.move(0, -r.top).inflate(-2,-2).colliderect(i.move(0, -i.top).inflate(-2,-2))
+                            if r.bottom > i.top and not adjx:
+                                self.rect.move_ip(0, -1)
+                            if r.top < i.bottom and not adjx:
+                                self.rect.move_ip(0, 1)
+                            if r.right > i.left and adjx:
+                                self.rect.move_ip(-1, 0)
+                            if r.left < i.right and adjx:
+                                self.rect.move_ip(1, 0)
         else:
             self.hit(1) #or whatever
             self.kill()
