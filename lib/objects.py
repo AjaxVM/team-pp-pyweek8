@@ -224,7 +224,7 @@ class Hive(GameObject):
 
 class BuildTower(GameObject):
     def __init__(self, game, pos):
-        self.groups = game.main_group, game.build_tower_group
+        self.groups = game.main_group, game.build_tower_group, game.blocking_group
         GameObject.__init__(self, game)
 
         self.image = pygame.Surface((20,20)) #tile size...
@@ -247,7 +247,7 @@ class BuildTower(GameObject):
 
 class Tower(GameObject):
     def __init__(self, game, pos):
-        self.groups = game.main_group, game.tower_group
+        self.groups = game.main_group, game.tower_group, game.blocking_group
         GameObject.__init__(self, game)
 
         self.image = pygame.Surface((20, 30))
@@ -271,7 +271,7 @@ class Tower(GameObject):
 
 class Scraps(GameObject):
     def __init__(self, game, pos):
-        self.groups = game.main_group, game.scraps_group
+        self.groups = game.main_group, game.scraps_group, game.blocking_group
         GameObject.__init__(self, game)
 
         self.image = pygame.Surface((20,20))
@@ -294,7 +294,7 @@ class Scraps(GameObject):
 
 class Boulder(GameObject):
     def __init__(self, game, pos):
-        self.groups = game.main_group, game.obstacles_group
+        self.groups = game.main_group, game.blocking_group
         GameObject.__init__(self, game)
 
         self.image = pygame.Surface((20,20)).convert_alpha()
@@ -452,20 +452,29 @@ class Insect(GameObject):
     def reset_target(self):
         self.target = None
 
+    def find_obstacles(self):
+        r = pygame.Rect(0,0,21,21) #allow a little overlapping!
+        r.center = self.rect.center
+        o = []
+        for i in self.game.blocking_group.objects:
+            if r.colliderect(i.rect):
+                o.append(i)
+        return o
+
     def update(self):
 
         do_hit = []
 
         for i in self.game.worker_group.objects:
-            if misc.distance(i.rect.center, self.rect.center) <= 20:
+            if misc.distance(i.rect.center, self.rect.center) <= 22:
                 do_hit.append(i)
 
         for i in self.game.build_tower_group.objects:
-            if misc.distance(i.rect.center, self.rect.center) <= 20:
+            if misc.distance(i.rect.center, self.rect.center) <= 22:
                 do_hit.append(i)
 
         for i in self.game.tower_group.objects:
-            if misc.distance(i.rect.center, self.rect.center) <=20:
+            if misc.distance(i.rect.center, self.rect.center) <= 22:
                 do_hit.append(i)
 
         if do_hit:
@@ -507,18 +516,44 @@ class Insect(GameObject):
                     else:
                         grid_pos = None
             if grid_pos:
+                go_right = go_left = go_up = go_down = True
+                if not self.game.map_grid.empty_around(self.game.map_grid.screen_to_grid(self.rect.center)):
+                    obs = self.find_obstacles()
+                else:
+                    obs = []
+                r = pygame.Rect(0,0,20,20)
                 self.move_timer += 1
                 if self.move_timer >= 3:
                     self.move_timer = 0
-                    if grid_pos[0] < self.rect.centerx:
+                    if grid_pos[0] < self.rect.centerx and go_left:
                         self.rect.move_ip(-1, 0)
-                    elif grid_pos[0] > self.rect.centerx:
+                        r.center = self.rect.center
+                        for i in obs:
+                            if r.colliderect(i):
+                                self.rect.move_ip(1,0)
+                                break
+                    elif grid_pos[0] > self.rect.centerx and go_right:
                         self.rect.move_ip(1, 0)
+                        r.center = self.rect.center
+                        for i in obs:
+                            if r.colliderect(i):
+                                self.rect.move_ip(-1,0)
+                                break
 
-                    if grid_pos[1] < self.rect.centery:
+                    if grid_pos[1] < self.rect.centery and go_up:
                         self.rect.move_ip(0, -1)
-                    elif grid_pos[1] > self.rect.centery:
+                        r.center = self.rect.center
+                        for i in obs:
+                            if r.colliderect(i):
+                                self.rect.move_ip(0,1)
+                                break
+                    elif grid_pos[1] > self.rect.centery and go_down:
                         self.rect.move_ip(0, 1)
+                        r.center = self.rect.center
+                        for i in obs:
+                            if r.colliderect(i):
+                                self.rect.move_ip(0,-1)
+                                break
         else:
             self.hit(1) #or whatever
             self.kill()
