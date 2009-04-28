@@ -236,6 +236,8 @@ class BuildTower(GameObject):
         y += 20 #so we can put it at center...
         self.rect.midbottom = x, y
 
+        self.built = 0
+
     def kill(self):
         GameObject.kill(self)
         self.game.map_grid.set(self.game.map_grid.screen_to_grid(self.rect.topleft), 0)
@@ -370,8 +372,8 @@ class Worker(Animation):
             #TODO: replace with pathfinding!
             prev_pos = self.rect.center
             self.move_timer += 1
-            self.animate("walk", 5, 1)
-            if self.move_timer >= 3:
+            self.animate("walk", 15, 1)
+            if self.move_timer >= 8:
                 self.move_timer = 0
                 ydiff = self.target.rect.centery - self.rect.centery
                 xdiff = self.target.rect.centerx - self.rect.centerx
@@ -381,13 +383,15 @@ class Worker(Animation):
                 self.rect.y += math.cos(math.radians(self.angle))*3
         else:
             if isinstance(self.target, BuildTower):
-                t = Tower(self.game, self.target.rect.midbottom)
-                self.game.tower_group.add(t)
-                self.game.main_group.add(t)
-                self.target.kill()
-                self.reset_target()
-                self.animate("stand", 1, 1)
-                self.target = None
+                self.target.built += 1
+                if self.target.built >= 225:
+                    t = Tower(self.game, self.target.rect.midbottom)
+                    self.game.tower_group.add(t)
+                    self.game.main_group.add(t)
+                    self.target.kill()
+                    self.reset_target()
+                    self.animate("stand", 1, 1)
+                    self.target = None
             elif isinstance(self.target, Scraps):
                 self.have_scraps = True
                 self.target.cooldown = True
