@@ -111,7 +111,6 @@ class Game(GameState):
                                     objects.Worker.used_build_targets = []
                                 for i in self.insect_group.objects:
                                     i.target = None
-                                    i.path = None
                     if event.button == 3: #left
                         self.build_active = False
 
