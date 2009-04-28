@@ -106,6 +106,12 @@ class Game(GameState):
                             if self.map_grid.empty_around(grid):
                                 objects.BuildTower(self, self.map_grid.grid_to_screen(grid))
                                 self.map_grid.set(grid, 2)
+                                for i in self.worker_group.objects:
+                                    i.target = None #reset all workers so to regather!
+                                    objects.Worker.used_build_targets = []
+                                for i in self.insect_group.objects:
+                                    i.target = None
+                                    i.path = None
                     if event.button == 3: #left
                         self.build_active = False
 

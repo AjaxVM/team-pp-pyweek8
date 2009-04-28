@@ -127,7 +127,7 @@ class MapGrid(object):
         """This creates the base grid.
            Each grid must have one of 3 states:
                0: empty
-               1: occupied, non-momement-blocking
+               1: occupied, non-movement-blocking
                2: occupied, blocking"""
         grid = []
         for x in xrange(self.size[0]):
@@ -239,6 +239,9 @@ class BuildTower(GameObject):
     def kill(self):
         GameObject.kill(self)
         self.game.map_grid.set(self.game.map_grid.screen_to_grid(self.rect.topleft), 0)
+##        for i in self.game.insect_group.objects:
+##            i.target = None
+##            i.path = None
 
 class Tower(GameObject):
     def __init__(self, game, pos):
@@ -260,6 +263,9 @@ class Tower(GameObject):
         y -= 20 #midbottom of grid size
         grid = self.game.map_grid.screen_to_grid((x, y))
         self.game.map_grid.set(grid, 0)
+##        for i in self.game.insect_group.objects:
+##            i.target = None
+##            i.path = None
 
 class Worker(Animation):
     used_build_targets = []
@@ -359,10 +365,9 @@ class Insect(GameObject):
         self.target = None
         self.move_timer = 0
         self.attack_timer = 0
+        self.path = None
 
     def update(self):
-
-        self.target = self.game.hero
 
         do_hit = []
 
@@ -370,15 +375,13 @@ class Insect(GameObject):
             if misc.distance(i.rect.center, self.rect.center) <= 20:
                 do_hit.append(i)
 
-        if self.target == self.game.hero:
-            for i in self.game.build_tower_group.objects:
-                if misc.distance(i.rect.center, self.rect.center) <= 20:
-                    do_hit.append(i)
+        for i in self.game.build_tower_group.objects:
+            if misc.distance(i.rect.center, self.rect.center) <= 20:
+                do_hit.append(i)
 
-        if self.target == self.game.hero:
-            for i in self.game.tower_group.objects:
-                if misc.distance(i.rect.center, self.rect.center) <=20:
-                    do_hit.append(i)
+        for i in self.game.tower_group.objects:
+            if misc.distance(i.rect.center, self.rect.center) <=20:
+                do_hit.append(i)
 
         if do_hit:
             self.attack_timer += 1
@@ -389,21 +392,53 @@ class Insect(GameObject):
         else:
             self.attack_timer = 0
 
+        if self.path == None or not self.target:
+            self.target = self.game.hero
+            self.path = misc.calculatePath(
+                self.game.map_grid.screen_to_grid(self.rect.center),
+                self.game.map_grid.screen_to_grid(self.game.hero.rect.center),
+                self.game.map_grid.grid)
+
+            if self.path:
+                x, y = self.game.map_grid.grid_to_screen(self.path[0])
+                mini_rect = pygame.Rect(0,0,20,20)
+                mini_rect2 = pygame.Rect(x,y,20,20)
+                mini_rect.center = self.rect.center
+                grid_pos = x+10, y+10
+                if mini_rect == mini_rect2:
+                    self.path.pop(0)
+            
+
         if not self.rect.colliderect(self.target.rect):
             #TODO: replace with pathfinding!
             # shouldn't update pathfinding every frame -- should only update when something significant changes
-            self.move_timer += 1
-            if self.move_timer >= 3:
-                self.move_timer = 0
-                if self.target.rect.centerx < self.rect.centerx:
-                    self.rect.move_ip(-1, 0)
-                else:
-                    self.rect.move_ip(1, 0)
+            grid_pos = None
+            if self.path:
+                x, y = self.game.map_grid.grid_to_screen(self.path[0])
+                mini_rect = pygame.Rect(0,0,20,20)
+                mini_rect2 = pygame.Rect(x,y,20,20)
+                mini_rect.center = self.rect.center
+                grid_pos = x+10, y+10
+                if mini_rect == mini_rect2:
+                    self.path.pop(0)
+                    if self.path:
+                        x, y = self.game.map_grid.grid_to_screen(self.path[0])
+                        grid_pos = x+10, y+10
+                    else:
+                        grid_pos = None
+            if grid_pos:
+                self.move_timer += 1
+                if self.move_timer >= 3:
+                    self.move_timer = 0
+                    if grid_pos[0] < self.rect.centerx:
+                        self.rect.move_ip(-1, 0)
+                    elif grid_pos[0] > self.rect.centerx:
+                        self.rect.move_ip(1, 0)
 
-                if self.target.rect.centery < self.rect.centery:
-                    self.rect.move_ip(0, -1)
-                else:
-                    self.rect.move_ip(0, 1)
+                    if grid_pos[1] < self.rect.centery:
+                        self.rect.move_ip(0, -1)
+                    elif grid_pos[1] > self.rect.centery:
+                        self.rect.move_ip(0, 1)
         else:
             self.hit(1) #or whatever
             self.kill()

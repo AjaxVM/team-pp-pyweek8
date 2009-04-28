@@ -15,7 +15,7 @@ def calculatePath(start, end, blockedmap):
     """Calculates a path using an a* like algorithm.
     @param start: coordinates of start
     @param end: coordinates of end
-    @param blockedmap: 2d array of coordinates, true for blocked, false if free
+    @param blockedmap: 2d array of coordinates, 0 or 1 allow movement, 2 blocks
     @returns: a list of coordinates for the path, or false if no path was found
     @todo:  return multiple paths? variation?
 
@@ -58,7 +58,7 @@ def calculatePath(start, end, blockedmap):
     numrows = len(blockedmap[0])
 
     ORTHOGONALMOVE = 10
-    DIAGONALMOVE = 14
+    DIAGONALMOVE = 25 #so they don't keep cutting across the blasted towers all the time!
 
     # create open and closed lists
     openlist = []       # cost, coords, parentcoords
@@ -136,7 +136,7 @@ def calculatePath(start, end, blockedmap):
                 continue
 
             # skip if not walkable
-            if blockedmap[newx][newy]:
+            if blockedmap[newx][newy] == 2:
                 #print "DEBUG: (%d, %d) BLOCKED" % (newx,newy)
                 continue
 
@@ -221,7 +221,7 @@ if __name__ == '__main__':
         [False, False, False, False, False, False],
         [False, False, False, False, False, False],
 
-        [False, True, True, True, False, False],
+        [False, 2, 2, 2, 2, False],
         [False, False, False, False, False, False],
         [False, False, False, False, False, False],
         [False, False, False, False, False, False],
@@ -238,7 +238,7 @@ if __name__ == '__main__':
         [False, False, False, False, False, False],
         [False, False, False, False, False, False],
 
-        [True, True, True, True, True, True],
+        [2, 2, 2, 2, 2, 2],
         [False, False, False, False, False, False],
         [False, False, False, False, False, False],
         [False, False, False, False, False, False],
@@ -253,13 +253,13 @@ if __name__ == '__main__':
     # this one doesnt seem to be grabbing the best path -- takes an extra diag
     blockedmap = [
         [False, False, False, False, False, False],
-        [False, True, False, False, False, False],
-        [False, True, False, False, False, False],
+        [False, 2, False, False, False, False],
+        [False, 2, False, False, False, False],
         [False, False, False, False, False, False],
 
-        [False, False, True, False, True, True],
+        [False, False, 2, False, 2, 2],
         [False, False, False, False, False, False],
-        [False, False, False, True, True, False],
+        [False, False, False, 2, 2, False],
         [False, False, False, True, False, False],
     ]
     start = (0,0)
@@ -270,14 +270,14 @@ if __name__ == '__main__':
     # simple maze
     blockedmap = [
         [False, False, False, False, False, False],
-        [True, True, True, False, True, True],
-        [False, False, False, True, False, False],
-        [False, False, False, True, False, False],
+        [2, 2, 2, False, 2, 2],
+        [False, False, False, 2, False, False],
+        [False, False, False, 2, False, False],
 
-        [False, True, True, True, True, True],
-        [False, True, False, False, False, False],
-        [False, True, False, False, True, True],
-        [False, False, False, True, False, False],
+        [False, 2, 2, 2, 2, 2],
+        [False, 2, False, False, False, False],
+        [False, 2, False, False, 2, 2],
+        [False, False, False, 2, False, False],
     ]
     start = (0,0)
     end = (7,5)
