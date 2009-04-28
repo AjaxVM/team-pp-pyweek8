@@ -120,7 +120,6 @@ class Game(GameState):
                                 for i in self.worker_group.objects:
                                     i.reset_target()
                                 for i in self.insect_group.objects:
-##                                    i.reset_target()
                                     i.update_path(grid)
                     if event.button == 3: #left
                         self.build_active = False
@@ -138,15 +137,6 @@ class Game(GameState):
         self.main_group.sort()
 
         self.screen.blit(self.background, (0,0))
-
-        ##DEBUG tile rendering
-        pygame.draw.rect(self.screen, (255,0,255), (self.map_grid.screen_to_screen(pygame.mouse.get_pos()), (20,20)), 2)
-
-        for x in xrange(self.map_grid.size[0]):
-            for y in xrange(self.map_grid.size[1]):
-                if not self.map_grid.is_open((x, y)):
-                    pygame.draw.rect(self.screen, (255,255,255), (self.map_grid.screen_to_screen((x*20, y*20)), (20, 20)), 2)
-        ##END DEBUG
 
         self.main_group.render()
         pygame.draw.rect(self.screen, (125,125,125), (0,500,800,600))

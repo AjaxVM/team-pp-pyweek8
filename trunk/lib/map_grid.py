@@ -80,7 +80,7 @@ class MapGrid(object):
         return True
 
     def should_avoid(self, pos):
-        """Return wether there are no filled spaces +/- 1 of pos."""
+        """Return whether there are no filled spaces +/- 1 of pos."""
         for x in xrange(pos[0]-2, pos[0]+3):
             for y in xrange(pos[1]-2, pos[1]+3):
                 if not self.out_of_bounds((x, y)):
@@ -89,7 +89,7 @@ class MapGrid(object):
         return False
 
     def disable_diag(self, pos):
-        """Return wether there are no filled spaces +/- 1 of pos."""
+        """Return whether there are no filled spaces +/- 1 of pos."""
         for x in xrange(pos[0]-1, pos[0]+2):
             for y in xrange(pos[1]-1, pos[1]+2):
                 if not self.out_of_bounds((x, y)):
@@ -154,6 +154,8 @@ class MapGrid(object):
             r = lambda x: 0
         else:
             r = random.randrange
+        #this is weighted so that the less obvious paths are given some advantage
+        #since bottomright is the most direct course to the hero base, that is weighted the lowest
         adjacent = [ (-1, -1, DIAGONALMOVE+r(75)), (0,-1, ORTHOGONALMOVE+r(25)), (1,-1, DIAGONALMOVE+r(20)),
                      (-1, 0, ORTHOGONALMOVE+r(40)),                             (1, 0, ORTHOGONALMOVE+r(50)),
                      (-1, 1, DIAGONALMOVE+r(20)),  (0, 1, ORTHOGONALMOVE+r(25)), (1, 1, DIAGONALMOVE+r(75))]
@@ -162,10 +164,10 @@ class MapGrid(object):
 
         while True:
             swap_adj += 1
-            if swap_adj >= 15:
+            if swap_adj > 25:
                 swap_adj = 0
                 adjacent = [ (-1, -1, DIAGONALMOVE+r(75)), (0,-1, ORTHOGONALMOVE+r(25)), (1,-1, DIAGONALMOVE+r(20)),
-                     (-1, 0, ORTHOGONALMOVE+r(40)),                             (1, 0, ORTHOGONALMOVE+r(50)),
+                     (-1, 0, ORTHOGONALMOVE+r(30)),                             (1, 0, ORTHOGONALMOVE+r(50)),
                      (-1, 1, DIAGONALMOVE+r(20)),  (0, 1, ORTHOGONALMOVE+r(25)), (1, 1, DIAGONALMOVE+r(75))]
             # if open heap is empty, no path is available
             if len(openlist) == 0:
@@ -234,7 +236,8 @@ class MapGrid(object):
                                 nodelist[newx][newy] = updatedcost, updatedmovecost, newhcost
 
                                 # re-sort openlist
-                                openlist.sort()
+                                if (newx, newy) == end:
+                                    openlist.sort()
 
                                 break
 
@@ -245,10 +248,13 @@ class MapGrid(object):
                     newmovecost = costs[1] + modmovecost
                     newcost = newmovecost + newhcost
 
-                    if self.should_avoid((newx, newy)):
-                        newcost += 75
-                    if diag and self.disable_diag((newx, newy)):
-                        newcost += 250
+                    for x in xrange(newx-2, newx+3):
+                        for y in xrange(newy-2, newy+3):
+                            if not self.out_of_bounds((x, y)):
+                                if blockedmap[x][y] == 3:
+                                    newcost += 25
+                                if diag and blockedmap[x][y] > 1:
+                                    newcost += 250
 
                     # add to open list
                     heapq.heappush(openlist, (newcost, (newx,newy), coordinates))
