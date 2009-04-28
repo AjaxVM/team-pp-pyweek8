@@ -64,6 +64,40 @@ class GameObject(object):
         else:
             self.kill()
 
+class Animation(GameObject):
+    
+    def __init__(self, game):
+        GameObject.__init__(self, game)
+        self.images = {None: []}
+        self.current_name = None
+        self.loops = 0
+        self.frame = 0
+        self.delay = 0
+        self.num_loops = 0
+
+    def add_animation(self, name, images):
+        self.images[name] = images
+    
+    def animate(self, name, delay, loops):
+        if self.current_name != name:
+            self.current_name = name
+            self.loops = loops
+            self.frame = 0
+            self.delay = delay
+            self.num_loops = 0
+    
+    def render(self):
+        self.frame += 1
+        if self.num_loops < self.loops and self.loops > -1:
+            if self.frame > len(self.images[self.current_name]):
+                self.num_loops += 1
+            if self.num_loops > self.loops:
+                self.frame = 0
+                self.current_name = None
+        if self.current_name:
+            self.image = self.images[self.current_name][self.frame/self.delay%len(self.images[self.current_name])]
+        self.game.screen.blit(self.image, self.rect)
+
 class MapGrid(object):
     """This object stores all map related stuff, as well as "open"
        spaces for towers/traps to be built on..."""
@@ -212,14 +246,17 @@ class Tower(GameObject):
         grid = self.game.map_grid.screen_to_grid((x, y))
         self.game.map_grid.set(grid, 0)
 
-class Worker(GameObject):
+class Worker(Animation):
     used_build_targets = []
     def __init__(self, game):
         self.groups = game.main_group, game.worker_group
-        GameObject.__init__(self, game)
-
-        self.image = pygame.Surface((10,10))
-        self.image.fill((100,100,255))
+        Animation.__init__(self, game)
+        self.walk_images = [
+            data.image("data/worker-1.png"),
+            data.image("data/worker-2.png"),
+            ]
+        self.image = self.walk_images[0]
+        self.add_animation("walk", self.walk_images)
 
         self.rect = self.image.get_rect()
         self.rect.center = self.game.hero.rect.topleft
@@ -228,6 +265,7 @@ class Worker(GameObject):
         self.move_timer = 0
 
     def update(self):
+        self.animate("walk", 5, -1)
         if not self.target:
             diso = None
             passed = []
