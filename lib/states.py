@@ -1,6 +1,8 @@
 import pygame
 from pygame.locals import *
 
+import random
+
 import data, ui, objects
 
 class GameState(object):
@@ -83,6 +85,7 @@ class Game(GameState):
         self.tower_group = objects.GameGroup()
         self.insect_group = objects.GameGroup()
         self.scraps_group = objects.GameGroup()
+        self.obstacles_group = objects.GameGroup()
 
         self.font = data.font(None, 32)
 
@@ -93,7 +96,11 @@ class Game(GameState):
 
         for i in ((25, 5), (17, 22), (34, 15)):
             objects.Scraps(self, self.map_grid.grid_to_screen(i))
-            self.map_grid.set(i, 1)
+
+        for i in xrange(25):
+            pos = random.randrange(self.map_grid.size[0]), random.randrange(self.map_grid.size[1])
+            if self.map_grid.empty_around(pos):
+                objects.Boulder(self, self.map_grid.grid_to_screen(pos))
 
     def update(self):
         for event in pygame.event.get():
@@ -110,7 +117,6 @@ class Game(GameState):
                             grid = self.map_grid.screen_to_grid(event.pos)
                             if self.map_grid.empty_around(grid):
                                 objects.BuildTower(self, self.map_grid.grid_to_screen(grid))
-                                self.map_grid.set(grid, 2)
                                 for i in self.worker_group.objects:
                                     i.reset_target()
                                 for i in self.insect_group.objects:

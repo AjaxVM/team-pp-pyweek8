@@ -236,14 +236,14 @@ class BuildTower(GameObject):
         y += 20 #so we can put it at center...
         self.rect.midbottom = x, y
 
+        #set blocking!
+        self.game.map_grid.set(self.game.map_grid.screen_to_grid(pos), 2)
+
         self.built = 0
 
     def kill(self):
         GameObject.kill(self)
         self.game.map_grid.set(self.game.map_grid.screen_to_grid(self.rect.topleft), 0)
-##        for i in self.game.insect_group.objects:
-##            i.target = None
-##            i.path = None
 
 class Tower(GameObject):
     def __init__(self, game, pos):
@@ -282,6 +282,32 @@ class Scraps(GameObject):
 
         self.cooldown = False
         self.timer = 0
+
+        self.game.map_grid.set(self.game.map_grid.screen_to_grid(pos), 1)
+
+    def update(self):
+        if self.cooldown:
+            self.timer += 1
+            if self.timer >= 200:
+                self.timer = 0
+                self.cooldown = False
+
+class Boulder(GameObject):
+    def __init__(self, game, pos):
+        self.groups = game.main_group, game.obstacles_group
+        GameObject.__init__(self, game)
+
+        self.image = pygame.Surface((20,20)).convert_alpha()
+        self.image.fill((0,0,0,0))
+        pygame.draw.polygon(self.image, (200,0,200), ((3, 3), (17, 17), (17, 3), (3, 17), (3,3)), 3)
+
+        self.rect = self.image.get_rect()
+        self.rect.topleft = pos
+
+        self.cooldown = False
+        self.timer = 0
+
+        self.game.map_grid.set(self.game.map_grid.screen_to_grid(pos), 2)
 
     def update(self):
         if self.cooldown:
