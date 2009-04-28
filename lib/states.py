@@ -3,7 +3,7 @@ from pygame.locals import *
 
 import random
 
-import data, ui, objects
+import data, ui, objects, map_grid
 
 class GameState(object):
     def __init__(self, parent=None):
@@ -73,9 +73,9 @@ class Game(GameState):
         self.build_active = None
 
         self.app = ui.App(self.screen)
-        ui.Button(self.app, "GoBack!", pos=(0,500), callback=self.goback)
-        ui.Button(self.app, "Build Tower!", pos=(150,500), callback=lambda: setattr(self, "build_active", True))
-        ui.Button(self.app, "Build Worker!", pos=(300, 500), callback=lambda: objects.Worker(self))
+        ui.Button(self.app, "Quit Game", pos=(0,500), callback=self.goback)
+        ui.Button(self.app, "Build Tower!", pos=(165,520), callback=lambda: setattr(self, "build_active", True))
+        ui.Button(self.app, "Build Worker!", pos=(165, 560), callback=lambda: objects.Worker(self))
 
         self.main_group = objects.GameGroup()
         self.hero_group = objects.GameGroup()
@@ -89,7 +89,7 @@ class Game(GameState):
 
         self.font = data.font(None, 32)
 
-        self.map_grid = objects.MapGrid(self)
+        self.map_grid = map_grid.MapGrid(self)
 
         self.hero = objects.Hero(self)
         self.hive = objects.Hive(self)
