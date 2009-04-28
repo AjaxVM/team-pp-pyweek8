@@ -85,7 +85,7 @@ class Game(GameState):
         self.tower_group = objects.GameGroup()
         self.insect_group = objects.GameGroup()
         self.scraps_group = objects.GameGroup()
-        self.obstacles_group = objects.GameGroup()
+        self.blocking_group = objects.GameGroup()
 
         self.font = data.font(None, 32)
 
