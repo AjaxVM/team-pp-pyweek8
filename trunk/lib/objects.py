@@ -1,4 +1,4 @@
-import pygame
+import pygame, math
 from pygame.locals import *
 
 import data, misc
@@ -74,6 +74,7 @@ class Animation(GameObject):
         self.frame = 0
         self.delay = 0
         self.num_loops = 0
+        self.angle = 0
 
     def add_animation(self, name, images):
         self.images[name] = images
@@ -87,6 +88,7 @@ class Animation(GameObject):
             self.num_loops = 0
     
     def render(self):
+        print self.angle
         self.frame += 1
         if self.num_loops < self.loops and self.loops > -1:
             if self.frame > len(self.images[self.current_name]):
@@ -95,8 +97,11 @@ class Animation(GameObject):
                 self.frame = 0
                 self.current_name = None
         if self.current_name:
-            self.image = self.images[self.current_name][self.frame/self.delay%len(self.images[self.current_name])]
-        self.game.screen.blit(self.image, self.rect)
+            imgs_len = len(self.images[self.current_name])
+            imgs = self.images[self.current_name]
+            self.image = pygame.transform.rotate(imgs[self.frame/self.delay%imgs_len], self.angle)
+            self.rect = self.image.get_rect(center = self.rect.center)
+        self.game.screen.blit(self.image, self.rect.center)
 
 class MapGrid(object):
     """This object stores all map related stuff, as well as "open"
@@ -300,6 +305,7 @@ class Worker(Animation):
 
         if not self.rect.colliderect(self.target.rect):
             #TODO: replace with pathfinding!
+            prev_pos = self.rect.center
             self.move_timer += 1
             if self.move_timer >= 5:
                 self.move_timer = 0
@@ -312,6 +318,11 @@ class Worker(Animation):
                     self.rect.move_ip(0, -1)
                 else:
                     self.rect.move_ip(0, 1)
+            ydiff = prev_pos[1] - self.rect.centery
+            xdiff = prev_pos[0] - self.rect.centerx
+            if xdiff != 0 and ydiff != 0:
+                angle = math.atan2(ydiff, xdiff)
+                self.angle = math.degrees(angle)
         else:
             t = Tower(self.game, self.target.rect.midbottom)
             self.game.tower_group.add(t)
