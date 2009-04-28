@@ -1,7 +1,7 @@
 import random, heapq
 
 ORTHOGONALMOVE = 10
-DIAGONALMOVE = 25 #so they don't keep cutting across the blasted towers all the time!
+DIAGONALMOVE = 14 #so they don't keep cutting across the blasted towers all the time!
 INOPENLIST = 1
 INCLOSEDLIST = 2
 
@@ -88,6 +88,15 @@ class MapGrid(object):
                         return True
         return False
 
+    def disable_diag(self, pos):
+        """Return wether there are no filled spaces +/- 1 of pos."""
+        for x in xrange(pos[0]-1, pos[0]+2):
+            for y in xrange(pos[1]-1, pos[1]+2):
+                if not self.out_of_bounds((x, y)):
+                    if self.grid[x][y] > 1:
+                        return True
+        return False
+
     def calculate_path(self, start, end):
         """Calculates a path using an a* like algorithm.
         @param start: coordinates of start
@@ -145,11 +154,19 @@ class MapGrid(object):
             r = lambda x: 0
         else:
             r = random.randrange
-        adjacent = [ (-1, -1, DIAGONALMOVE+r(25)), (0,-1, ORTHOGONALMOVE+r(25)), (1,-1, DIAGONALMOVE+r(25)),
-                     (-1, 0, ORTHOGONALMOVE+r(25)),                             (1, 0, ORTHOGONALMOVE+r(25)),
-                     (-1, 1, DIAGONALMOVE+r(25)),  (0, 1, ORTHOGONALMOVE+r(25)), (1, 1, DIAGONALMOVE+r(25))]
+        adjacent = [ (-1, -1, DIAGONALMOVE+r(75)), (0,-1, ORTHOGONALMOVE+r(25)), (1,-1, DIAGONALMOVE+r(20)),
+                     (-1, 0, ORTHOGONALMOVE+r(40)),                             (1, 0, ORTHOGONALMOVE+r(50)),
+                     (-1, 1, DIAGONALMOVE+r(20)),  (0, 1, ORTHOGONALMOVE+r(25)), (1, 1, DIAGONALMOVE+r(75))]
+
+        swap_adj = 0
 
         while True:
+            swap_adj += 1
+            if swap_adj >= 15:
+                swap_adj = 0
+                adjacent = [ (-1, -1, DIAGONALMOVE+r(75)), (0,-1, ORTHOGONALMOVE+r(25)), (1,-1, DIAGONALMOVE+r(20)),
+                     (-1, 0, ORTHOGONALMOVE+r(40)),                             (1, 0, ORTHOGONALMOVE+r(50)),
+                     (-1, 1, DIAGONALMOVE+r(20)),  (0, 1, ORTHOGONALMOVE+r(25)), (1, 1, DIAGONALMOVE+r(75))]
             # if open heap is empty, no path is available
             if len(openlist) == 0:
                 return False
@@ -175,7 +192,13 @@ class MapGrid(object):
             inlist[coordinates[0]][coordinates[1]] = INCLOSEDLIST
 
             # check adjacent nodes
+            num = -1
             for modx, mody, modmovecost in adjacent:
+                num += 1
+                if num in (0, 2, 5, 7):
+                    diag = True
+                else:
+                    diag = False
                 newx = coordinates[0] + modx
                 newy = coordinates[1] + mody
 
@@ -224,6 +247,8 @@ class MapGrid(object):
 
                     if self.should_avoid((newx, newy)):
                         newcost += 75
+                    if diag and self.disable_diag((newx, newy)):
+                        newcost += 250
 
                     # add to open list
                     heapq.heappush(openlist, (newcost, (newx,newy), coordinates))
