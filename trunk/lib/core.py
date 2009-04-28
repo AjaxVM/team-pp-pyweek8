@@ -13,6 +13,7 @@ class GameStateEngine(states.GameState):
         self.running = True
 
         self.fps = 1.0 / 60
+        self.clock = pygame.time.Clock()
 
         self.children = {"menu":states.Menu,
                          None: states.Menu, #this makes sure that if any of the states goback to root the menu always runs!
@@ -25,8 +26,6 @@ class GameStateEngine(states.GameState):
 
     def run(self):
         while self.running:
-            start = time.time()
+            self.clock.tick(60)
             self.do_update()
-            while time.time() - start < self.fps:
-                time.sleep(0.025)
-            pygame.display.set_caption("FPS: %s"%round(self.fps/(time.time()-start)*100, 1))
+            pygame.display.set_caption("FPS: %0.02f" % self.clock.get_fps())
