@@ -124,6 +124,10 @@ class Game(GameState):
                     if event.button == 3: #left
                         self.build_active = False
 
+            if event.type == KEYDOWN:
+                if event.key == K_s:
+                    pygame.image.save(self.screen, "test.png")
+
         self.hero_group.update()
         self.hive_group.update()
         self.build_tower_group.update()
