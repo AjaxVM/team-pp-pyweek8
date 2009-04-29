@@ -254,7 +254,7 @@ class MapGrid(object):
                                 if blockedmap[x][y] == 3:
                                     newcost += 25
                                 if diag and blockedmap[x][y] > 1:
-                                    newcost += 250
+                                    newcost += 1000
 
                     # add to open list
                     heapq.heappush(openlist, (newcost, (newx,newy), coordinates))
