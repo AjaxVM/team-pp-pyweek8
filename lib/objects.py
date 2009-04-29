@@ -173,7 +173,7 @@ class BuildTower(GameObject):
         self.rect.midbottom = x, y
 
         #set blocking!
-        self.game.map_grid.set(self.game.map_grid.screen_to_grid(pos), 3)
+        self.game.map_grid.set(self.game.map_grid.screen_to_grid(pos), 1)
 
         self.built = 0
 
