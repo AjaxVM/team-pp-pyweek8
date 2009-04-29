@@ -94,8 +94,10 @@ class Game(GameState):
         self.hero = objects.Hero(self)
         self.hive = objects.Hive(self)
 
-        for i in ((25, 5), (17, 22), (34, 15)):
-            objects.Scraps(self, self.map_grid.grid_to_screen(i))
+        for i in xrange(5):
+            pos = random.randrange(self.map_grid.size[0]), random.randrange(self.map_grid.size[1])
+            if self.map_grid.empty_around(pos):
+                objects.Scraps(self, self.map_grid.grid_to_screen(pos))
 
         for i in xrange(25):
             pos = random.randrange(self.map_grid.size[0]), random.randrange(self.map_grid.size[1])
@@ -139,8 +141,18 @@ class Game(GameState):
 
         self.screen.blit(self.background, (0,0))
 
+        ##DEBUG tile rendering
+        pygame.draw.rect(self.screen, (255,0,255), (self.map_grid.screen_to_screen(pygame.mouse.get_pos()), (32,32)), 2)
+
+        for x in xrange(self.map_grid.size[0]):
+            for y in xrange(self.map_grid.size[1]):
+                if not self.map_grid.is_open((x, y)):
+                    pygame.draw.rect(self.screen, (255,255,255), (self.map_grid.screen_to_screen((x*32, y*32)), (32, 32)), 2)
+        ##END DEBUG
+
+
         self.main_group.render()
-        pygame.draw.rect(self.screen, (125,125,125), (0,500,800,600))
+        pygame.draw.rect(self.screen, (125,125,125), (0,480,800,600))
         self.app.render()
 
         pygame.display.flip()
