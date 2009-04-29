@@ -26,6 +26,8 @@ class GameStateEngine(states.GameState):
 
     def run(self):
         while self.running:
-            self.clock.tick(60)
+            self.clock.tick()
             self.do_update()
-            pygame.display.set_caption("FPS: %0.02f" % self.clock.get_fps())
+            self.clock.tick(60)
+
+            pygame.display.set_caption("FPS: %0.01f" % (self.clock.get_fps()/2))
