@@ -369,7 +369,10 @@ class Worker(Animation):
         self.add_animation("stand", self.stand_images)
 
         self.rect = self.image.get_rect()
-        self.rect.center = self.game.hero.rect.topleft
+        self.rect.bottomright = self.game.hero.rect.topleft
+        self.rect.move_ip(-50, -50)
+
+        self.path = None
 
         self.target = None
         self.move_timer = 0
@@ -386,7 +389,10 @@ class Worker(Animation):
         if not self.target or isinstance(self.target, Scraps) or isinstance(self.target, RandomTarget):
             #if we have no target, or are just going for scraps, see if something more important is needed of us!
             if isinstance(self.target, Scraps):
+                goback = (self.target, self.path)
                 self.reset_target() #in case it is a scrap O.o
+            else:
+                goback = [(None,None), None]
             diso = None
             passed = []
             for i in self.game.build_tower_group.objects: #will need to add scraps and whatnot later...
@@ -422,11 +428,22 @@ class Worker(Animation):
 
             if diso:
                 self.target = diso[0]
+                if self.target == goback[0]:
+                    self.path = goback[1]
+                else:
+                    self.path = self.game.map_grid.calculate_path(
+                        self.game.map_grid.screen_to_grid(self.rect.center),
+                        self.game.map_grid.screen_to_grid(self.target.rect.center),
+                        "bot") #don't need random weighting for these guys ;)
                 self.used_targets.append(self.target)
             else:
                 #ok, can't do ANYTHING
                 if self.target == None:
                     self.target = RandomTarget()
+                    self.path = self.game.map_grid.calculate_path(
+                        self.game.map_grid.screen_to_grid(self.rect.center),
+                        self.game.map_grid.screen_to_grid(self.target.rect.center),
+                        "bot")
 
         if self.target.was_killed:
             self.reset_target()
@@ -434,18 +451,39 @@ class Worker(Animation):
             return
 
         if not self.rect.colliderect(self.target.rect):
-            #TODO: replace with pathfinding!
-            prev_pos = self.rect.center
-            self.move_timer += 1
-            self.animate("walk", 15, 1)
-            if self.move_timer >= 4:
-                self.move_timer = 0
-                ydiff = self.target.rect.centery - self.rect.centery
-                xdiff = self.target.rect.centerx - self.rect.centerx
-                angle = math.atan2(xdiff, ydiff)
-                self.angle = math.degrees(angle)
-                self.rect.x += math.sin(math.radians(self.angle))*3
-                self.rect.y += math.cos(math.radians(self.angle))*3
+            grid_pos = None
+            if self.path:
+                x, y = self.game.map_grid.grid_to_screen(self.path[0])
+                mini_rect = pygame.Rect(0,0,20,20)
+                mini_rect2 = pygame.Rect(x,y,20,20)
+                mini_rect.center = self.rect.center
+                grid_pos = x+10, y+10
+                if mini_rect == mini_rect2:
+                    self.path.pop(0)
+                    if self.path:
+                        x, y = self.game.map_grid.grid_to_screen(self.path[0])
+                        mini_rect2 = pygame.Rect(x,y,20,20)
+                        grid_pos = x+10, y+10
+                    else:
+                        grid_pos = None
+            else:
+                self.path = self.game.map_grid.calculate_path(
+                    self.game.map_grid.screen_to_grid(self.rect.center),
+                    self.game.map_grid.screen_to_grid(self.target.rect.center),
+                    False)
+            if grid_pos:
+                self.move_timer += 1
+                if self.move_timer >= 2:
+                    self.move_timer = 0
+                    if grid_pos[0] < self.rect.centerx:
+                        self.rect.move_ip(-1, 0)
+                    elif grid_pos[0] > self.rect.centerx:
+                        self.rect.move_ip(1, 0)
+
+                    if grid_pos[1] < self.rect.centery:
+                        self.rect.move_ip(0, -1)
+                    elif grid_pos[1] > self.rect.centery:
+                        self.rect.move_ip(0, 1)
         else:
             if isinstance(self.target, BuildTower):
                 self.target.built += 1
@@ -469,6 +507,10 @@ class Worker(Animation):
                 #do addition of scraps to inventory stuff here!!!
             elif isinstance(self.target, RandomTarget):
                 self.target = RandomTarget() #move again O.o
+                self.path = self.game.map_grid.calculate_path(
+                    self.game.map_grid.screen_to_grid(self.rect.center),
+                    self.game.map_grid.screen_to_grid(self.target.rect.center),
+                    "bot")
 
     def kill(self):
         self.reset_target()
@@ -539,8 +581,6 @@ class Insect(GameObject):
             
 
         if not self.rect.colliderect(self.target.rect):
-            #TODO: replace with pathfinding!
-            # shouldn't update pathfinding every frame -- should only update when something significant changes
             grid_pos = None
             if self.path:
                 x, y = self.game.map_grid.grid_to_screen(self.path[0])
@@ -556,7 +596,6 @@ class Insect(GameObject):
                     else:
                         grid_pos = None
             if grid_pos:
-                r = pygame.Rect(0,0,20,20)
                 self.move_timer += 1
                 if self.move_timer >= 2:
                     self.move_timer = 0
