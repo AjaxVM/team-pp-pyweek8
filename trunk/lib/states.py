@@ -182,10 +182,8 @@ class Game(GameState):
                 x -= 10
                 y -= 20
                 pygame.draw.rect(self.screen, (155,155,155), ((x - 20, y - 20), (60, 60)))
-            for x in xrange(self.map_grid.size[0]):
-                for y in xrange(self.map_grid.size[1]):
-                    if self.map_grid.grid[x][y]:
-                        pygame.draw.rect(self.screen, (155,155,155), (self.map_grid.grid_to_screen((x, y)), (20,20)))
+            pygame.draw.rect(self.screen, (155,155,155), ((0,0), (11*20,11*20)))
+            pygame.draw.rect(self.screen, (155,155,155), ((800-9*20,500-9*20), (9*20,9*20)))
         ##END DEBUG
 
 
