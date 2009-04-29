@@ -86,6 +86,7 @@ class Game(GameState):
         self.insect_group = objects.GameGroup()
         self.scraps_group = objects.GameGroup()
         self.blocking_group = objects.GameGroup()
+        self.bullet_group = objects.GameGroup()
 
         self.font = data.font(None, 32)
 
@@ -135,9 +136,21 @@ class Game(GameState):
         self.worker_group.update()
         self.insect_group.update()
         self.scraps_group.update()
+        self.tower_group.update()
+        self.bullet_group.update()
         self.main_group.sort()
 
         self.screen.blit(self.background, (0,0))
+
+        ##DEBUG tile rendering
+        pygame.draw.rect(self.screen, (255,0,255), (self.map_grid.screen_to_screen(pygame.mouse.get_pos()), (20,20)), 2)
+
+        for x in xrange(self.map_grid.size[0]):
+            for y in xrange(self.map_grid.size[1]):
+                if not self.map_grid.is_open((x, y)):
+                    pygame.draw.rect(self.screen, (255,255,255), (self.map_grid.screen_to_screen((x*20, y*20)), (20, 20)), 2)
+        ##END DEBUG
+
 
         self.main_group.render()
         pygame.draw.rect(self.screen, (125,125,125), (0,500,800,600))
