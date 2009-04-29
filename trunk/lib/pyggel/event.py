@@ -23,6 +23,7 @@ class Keyboard(object):
 
         self.hit = []
         self.held = []
+        self.released = []
 
     def do_active_hit(self, event):
         self.hook[event.key] = str(event.unicode)
@@ -36,6 +37,8 @@ class Keyboard(object):
         if event.key in self.active:
             self.active.remove(event.key)
             self.active.remove(self.hook[event.key])
+            self.released.append(event.key)
+            self.released.append(self.hook[event.key])
             x = self.hook[event.key]
             del self.hook[event.key]
             return x
@@ -54,6 +57,7 @@ class Mouse(object):
 
         self.hit = []
         self.held = []
+        self.released = []
 
     def get_pos(self):
         """Return the mouse pos."""
@@ -83,6 +87,8 @@ class Mouse(object):
             name = self.get_name(event.button)
             self.active.remove(event.button)
             self.active.remove(name)
+            self.released.append(event.button)
+            self.released.append(name)
 
 class Dispatcher(object):
     """A simple dispatcher class, that allows you to bind functions to events, and execute them all with a single command."""
@@ -240,6 +246,10 @@ class Handler(object):
         self.gui_keyboard.held = []
         self.mouse.held = []
         self.gui_mouse.held = []
+        self.mouse.released = []
+        self.keyboard.released = []
+        self.gui_mouse.released = []
+        self.gui_keyboard.released = []
         for event in pygame.event.get():
             self.handle_event(event)
 
