@@ -68,7 +68,7 @@ class GameObject(object):
         if hasattr(self, "path"):
             if self.path and grid in self.path:
                 p = self.path.index(grid)
-                changes = [(grid[0]-1, grid[1]+t), (grid[0], grid[1]-1), (grid[0]+1, grid[1]-1)]
+                changes = [(grid[0]-1, grid[1]-1), (grid[0], grid[1]-1), (grid[0]+1, grid[1]-1)]
                 self.path = self.path[0:p] + changes + self.path[p+1::]
 
 class Animation(GameObject):
@@ -238,8 +238,8 @@ class Tower(GameObject):
             if self.shot_timer >= 45:
                 self.shot_timer = 0
                 target = diso[0]
-                ydiff = target.rect.centery - self.rect.centery
-                xdiff = target.rect.centerx - self.rect.centerx
+                ydiff = target.rect.bottom - self.rect.centery
+                xdiff = target.rect.right - self.rect.centerx
                 angle = math.degrees(math.atan2(xdiff, ydiff))
                 x = math.sin(math.radians(angle))
                 y = math.cos(math.radians(angle))
@@ -274,7 +274,7 @@ class Bullet(GameObject):
         self.direction = direction
         self.range = range
         self.age = 0
-        self.speed = 3
+        self.speed = 4
 
     def update(self):
         self.age += 1
@@ -506,6 +506,7 @@ class Insect(Animation):
         Animation.hit(self, damage)
         if self.hp <= 0:
             self.game.money += self.worth
+            self.game.kills += 1
             self.game.update_money()
 
     def update(self):
@@ -548,19 +549,15 @@ class Insect(Animation):
             grid_pos = None
             if self.path:
                 x, y = self.game.map_grid.grid_to_screen(self.path[0])
-                mini_rect = pygame.Rect(0,0,20,20)
-                mini_rect2 = pygame.Rect(x,y,20,20)
-                mini_rect.center = self.rect.center
-                grid_pos = x+10, y+10
-                if mini_rect == mini_rect2:
+                grid_pos = x, y
+                if self.rect.centerx == grid_pos[0] and self.rect.centery == grid_pos[1]:
                     self.path.pop(0)
                     if self.path:
                         x, y = self.game.map_grid.grid_to_screen(self.path[0])
-                        grid_pos = x+10, y+10
+                        grid_pos = x, y
                     else:
                         grid_pos = None
             if grid_pos:
-                r = pygame.Rect(0,0,20,20)
                 self.move_timer += 1
                 if self.move_timer >= 2:
                     self.animate("walk", 5, 1)

@@ -90,13 +90,16 @@ class Game(GameState):
 
         self.money = 250
         self.scraps = 250
+        self.kills = 0
 
-        self.font = data.font(None, 32)
+        self.font = data.font(None, 24)
 
         self.money_ui = self.font.render("money: %s"%self.money, 1, (255,255,255))
-        self.money_ui_pos = (0, 535)
+        self.money_ui_pos = (0, 530)
         self.scraps_ui = self.font.render("scraps: %s"%self.scraps, 1, (255,255,255))
-        self.scraps_ui_pos = (0, 570)
+        self.scraps_ui_pos = (0, 550)
+        self.kills_ui = self.font.render("kills: %s"%self.kills, 1, (255,255,255))
+        self.kills_ui_pos = (0, 570)
 
         self.map_grid = map_grid.MapGrid(self)
 
@@ -118,6 +121,7 @@ class Game(GameState):
     def update_money(self):
         self.money_ui = self.font.render("money: %s"%self.money, 1, (255,255,255))
         self.scraps_ui = self.font.render("scraps: %s"%self.scraps, 1, (255,255,255))
+        self.kills_ui = self.font.render("kills: %s"%self.kills, 1, (255,255,255))
 
     def build_worker(self):
         if self.money >= objects.Worker.money_cost and self.scraps >= objects.Worker.scrap_cost:
@@ -182,5 +186,6 @@ class Game(GameState):
         self.app.render()
         self.screen.blit(self.money_ui, self.money_ui_pos)
         self.screen.blit(self.scraps_ui, self.scraps_ui_pos)
+        self.screen.blit(self.kills_ui, self.kills_ui_pos)
 
         pygame.display.flip()
