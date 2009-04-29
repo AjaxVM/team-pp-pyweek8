@@ -70,7 +70,6 @@ class Game(GameState):
         self.screen = self.get_root().screen
 
         self.background = data.image("data/background1.png")
-        self.build_active = None
 
         self.app = ui.App(self.screen)
         ui.Button(self.app, "Quit Game", pos=(0,500), callback=self.goback)
@@ -114,9 +113,27 @@ class Game(GameState):
             if self.map_grid.empty_around(pos):
                 objects.Boulder(self, self.map_grid.grid_to_screen(pos))
 
+        self.build_active = None
+        self.build_overlay = None
+
     def set_tower_build(self):
         if self.money >= objects.BuildTower.money_cost and self.scraps >= objects.BuildTower.scrap_cost:
             self.build_active = True
+
+            bo = pygame.Surface((800,500)).convert_alpha()
+            bo.fill((0,0,0,0))
+            for i in self.build_tower_group.objects +\
+                    self.tower_group.objects +\
+                    self.blocking_group.objects +\
+                    self.scraps_group.objects:
+                x, y = i.rect.midbottom
+                x -= 10
+                y -= 20
+                pygame.draw.rect(bo, (200,0,0,85), ((x - 20, y - 20), (60, 60)))
+            pygame.draw.rect(bo, (200,0,0,85), ((0,0), (11*20,11*20)))
+            pygame.draw.rect(bo, (200,0,0,85), ((800-9*20,500-9*20), (9*20,9*20)))
+
+            self.build_overlay = bo
 
     def update_money(self):
         self.money_ui = self.font.render("money: %s"%self.money, 1, (255,255,255))
@@ -170,21 +187,9 @@ class Game(GameState):
 
         self.screen.blit(self.background, (0,0))
 
-        ##DEBUG tile rendering
-        pygame.draw.rect(self.screen, (255,0,255), (self.map_grid.screen_to_screen(pygame.mouse.get_pos()), (20,20)), 2)
-
         if self.build_active:
-            for i in self.build_tower_group.objects +\
-                    self.tower_group.objects +\
-                    self.blocking_group.objects +\
-                    self.scraps_group.objects:
-                x, y = i.rect.midbottom
-                x -= 10
-                y -= 20
-                pygame.draw.rect(self.screen, (155,155,155), ((x - 20, y - 20), (60, 60)))
-            pygame.draw.rect(self.screen, (155,155,155), ((0,0), (11*20,11*20)))
-            pygame.draw.rect(self.screen, (155,155,155), ((800-9*20,500-9*20), (9*20,9*20)))
-        ##END DEBUG
+            self.screen.blit(self.build_overlay, (0,0))
+        pygame.draw.rect(self.screen, (255,0,255), (self.map_grid.screen_to_screen(pygame.mouse.get_pos()), (20,20)), 2)
 
 
         self.main_group.render()
