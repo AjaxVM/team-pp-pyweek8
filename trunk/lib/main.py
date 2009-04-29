@@ -33,9 +33,11 @@ class AmmoRoom(object):
 
         self.event_handler = pyggel.event.Handler()
 
+        self.ammo_ui = pyggel.font.MEFont(None, 32).make_text_image("Ammo: 0/10")
+        self.scene.add_2d(self.ammo_ui)
+
         for i in xrange(20):
-            x = objects.HouseItem(self, None)
-            self.scene.add_3d(x)
+            objects.HouseItem(self, None)
         self.run()
 
     def run(self):
@@ -52,8 +54,9 @@ class AmmoRoom(object):
 
             if 1 in self.event_handler.mouse.released: #click?
                 if pick and isinstance(pick, objects.HouseItem):
-                    pick.pickup()
-                    print self.ammo
+                    if len(self.ammo) < 10:
+                        pick.pickup()
+                        self.ammo_ui.text = "Ammo: %s/10"%len(self.ammo)
             pyggel.view.refresh_screen()
 
 class FightScreen(object):
