@@ -341,10 +341,18 @@ class Boulder(GameObject):
                 self.timer = 0
                 self.cooldown = False
 
+class RandomTarget(object):
+    def __init__(self):
+        self.rect = pygame.Rect(0,0,20,20)
+        self.rect.left = random.randrange(790)
+        self.rect.top = random.randrange(490)
+
+        self.was_killed = False
+
 class Worker(Animation):
     time_cost = 30
-    money_cost = 25
-    scrap_cost = 10
+    money_cost = 0
+    scrap_cost = 35
     used_targets = []
     def __init__(self, game):
         self.groups = game.main_group, game.worker_group
@@ -366,6 +374,7 @@ class Worker(Animation):
         self.target = None
         self.move_timer = 0
         self.have_scraps = False
+        self.damage = 5
 
     def reset_target(self):
         if not self.target == self.game.hero:
@@ -374,9 +383,10 @@ class Worker(Animation):
             self.target = None
 
     def update(self):
-        if not self.target or isinstance(self.target, Scraps):
+        if not self.target or isinstance(self.target, Scraps) or isinstance(self.target, RandomTarget):
             #if we have no target, or are just going for scraps, see if something more important is needed of us!
-            self.reset_target() #in case it is a scrap O.o
+            if isinstance(self.target, Scraps):
+                self.reset_target() #in case it is a scrap O.o
             diso = None
             passed = []
             for i in self.game.build_tower_group.objects: #will need to add scraps and whatnot later...
@@ -415,7 +425,8 @@ class Worker(Animation):
                 self.used_targets.append(self.target)
             else:
                 #ok, can't do ANYTHING
-                return
+                if self.target == None:
+                    self.target = RandomTarget()
 
         if self.target.was_killed:
             self.reset_target()
@@ -456,6 +467,8 @@ class Worker(Animation):
                 self.reset_target()
                 self.target = None
                 #do addition of scraps to inventory stuff here!!!
+            elif isinstance(self.target, RandomTarget):
+                self.target = RandomTarget() #move again O.o
 
     def kill(self):
         self.reset_target()
@@ -511,6 +524,8 @@ class Insect(GameObject):
                 self.attack_timer = 0
                 for i in do_hit:
                     i.hit(1)
+                    if isinstance(i, Worker):
+                        self.hit(i.damage)
         else:
             self.attack_timer = 0
 
@@ -555,5 +570,5 @@ class Insect(GameObject):
                     elif grid_pos[1] > self.rect.centery:
                         self.rect.move_ip(0, 1)
         else:
-            self.hit(1) #or whatever
+            self.target.hit(5) #or whatever
             self.kill()
