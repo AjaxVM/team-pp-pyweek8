@@ -174,10 +174,18 @@ class Game(GameState):
         pygame.draw.rect(self.screen, (255,0,255), (self.map_grid.screen_to_screen(pygame.mouse.get_pos()), (20,20)), 2)
 
         if self.build_active:
+            for i in self.build_tower_group.objects +\
+                    self.tower_group.objects +\
+                    self.blocking_group.objects +\
+                    self.scraps_group.objects:
+                x, y = i.rect.midbottom
+                x -= 10
+                y -= 20
+                pygame.draw.rect(self.screen, (155,155,155), ((x - 20, y - 20), (60, 60)))
             for x in xrange(self.map_grid.size[0]):
                 for y in xrange(self.map_grid.size[1]):
-                    if not self.map_grid.empty_around((x, y)):
-                        pygame.draw.rect(self.screen, (255,255,255), (self.map_grid.screen_to_screen((x*20, y*20)), (20, 20)), 2)
+                    if self.map_grid.grid[x][y]:
+                        pygame.draw.rect(self.screen, (155,155,155), (self.map_grid.grid_to_screen((x, y)), (20,20)))
         ##END DEBUG
 
 

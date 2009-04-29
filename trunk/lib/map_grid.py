@@ -11,6 +11,8 @@ class MapGrid(object):
     def __init__(self, game):
         self.size = (800/20, 500/20)
 
+        self.game = game
+
         self.make_base_grid()
         self.fill((0,0), (10, 10)) #fill in the enemy area so we can't build there!
         self.fill((self.size[0]-8, self.size[1]-8), (8,8))
@@ -37,7 +39,7 @@ class MapGrid(object):
                 _x=x+start[0]
                 _y=y+start[1]
                 if not self.out_of_bounds((_x,_y)):
-                    self.grid[_x][_y] = code
+                    self.set((_x, _y), code)
 
     def set(self, pos, code=1):
         if self.out_of_bounds(pos):
