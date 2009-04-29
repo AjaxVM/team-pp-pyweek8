@@ -29,7 +29,9 @@ class HouseGrid(object):
                 if not obj:
                     ok.append((x, y))
 
-        return random.choice(ok)
+        if ok:
+            return random.choice(ok)
+        return None
 
 class HouseItem(object):
     """This object will store something to throw!
@@ -41,13 +43,16 @@ class HouseItem(object):
         self.size = size
 
         self.model = pyggel.geometry.Sphere(1)
-        x, y = self.game.grid.get_random_open_spot()
-        self.game.grid.set(self, (x, y))
-        self.model.pos = (x-10, 0, y-10)
-        self.model.scale = size
+        p = self.game.grid.get_random_open_spot()
+        if p:
+            self.game.scene.add_3d(self)
+            x, y = p
+            self.game.grid.set(self, (x, y))
+            self.model.pos = (x-10, 0, y-10)
+            self.model.scale = size
 
-        self.visible = True
-        self.next_highlight = False
+            self.visible = True
+            self.next_highlight = False
 
     def render(self, camera=None):
         if self.next_highlight:
