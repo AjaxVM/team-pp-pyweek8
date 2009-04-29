@@ -1,7 +1,5 @@
 import random, heapq
 
-ORTHOGONALMOVE = 10
-DIAGONALMOVE = 14 #so they don't keep cutting across the blasted towers all the time!
 INOPENLIST = 1
 INCLOSEDLIST = 2
 
@@ -141,7 +139,7 @@ class MapGrid(object):
         openlist = []       # cost, coords, parentcoords
         closedlist = []
         inlist = [ [-1 for j in xrange(numrows)] for i in xrange(numcols)]
-        nodelist = [ [(0,0, ORTHOGONALMOVE * (abs(end[1]-i) + abs(end[0]-j))) for j in xrange(numrows)] for i in xrange(numcols)]
+        nodelist = [ [(0,0, (abs(end[1]-i) + abs(end[0]-j))) for j in xrange(numrows)] for i in xrange(numcols)]
         parentlist = [ [(-1,-1) for j in xrange(numrows)] for i in xrange(numcols)]
         # todo: do I really need all these lists? this got so messy trying to keep object overhead out of it...
 
@@ -158,9 +156,7 @@ class MapGrid(object):
             r = random.randrange
         #this is weighted so that the less obvious paths are given some advantage
         #since bottomright is the most direct course to the hero base, that is weighted the lowest
-        adjacent = [ (-1, -1, DIAGONALMOVE+r(75)), (0,-1, ORTHOGONALMOVE+r(25)), (1,-1, DIAGONALMOVE+r(20)),
-                     (-1, 0, ORTHOGONALMOVE+r(40)),                             (1, 0, ORTHOGONALMOVE+r(50)),
-                     (-1, 1, DIAGONALMOVE+r(20)),  (0, 1, ORTHOGONALMOVE+r(25)), (1, 1, DIAGONALMOVE+r(75))]
+        adjacent = [(0,-1, 1+r(25)), (-1, 0, 1+r(30)), (1, 0, 1+r(50)), (0, 1, 1+r(25))]
 
         swap_adj = 0
 
@@ -168,9 +164,7 @@ class MapGrid(object):
             swap_adj += 1
             if swap_adj > 25:
                 swap_adj = 0
-                adjacent = [ (-1, -1, DIAGONALMOVE+r(75)), (0,-1, ORTHOGONALMOVE+r(25)), (1,-1, DIAGONALMOVE+r(20)),
-                     (-1, 0, ORTHOGONALMOVE+r(30)),                             (1, 0, ORTHOGONALMOVE+r(50)),
-                     (-1, 1, DIAGONALMOVE+r(20)),  (0, 1, ORTHOGONALMOVE+r(25)), (1, 1, DIAGONALMOVE+r(75))]
+                adjacent = [(0,-1, 1+r(25)), (-1, 0, 1+r(30)), (1, 0, 1+r(50)), (0, 1, 1+r(25))]
             # if open heap is empty, no path is available
             if len(openlist) == 0:
                 return False
@@ -196,13 +190,7 @@ class MapGrid(object):
             inlist[coordinates[0]][coordinates[1]] = INCLOSEDLIST
 
             # check adjacent nodes
-            num = -1
             for modx, mody, modmovecost in adjacent:
-                num += 1
-                if num in (0, 2, 5, 7):
-                    diag = True
-                else:
-                    diag = False
                 newx = coordinates[0] + modx
                 newy = coordinates[1] + mody
 
@@ -251,14 +239,6 @@ class MapGrid(object):
                     newmovecost = costs[1] + modmovecost
                     newcost = newmovecost + newhcost
 
-                    for x in xrange(newx-2, newx+3):
-                        for y in xrange(newy-2, newy+3):
-                            if not self.out_of_bounds((x, y)):
-                                if blockedmap[x][y] == 3:
-                                    newcost += 25
-                                if diag and blockedmap[x][y] > 1:
-                                    newcost += 10000
-
                     # add to open list
                     heapq.heappush(openlist, (newcost, (newx,newy), coordinates))
                     inlist[newx][newy] = INOPENLIST
@@ -268,3 +248,26 @@ class MapGrid(object):
 
 
         return False
+
+    def group(self, start, size):
+        g = []
+        for i in xrange(size[0]):
+            for j in xrange(size[1]):
+                p = (start[0]+i, start[1]+j)
+                if not self.out_of_bounds(p):
+                    g.append(p)
+        return g
+
+    def make_random(self, blocking, scraps):
+        toprightgroup = self.group((self.size[0]-10, 0), (10,10))
+        bottomleftgroup = self.group((0, self.size[1]-10), (10,10))
+
+        mid_group = self.group((self.size[0]/2-5+random.randint(-10, 10), self.size[1]/2-5-random.randint(-10,10)), (10,10))
+        bridge = random.randrange(3) #0=none, 1=center to bl, 2=center to tr
+
+        if bridge == 0:
+            bridge_group = []
+        elif bridge == 1:
+            bridge_group = self.group((10, self.size[1]-20), (15, 15))
+        else:
+            bridge_group = self.group((self.size[0]-20, 10), (15,15))
