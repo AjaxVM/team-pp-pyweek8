@@ -474,15 +474,20 @@ class Worker(Animation):
     def kill(self):
         self.reset_target()
 
-        GameObject.kill(self)
+        Animation.kill(self)
 
 
-class Insect(GameObject):
+class Insect(Animation):
     def __init__(self, game):
         self.groups = game.main_group, game.insect_group
-        GameObject.__init__(self, game)
+        Animation.__init__(self, game)
 
-        self.image = pygame.transform.rotate(pygame.Surface((17,17)).convert_alpha(), 45)
+        self.walk_images = [
+            data.image("data/ant-1.png"),
+            data.image("data/ant-2.png"),
+            ]
+        self.image = self.walk_images[0]
+        self.add_animation("walk", self.walk_images)
         self.rect = self.image.get_rect()
         self.rect.center = self.game.hive.rect.bottomright
 
@@ -498,7 +503,7 @@ class Insect(GameObject):
         self.target = None
 
     def hit(self, damage):
-        GameObject.hit(self, damage)
+        Animation.hit(self, damage)
         if self.hp <= 0:
             self.game.money += self.worth
             self.game.update_money()
@@ -558,6 +563,10 @@ class Insect(GameObject):
                 r = pygame.Rect(0,0,20,20)
                 self.move_timer += 1
                 if self.move_timer >= 2:
+                    self.animate("walk", 5, 1)
+                    ydiff = grid_pos[1] - self.rect.centery
+                    xdiff = grid_pos[0] - self.rect.centerx
+                    self.angle = math.degrees(math.atan2(xdiff, ydiff)) + 180
                     self.move_timer = 0
                     if grid_pos[0] < self.rect.centerx:
                         self.rect.move_ip(-1, 0)
