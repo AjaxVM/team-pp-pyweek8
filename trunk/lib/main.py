@@ -51,4 +51,3 @@ class GameController(object):
 def run():
     a = GameController()
     a.run()
-run()
