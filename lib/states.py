@@ -75,7 +75,7 @@ class Game(GameState):
         self.app = ui.App(self.screen)
         ui.Button(self.app, "Quit Game", pos=(0,500), callback=self.goback)
         ui.Button(self.app, "Build Tower!", pos=(165,520), callback=self.set_tower_build)
-        ui.Button(self.app, "Build Worker!", pos=(165, 560), callback=lambda: objects.Worker(self))
+        ui.Button(self.app, "Build Worker!", pos=(165, 560), callback=self.build_worker)
 
         self.main_group = objects.GameGroup()
         self.hero_group = objects.GameGroup()
@@ -112,12 +112,16 @@ class Game(GameState):
                 objects.Boulder(self, self.map_grid.grid_to_screen(pos))
 
     def set_tower_build(self):
-        if self.money >= 50 and self.scraps >= 50:
+        if self.money >= objects.BuildTower.money_cost and self.scraps >= objects.BuildTower.scrap_cost:
             self.build_active = True
 
     def update_money(self):
         self.money_ui = self.font.render("money: %s"%self.money, 1, (255,255,255))
         self.scraps_ui = self.font.render("scraps: %s"%self.scraps, 1, (255,255,255))
+
+    def build_worker(self):
+        if self.money >= objects.Worker.money_cost and self.scraps >= objects.Worker.scrap_cost:
+            self.hero.build_worker()
 
     def update(self):
 

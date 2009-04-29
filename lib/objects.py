@@ -137,6 +137,25 @@ class Hero(GameObject):
 
         self.hp = 50
 
+        self.building = None
+        self.build_timer = 0
+
+    def build_worker(self):
+        if not self.building:
+            self.building = Worker
+            self.build_timer = 0
+
+    def update(self):
+        if self.building:
+            self.build_timer += 1
+            if self.build_timer > self.building.time_cost:
+                self.build_timer = 0
+                self.building(self.game)
+                self.game.money -= self.building.money_cost
+                self.game.scraps -= self.building.scrap_cost
+                self.building = None
+                self.game.update_money()
+
 class Hive(GameObject):
     def __init__(self, game):
         self.groups = game.main_group, game.hive_group
@@ -159,6 +178,9 @@ class Hive(GameObject):
             Insect(self.game)
 
 class BuildTower(GameObject):
+    time_cost = 250
+    money_cost = 50
+    scrap_cost = 50
     def __init__(self, game, pos):
         self.groups = game.main_group, game.build_tower_group, game.blocking_group
         GameObject.__init__(self, game)
@@ -171,9 +193,6 @@ class BuildTower(GameObject):
         x += 10
         y += 20 #so we can put it at center...
         self.rect.midbottom = x, y
-
-        self.money_cost = 50
-        self.scrap_cost = 50
 
         #set blocking!
         self.game.map_grid.set(self.game.map_grid.screen_to_grid(pos), 1)
@@ -323,6 +342,9 @@ class Boulder(GameObject):
                 self.cooldown = False
 
 class Worker(Animation):
+    time_cost = 30
+    money_cost = 25
+    scrap_cost = 10
     used_targets = []
     def __init__(self, game):
         self.groups = game.main_group, game.worker_group
@@ -416,7 +438,7 @@ class Worker(Animation):
         else:
             if isinstance(self.target, BuildTower):
                 self.target.built += 1
-                if self.target.built >= 225:
+                if self.target.built >= self.target.time_cost:
                     self.target.kill()
                     t = Tower(self.game, self.target.rect.midbottom)
                     self.reset_target()
