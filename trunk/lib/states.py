@@ -74,7 +74,7 @@ class Game(GameState):
 
         self.app = ui.App(self.screen)
         ui.Button(self.app, "Quit Game", pos=(0,500), callback=self.goback)
-        ui.Button(self.app, "Build Tower!", pos=(165,520), callback=lambda: setattr(self, "build_active", True))
+        ui.Button(self.app, "Build Tower!", pos=(165,520), callback=self.set_tower_build)
         ui.Button(self.app, "Build Worker!", pos=(165, 560), callback=lambda: objects.Worker(self))
 
         self.main_group = objects.GameGroup()
@@ -88,7 +88,15 @@ class Game(GameState):
         self.blocking_group = objects.GameGroup()
         self.bullet_group = objects.GameGroup()
 
+        self.money = 250
+        self.scraps = 250
+
         self.font = data.font(None, 32)
+
+        self.money_ui = self.font.render("money: %s"%self.money, 1, (255,255,255))
+        self.money_ui_pos = (0, 535)
+        self.scraps_ui = self.font.render("scraps: %s"%self.scraps, 1, (255,255,255))
+        self.scraps_ui_pos = (0, 570)
 
         self.map_grid = map_grid.MapGrid(self)
 
@@ -103,6 +111,14 @@ class Game(GameState):
             if self.map_grid.empty_around(pos):
                 objects.Boulder(self, self.map_grid.grid_to_screen(pos))
 
+    def set_tower_build(self):
+        if self.money >= 50 and self.scraps >= 50:
+            self.build_active = True
+
+    def update_money(self):
+        self.money_ui = self.font.render("money: %s"%self.money, 1, (255,255,255))
+        self.scraps_ui = self.font.render("scraps: %s"%self.scraps, 1, (255,255,255))
+
     def update(self):
 
         for event in pygame.event.get():
@@ -112,13 +128,17 @@ class Game(GameState):
                 self.get_root().shutdown()
                 return
 
-            if event.type == MOUSEBUTTONUP:
+            if event.type == MOUSEBUTTONDOWN:
                 if event.pos[1] <= 500: #this is for us!
                     if event.button == 1:
                         if self.build_active:
                             grid = self.map_grid.screen_to_grid(event.pos)
                             if self.map_grid.empty_around(grid):
-                                objects.BuildTower(self, self.map_grid.grid_to_screen(grid))
+                                self.build_active = False
+                                x = objects.BuildTower(self, self.map_grid.grid_to_screen(grid))
+                                self.money -= x.money_cost
+                                self.scraps -= x.scrap_cost
+                                self.update_money()
                                 for i in self.worker_group.objects:
                                     i.reset_target()
                                 for i in self.insect_group.objects:
@@ -145,15 +165,18 @@ class Game(GameState):
         ##DEBUG tile rendering
         pygame.draw.rect(self.screen, (255,0,255), (self.map_grid.screen_to_screen(pygame.mouse.get_pos()), (20,20)), 2)
 
-        for x in xrange(self.map_grid.size[0]):
-            for y in xrange(self.map_grid.size[1]):
-                if not self.map_grid.is_open((x, y)):
-                    pygame.draw.rect(self.screen, (255,255,255), (self.map_grid.screen_to_screen((x*20, y*20)), (20, 20)), 2)
+        if self.build_active:
+            for x in xrange(self.map_grid.size[0]):
+                for y in xrange(self.map_grid.size[1]):
+                    if not self.map_grid.empty_around((x, y)):
+                        pygame.draw.rect(self.screen, (255,255,255), (self.map_grid.screen_to_screen((x*20, y*20)), (20, 20)), 2)
         ##END DEBUG
 
 
         self.main_group.render()
         pygame.draw.rect(self.screen, (125,125,125), (0,500,800,600))
         self.app.render()
+        self.screen.blit(self.money_ui, self.money_ui_pos)
+        self.screen.blit(self.scraps_ui, self.scraps_ui_pos)
 
         pygame.display.flip()
