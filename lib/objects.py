@@ -186,8 +186,9 @@ class Tower(GameObject):
         self.groups = game.main_group, game.tower_group, game.blocking_group
         GameObject.__init__(self, game)
 
-        self.image = pygame.Surface((20, 30))
-        pygame.draw.circle(self.image, (255,0,0), (10, 20), 20)
+##        self.image = pygame.Surface((20, 30))
+##        pygame.draw.circle(self.image, (255,0,0), (10, 20), 20)
+        self.image = data.image("data/tower-1.png")
 
         self.rect = self.image.get_rect()
         self.rect.midbottom = pos
