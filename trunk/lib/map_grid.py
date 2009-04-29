@@ -97,7 +97,7 @@ class MapGrid(object):
                         return True
         return False
 
-    def calculate_path(self, start, end):
+    def calculate_path(self, start, end, unit="insect"):
         """Calculates a path using an a* like algorithm.
         @param start: coordinates of start
         @param end: coordinates of end
@@ -150,7 +150,7 @@ class MapGrid(object):
 
         # loop through map until path is found
         group = random.randrange(5)
-        if not group:
+        if group or unit=="bot":
             r = lambda x: 0
         else:
             r = random.randrange
@@ -210,7 +210,7 @@ class MapGrid(object):
 
                 # skip if not walkable
                 if blockedmap[newx][newy] >= 2:
-                    continue
+                    modmovecost += 1500
 
                 # skip if on closed list
                 if inlist[newx][newy] == INCLOSEDLIST:
@@ -248,13 +248,14 @@ class MapGrid(object):
                     newmovecost = costs[1] + modmovecost
                     newcost = newmovecost + newhcost
 
-                    for x in xrange(newx-2, newx+3):
-                        for y in xrange(newy-2, newy+3):
-                            if not self.out_of_bounds((x, y)):
-                                if blockedmap[x][y] == 3:
-                                    newcost += 25
-                                if diag and blockedmap[x][y] > 1:
-                                    newcost += 1000
+##                    if unit == "insect":
+##                        for x in xrange(newx-2, newx+3):
+##                            for y in xrange(newy-2, newy+3):
+##                                if not self.out_of_bounds((x, y)):
+##                                    if blockedmap[x][y] == 3:
+##                                        newcost += 25
+##                                    if diag and blockedmap[x][y] > 1:
+##                                        newcost += 1000
 
                     # add to open list
                     heapq.heappush(openlist, (newcost, (newx,newy), coordinates))
