@@ -36,20 +36,27 @@ class HouseGrid(object):
 class HouseItem(object):
     """This object will store something to throw!
        It will be added to the scene like a regular pyggel geometry."""
-    def __init__(self, game, modelname, size=(1,1,1)):
+    def __init__(self, grid, modelname, size=(1,1,1)):
         #do model loading stuff here
 
-        self.game = game
+        self.grid = grid
         self.size = size
 
+        self.modelname = modelname
+
         self.model = pyggel.geometry.Sphere(1)
-        p = self.game.grid.get_random_open_spot()
+        self.model.scale = size
+        self.add_to_grid()
+
+        self.visible = True
+        self.next_highlight = False
+
+    def add_to_grid(self):
+        p = self.grid.get_random_open_spot()
         if p:
-            self.game.scene.add_3d(self)
             x, y = p
-            self.game.grid.set(self, (x, y))
+            self.grid.set(self, (x, y))
             self.model.pos = (x-10, 0, y-10)
-            self.model.scale = size
 
             self.visible = True
             self.next_highlight = False
@@ -65,7 +72,5 @@ class HouseItem(object):
     def highlight(self):
         self.next_highlight = True
 
-    def pickup(self):
-        self.game.grid.set(None, (self.model.pos[0]+10, self.model.pos[2]+10))
-        self.game.ammo.append(self)
-        self.game.scene.remove_3d(self)
+    def remove(self):
+        self.grid.set(None, (self.model.pos[0]+10, self.model.pos[2]+10))
