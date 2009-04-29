@@ -172,6 +172,9 @@ class BuildTower(GameObject):
         y += 20 #so we can put it at center...
         self.rect.midbottom = x, y
 
+        self.money_cost = 50
+        self.scrap_cost = 50
+
         #set blocking!
         self.game.map_grid.set(self.game.map_grid.screen_to_grid(pos), 1)
 
@@ -205,18 +208,13 @@ class Tower(GameObject):
         self.shot_timer = 0
 
     def update(self):
-        diso = None
+        diso = (None, self.range+1)
         for i in self.game.insect_group.objects:
             x = misc.distance(self.rect.center, i.rect.center)
-            if not diso:
-                diso = (i, x)
-                continue
-            else:
-                continue
-            if x <= diso[1]:
+            if x < diso[1]:
                 diso = (i, x)
 
-        if diso and diso[1] < self.range:
+        if diso[0] and diso[1] < self.range:
             self.shot_timer += 1
             if self.shot_timer >= 45:
                 self.shot_timer = 0
@@ -257,7 +255,7 @@ class Bullet(GameObject):
         self.direction = direction
         self.range = range
         self.age = 0
-        self.speed = 2
+        self.speed = 3
 
     def update(self):
         self.age += 1
@@ -431,6 +429,8 @@ class Worker(Animation):
                 self.target = self.game.hero
             elif isinstance(self.target, Hero):
                 self.have_scraps = False
+                self.game.scraps += 5
+                self.game.update_money()
                 self.reset_target()
                 self.target = None
                 #do addition of scraps to inventory stuff here!!!
@@ -456,9 +456,16 @@ class Insect(GameObject):
         self.path = None
 
         self.hp = 25
+        self.worth = 2
 
     def reset_target(self):
         self.target = None
+
+    def hit(self, damage):
+        GameObject.hit(self, damage)
+        if self.hp <= 0:
+            self.game.money += self.worth
+            self.game.update_money()
 
     def update(self):
 
