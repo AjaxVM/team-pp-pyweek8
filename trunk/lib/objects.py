@@ -499,7 +499,6 @@ class Insect(Animation):
 
         self.hp = 25
         self.worth = 2
-        Explosion(game, self.rect.center)
 
     def reset_target(self):
         self.target = None
