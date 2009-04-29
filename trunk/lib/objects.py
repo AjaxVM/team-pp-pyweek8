@@ -107,19 +107,19 @@ class Animation(GameObject):
         """
        
         self.frame += 1
-        if self.num_loops < self.loops and self.loops > -1:
-            if self.frame > len(self.images[self.current_name]):
-                self.num_loops += 1
-            if self.num_loops > self.loops:
-                self.frame = 0
-                self.current_name = None
-        if self.current_name:
+        if self.current_name != None:
             imgs_len = len(self.images[self.current_name])
             imgs = self.images[self.current_name]
             self.image = pygame.transform.rotate(imgs[self.frame/self.delay%imgs_len], self.angle)
             self.rect = self.image.get_rect(center = self.rect.center)
         self.game.screen.blit(self.image, self.rect.center)
+        if self.num_loops < self.loops and self.loops > -1:
+            if self.frame >= len(self.images[self.current_name])*self.delay - 1:
+                self.num_loops += 1
+                self.on_animation_end()
 
+    def on_animation_end(self):
+        pass
 
 class Hero(GameObject):
     def __init__(self, game):
@@ -293,6 +293,7 @@ class Bullet(GameObject):
             if self.rect.colliderect(i.rect):
                 i.hit(5)
                 self.kill()
+                Explosion(self.game, self.rect.center)
 
 class Scraps(GameObject):
     def __init__(self, game, pos):
@@ -498,6 +499,7 @@ class Insect(Animation):
 
         self.hp = 25
         self.worth = 2
+        Explosion(game, self.rect.center)
 
     def reset_target(self):
         self.target = None
@@ -578,3 +580,16 @@ class Insect(Animation):
             self.target.hit(5) #or whatever
             self.kill()
 
+class Explosion(Animation):
+    
+    def __init__(self, game, pos):
+        self.groups = [game.main_group]
+        Animation.__init__(self, game)
+        self.imgs = [data.image("data/exp-%d.png" % i) for i in range(1, 5)]
+        self.image = self.imgs[0]
+        self.add_animation("anim", self.imgs)
+        self.rect = self.image.get_rect(center = pos)
+        self.animate("anim", 5, 1)
+    
+    def on_animation_end(self):
+        self.kill()
