@@ -127,13 +127,13 @@ class Hero(GameObject):
         self.groups = game.main_group, game.hero_group
         GameObject.__init__(self, game)
 
-        self.image = pygame.Surface((50,50)).convert_alpha()
+        self.image = pygame.Surface((64,64)).convert_alpha()
         self.image.fill((0,0,0,0))
-        pygame.draw.circle(self.image, (255,0,0), (25,25), 25)
-        pygame.draw.circle(self.image, (0,0,255), (30,20), 7, 2)
+        pygame.draw.circle(self.image, (255,0,0), (32,32), 30)
+        pygame.draw.circle(self.image, (0,0,255), (30,20), 10, 2)
 
         self.rect = self.image.get_rect()
-        self.rect.bottomright = (800,500) #bottom 100 is the ui bar!
+        self.rect.bottomright = (800,480) #bottom 100 is the ui bar!
 
         self.hp = 50
 
@@ -142,9 +142,9 @@ class Hive(GameObject):
         self.groups = game.main_group, game.hive_group
         GameObject.__init__(self, game)
 
-        self.image = pygame.Surface((45, 45))
+        self.image = pygame.Surface((64, 64))
         self.image.fill((100,0,100))
-        pygame.draw.circle(self.image, (255,0,0), (23,22), 25, 3)
+        pygame.draw.circle(self.image, (255,0,0), (32,32), 30, 3)
         self.rect = self.image.get_rect()
         self.rect.topleft = (5,5)
 
@@ -163,14 +163,11 @@ class BuildTower(GameObject):
         self.groups = game.main_group, game.build_tower_group, game.blocking_group
         GameObject.__init__(self, game)
 
-        self.image = pygame.Surface((20,20)) #tile size...
-        pygame.draw.rect(self.image, (255,0,0), (0,0,20,20), 3)
+        self.image = pygame.Surface((32,32)) #tile size...
+        pygame.draw.rect(self.image, (255,0,0), (0,0,32,32), 3)
 
         self.rect = self.image.get_rect()
-        x, y = pos
-        x += 10
-        y += 20 #so we can put it at center...
-        self.rect.midbottom = x, y
+        self.rect.topleft = pos
 
         #set blocking!
         self.game.map_grid.set(self.game.map_grid.screen_to_grid(pos), 3)
@@ -186,8 +183,8 @@ class Tower(GameObject):
         self.groups = game.main_group, game.tower_group, game.blocking_group
         GameObject.__init__(self, game)
 
-        self.image = pygame.Surface((20, 30))
-        pygame.draw.circle(self.image, (255,0,0), (10, 20), 20)
+        self.image = pygame.Surface((32, 48))
+        pygame.draw.circle(self.image, (255,0,0), (16, 24), 30)
 
         self.rect = self.image.get_rect()
         self.rect.midbottom = pos
@@ -197,8 +194,8 @@ class Tower(GameObject):
     def kill(self):
         GameObject.kill(self)
         x, y = self.rect.midbottom
-        x -= 10
-        y -= 20 #midbottom of grid size
+        x -= 16
+        y -= 32 #midbottom of grid size
         self.game.map_grid.set(self.game.map_grid.screen_to_grid((x, y)), 0)
 
 class Scraps(GameObject):
@@ -206,8 +203,8 @@ class Scraps(GameObject):
         self.groups = game.main_group, game.scraps_group, game.blocking_group
         GameObject.__init__(self, game)
 
-        self.image = pygame.Surface((20,20))
-        pygame.draw.polygon(self.image, (200,200,200), ((3, 3), (17, 17), (3, 17), (15, 3), (3,3)), 1)
+        self.image = pygame.Surface((32,32))
+        pygame.draw.polygon(self.image, (200,200,200), ((3, 3), (30, 30), (3, 30), (30, 3), (3,3)), 1)
 
         self.rect = self.image.get_rect()
         self.rect.topleft = pos
@@ -229,9 +226,9 @@ class Boulder(GameObject):
         self.groups = game.main_group, game.blocking_group
         GameObject.__init__(self, game)
 
-        self.image = pygame.Surface((20,20)).convert_alpha()
+        self.image = pygame.Surface((32,32)).convert_alpha()
         self.image.fill((0,0,0,0))
-        pygame.draw.polygon(self.image, (200,0,200), ((3, 3), (17, 17), (17, 3), (3, 17), (3,3)), 3)
+        pygame.draw.polygon(self.image, (200,0,200), ((3, 3), (30, 30), (30, 3), (3, 30), (3,3)), 3)
 
         self.rect = self.image.get_rect()
         self.rect.topleft = pos
@@ -372,7 +369,7 @@ class Insect(GameObject):
         self.groups = game.main_group, game.insect_group
         GameObject.__init__(self, game)
 
-        self.image = pygame.transform.rotate(pygame.Surface((17,17)).convert_alpha(), 45)
+        self.image = pygame.transform.rotate(pygame.Surface((30,30)).convert_alpha(), 45)
         self.rect = self.image.get_rect()
         self.rect.center = self.game.hive.rect.bottomright
 
@@ -389,15 +386,15 @@ class Insect(GameObject):
         do_hit = []
 
         for i in self.game.worker_group.objects:
-            if misc.distance(i.rect.center, self.rect.center) <= 22:
+            if misc.distance(i.rect.center, self.rect.center) <= 33:
                 do_hit.append(i)
 
         for i in self.game.build_tower_group.objects:
-            if misc.distance(i.rect.center, self.rect.center) <= 22:
+            if misc.distance(i.rect.center, self.rect.center) <= 33:
                 do_hit.append(i)
 
         for i in self.game.tower_group.objects:
-            if misc.distance(i.rect.center, self.rect.center) <= 22:
+            if misc.distance(i.rect.center, self.rect.center) <= 33:
                 do_hit.append(i)
 
         if do_hit:
@@ -424,19 +421,18 @@ class Insect(GameObject):
             grid_pos = None
             if self.path:
                 x, y = self.game.map_grid.grid_to_screen(self.path[0])
-                mini_rect = pygame.Rect(0,0,20,20)
-                mini_rect2 = pygame.Rect(x,y,20,20)
+                mini_rect = pygame.Rect(0,0,32,32)
+                mini_rect2 = pygame.Rect(x,y,32,32)
                 mini_rect.center = self.rect.center
-                grid_pos = x+10, y+10
+                grid_pos = x+16, y+16
                 if mini_rect == mini_rect2:
                     self.path.pop(0)
                     if self.path:
                         x, y = self.game.map_grid.grid_to_screen(self.path[0])
-                        grid_pos = x+10, y+10
+                        grid_pos = x+16, y+16
                     else:
                         grid_pos = None
             if grid_pos:
-                r = pygame.Rect(0,0,20,20)
                 self.move_timer += 1
                 if self.move_timer >= 2:
                     self.move_timer = 0

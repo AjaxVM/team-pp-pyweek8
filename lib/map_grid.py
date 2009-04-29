@@ -1,7 +1,7 @@
 import random, heapq
 
 ORTHOGONALMOVE = 10
-DIAGONALMOVE = 14 #so they don't keep cutting across the blasted towers all the time!
+DIAGONALMOVE = 1400**2 #so they don't keep cutting across the blasted towers all the time!
 INOPENLIST = 1
 INCLOSEDLIST = 2
 
@@ -9,11 +9,11 @@ class MapGrid(object):
     """This object stores all map related stuff, as well as "open"
        spaces for towers/traps to be built on..."""
     def __init__(self, game):
-        self.size = (800/20, 500/20)
+        self.size = (800/32, 480/32)
 
         self.make_base_grid()
-        self.fill((0,0), (10, 10)) #fill in the enemy area so we can't build there!
-        self.fill((self.size[0]-8, self.size[1]-8), (8,8))
+        self.fill((0,0), (6, 6)) #fill in the enemy area so we can't build there!
+        self.fill((self.size[0]-4, self.size[1]-4), (4,4))
 
     def make_base_grid(self):
         """This creates the base grid.
@@ -55,15 +55,15 @@ class MapGrid(object):
 
     def screen_to_grid(self, pos):
         x, y = pos
-        x = (int(x/20) if x else 0)
-        y = (int(y/20) if y else 0)
+        x = (int(x/32) if x else 0)
+        y = (int(y/32) if y else 0)
         return x, y
 
     def grid_to_screen(self, pos):
         x, y = pos
         #TODO: why do we need to be adding 10 here - obviously because it is wrong on screen otherwise, but why?
-        x = x * 20
-        y = y * 20
+        x = x * 32
+        y = y * 32
         return x, y
 
     def screen_to_screen(self, pos):
@@ -199,6 +199,7 @@ class MapGrid(object):
                 num += 1
                 if num in (0, 2, 5, 7):
                     diag = True
+                    continue
                 else:
                     diag = False
                 newx = coordinates[0] + modx
