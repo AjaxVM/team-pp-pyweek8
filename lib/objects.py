@@ -186,14 +186,49 @@ class Tower(GameObject):
         self.groups = game.main_group, game.tower_group, game.blocking_group
         GameObject.__init__(self, game)
 
-##        self.image = pygame.Surface((20, 30))
-##        pygame.draw.circle(self.image, (255,0,0), (10, 20), 20)
         self.image = data.image("data/tower-1.png")
 
         self.rect = self.image.get_rect()
         self.rect.midbottom = pos
 
+        self.range = 100
+        self.selected = True #this is for the ui to swap to upgrading
+        #and for rendering of the range circle
+
+        #set blocking!
+        x, y = pos #this makes sure we don;t grab like the center of the tower which is one tile too high!
+        x -= 10
+        y -= 20
+        self.game.map_grid.set(self.game.map_grid.screen_to_grid((x,y)), 3)
+
         self.hp = 200
+        self.shot_timer = 0
+
+    def update(self):
+        diso = None
+        for i in self.game.insect_group.objects:
+            x = misc.distance(self.rect.center, i.rect.center)
+            if not diso:
+                diso = (i, x)
+                continue
+            else:
+                continue
+            if x <= diso[1]:
+                diso = (i, x)
+
+        if diso and diso[1] < self.range:
+            self.shot_timer += 1
+            if self.shot_timer >= 45:
+                self.shot_timer = 0
+                target = diso[0]
+                ydiff = target.rect.centery - self.rect.centery
+                xdiff = target.rect.centerx - self.rect.centerx
+                angle = math.degrees(math.atan2(xdiff, ydiff))
+                x = math.sin(math.radians(angle))
+                y = math.cos(math.radians(angle))
+                Bullet(self.game, self.rect.center, self.range+20, (x, y), angle)
+        else:
+            self.shot_timer = 30
 
     def kill(self):
         GameObject.kill(self)
@@ -201,6 +236,46 @@ class Tower(GameObject):
         x -= 10
         y -= 20 #midbottom of grid size
         self.game.map_grid.set(self.game.map_grid.screen_to_grid((x, y)), 0)
+
+    def render(self):
+        GameObject.render(self)
+        if self.selected:
+            pygame.draw.circle(self.game.screen, (255,255,255), self.rect.center, self.range, 1)
+
+class Bullet(GameObject):
+    def __init__(self, game, pos, range, direction, angle):
+        self.groups = game.main_group, game.bullet_group
+        GameObject.__init__(self, game)
+
+        self.image = pygame.Surface((5,5))
+        self.rect = self.image.get_rect()
+
+        self.pos = pos
+
+        self.angle = angle
+
+        self.direction = direction
+        self.range = range
+        self.age = 0
+        self.speed = 2
+
+    def update(self):
+        self.age += 1
+        if self.age > self.range/self.speed:
+            self.kill()
+
+        x, y = self.pos
+        x += self.direction[0] * self.speed
+        y += self.direction[1] * self.speed
+
+        self.pos = (x, y)
+
+        self.rect.center = self.pos
+
+        for i in self.game.insect_group.objects:
+            if self.rect.colliderect(i.rect):
+                i.hit(5)
+                self.kill()
 
 class Scraps(GameObject):
     def __init__(self, game, pos):
@@ -344,10 +419,8 @@ class Worker(Animation):
             if isinstance(self.target, BuildTower):
                 self.target.built += 1
                 if self.target.built >= 225:
-                    t = Tower(self.game, self.target.rect.midbottom)
-                    self.game.tower_group.add(t)
-                    self.game.main_group.add(t)
                     self.target.kill()
+                    t = Tower(self.game, self.target.rect.midbottom)
                     self.reset_target()
                     self.animate("stand", 1, 1)
                     self.target = None
@@ -381,6 +454,8 @@ class Insect(GameObject):
         self.move_timer = 0
         self.attack_timer = 0
         self.path = None
+
+        self.hp = 25
 
     def reset_target(self):
         self.target = None
