@@ -358,7 +358,7 @@ class TowerInfo(Widget):
                         self.tower.kill()
                         x, y = self.tower.rect.midbottom
                         objects.BuildTower(self.tower.game, self.tower.game.map_grid.screen_to_screen((x-10, y-20)), target)
-                        for i in self.tower.game.worker_group.objects:
+                        for i in self.tower.game.bot_group.objects:
                             i.reset_target()
                         self.kill()
                 

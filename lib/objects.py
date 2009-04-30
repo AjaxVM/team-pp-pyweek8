@@ -187,6 +187,11 @@ class Hero(GameObject):
             self.building = Worker
             self.build_timer = 0
 
+    def build_warrior(self):
+        if not self.building:
+            self.building = BattleBot
+            self.build_timer = 0
+
     def update(self):
         if self.building:
             self.build_timer += 1
@@ -508,7 +513,7 @@ class Worker(Animation):
     scrap_cost = 35
     used_targets = []
     def __init__(self, game):
-        self.groups = game.main_group, game.worker_group
+        self.groups = game.main_group, game.bot_group
         Animation.__init__(self, game)
         self.walk_images = [
             data.image("data/worker-1.png"),
@@ -752,7 +757,7 @@ class Insect(Animation):
                 i.kill()
 
 
-        for i in self.game.worker_group.objects:
+        for i in self.game.bot_group.objects:
             if misc.distance(i.rect.center, self.rect.center) <= 22:
                 do_hit.append(i)
 
@@ -937,3 +942,145 @@ class Trap(GameObject):
                     if self.times >= self.max_times:
                         self.kill()
                         return
+
+
+class BattleBot(Worker):
+    time_cost = 75
+    money_cost = 15
+    scrap_cost = 45
+    def __init__(self, game):
+        self.groups = game.main_group, game.bot_group
+        Animation.__init__(self, game)
+        self.walk_images = [
+            data.image("data/worker-1.png"),
+            data.image("data/worker-2.png"),
+            ]
+        self.stand_images = [
+            data.image("data/worker-1.png"),
+            ]
+        self.image = self.walk_images[0]
+        self.add_animation("walk", self.walk_images)
+        self.add_animation("stand", self.stand_images)
+
+        self.rect = self.image.get_rect()
+        self.rect.center = self.game.hero.rect.topleft
+
+        self.target = None
+        self.move_timer = 0
+        self.have_scraps = False
+        self.damage = 3
+        self.hp = 25
+        self.max_hp = 25
+        self.show_hp_bar = True
+        self.attack_timer = 0
+
+        self.path = None
+
+        self.count = 0
+
+    def update(self):
+        #Battling first, because we gotta stop movement for that!
+        do_hit = []
+
+        if self.rect.colliderect(self.game.hive):
+            self.game.hive.hit(1)
+            self.kill()
+
+        for i in self.game.insect_group.objects:
+            if misc.distance(i.rect.center, self.rect.center) <= 22:
+                do_hit.append(i)
+
+        if do_hit:
+            self.attack_timer += 1
+            if self.attack_timer >= 5:
+                self.attack_timer = 0
+                for i in do_hit:
+                    i.hit(self.damage)
+            return #we can't move anymore ;)
+        else:
+            self.attack_timer = 0
+
+        old_target = self.target
+        diso = None
+        for i in self.game.insect_group.objects+self.game.hive_group.objects:
+            if not diso:
+                diso = (i, misc.distance(self.rect.center, i.rect.center))
+                continue
+            x = misc.distance(self.rect.center, i.rect.center)
+            if x < diso[1]:
+                diso = (i, x)
+
+        if diso:
+            if not (diso[0] == old_target and self.path):
+                self.target = diso[0]
+                start = self.game.map_grid.screen_to_grid(self.rect.center)
+                self.path = self.game.map_grid.calculate_path(start,
+                                self.game.map_grid.screen_to_grid(self.target.rect.center), False, False)
+                self.count = 0
+            else:
+                self.count += 1
+                if self.count >= 80:
+                    start = self.game.map_grid.screen_to_grid(self.rect.center)
+                    self.path = self.game.map_grid.calculate_path(start,
+                                    self.game.map_grid.screen_to_grid(self.target.rect.center), False, False)
+                    self.count = 0
+        else:
+            #what?!?! this really shouldn't happen...
+            self.target = self.game.hive
+            start = self.game.map_grid.screen_to_grid(self.rect.center)
+            self.path = self.game.map_grid.calculate_path(start,
+                            self.game.map_grid.screen_to_grid(self.target.rect.center), False, False)
+            self.count = 0
+
+        #later!
+        if self.target.was_killed:
+            self.reset_target()
+            self.path = None
+            self.animate("stand", 1, 1)
+            return
+
+        if not self.rect.colliderect(self.target.rect):
+            grid_pos = None
+            if self.path:
+                x, y = self.game.map_grid.grid_to_screen(self.path[0])
+                grid_pos = x+10, y+10
+                if self.rect.centerx == grid_pos[0] and self.rect.centery == grid_pos[1]:
+                    self.path.pop(0)
+                    if self.path:
+                        x, y = self.game.map_grid.grid_to_screen(self.path[0])
+                        grid_pos = x+10, y+10
+                    else:
+                        grid_pos = None
+            if grid_pos:
+                self.move_timer += 1
+                if self.move_timer >= 1:
+                    self.animate("walk", 15, 1)
+                    ydiff = grid_pos[1] - self.rect.centery
+                    xdiff = grid_pos[0] - self.rect.centerx
+                    self.angle = math.degrees(math.atan2(xdiff, ydiff)) + 180
+                    self.move_timer = 0
+                    if grid_pos[0] < self.rect.centerx:
+                        self.rect.move_ip(-1, 0)
+                    elif grid_pos[0] > self.rect.centerx:
+                        self.rect.move_ip(1, 0)
+
+                    if grid_pos[1] < self.rect.centery:
+                        self.rect.move_ip(0, -1)
+                    elif grid_pos[1] > self.rect.centery:
+                        self.rect.move_ip(0, 1)
+        else:
+            if isinstance(self.target, Hive):
+                self.target.hit(1)
+                self.kill()
+
+    def render(self):
+        Animation.render(self)
+        if self.path:
+            last = None
+            for i in self.path:
+                x, y = self.game.map_grid.grid_to_screen(i)
+                x += 10
+                y += 10
+                if last:
+                    pygame.draw.line(self.game.screen, (0, 255, 0), last, (x, y))
+                last = (x, y)
