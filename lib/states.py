@@ -113,9 +113,10 @@ class Game(GameState):
         self.build_overlay = None
 
         self.selected_object = None
+        self.selected_ui = None
 
     def set_tower_build(self):
-        if self.money >= objects.BuildTower.money_cost and self.scraps >= objects.BuildTower.scrap_cost:
+        if self.money >= objects.TowerBase.money_cost and self.scraps >= objects.TowerBase.scrap_cost:
             self.build_active = True
 
             bo = pygame.Surface((800,500)).convert_alpha()
@@ -148,6 +149,9 @@ class Game(GameState):
                 return
 
             if event.type == MOUSEBUTTONDOWN:
+                if self.selected_ui:
+                    self.selected_ui.kill()
+                    self.selected_ui = None
                 if event.button == 1:
                     if self.selected_object:
                         self.selected_object.selected = False
@@ -156,10 +160,7 @@ class Game(GameState):
                         if self.map_grid.empty_around(grid):
                             if self.build_active:
                                 self.build_active = False
-                                x = objects.BuildTower(self, self.map_grid.grid_to_screen(grid))
-                                self.money -= x.money_cost
-                                self.scraps -= x.scrap_cost
-                                self.update_money()
+                                objects.BuildTower(self, self.map_grid.grid_to_screen(grid))
                                 for i in self.worker_group.objects:
                                     i.reset_target()
                         else:
@@ -168,6 +169,7 @@ class Game(GameState):
                                 if i.rect.collidepoint(event.pos):
                                     i.selected = True
                                     self.selected_object = i
+                                    self.selected_ui = ui.TowerInfo(self.app, i)
                     if event.button == 3: #left
                         self.build_active = False
 

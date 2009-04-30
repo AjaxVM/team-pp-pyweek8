@@ -1,7 +1,7 @@
 import pygame
 from pygame.locals import *
 
-import data
+import data, objects
 
 def resize_image(image, size, border_size=None):
     x, y = size
@@ -88,12 +88,17 @@ class Widget(object):
     def set_pos(self, pos):
         setattr(self.rect, self.anchor, pos)
 
+    def kill(self):
+        if self in self.app.widgets:
+            self.app.widgets.remove(self)
+
     def fire_event(self, event):
         if event in self.events:
             self.events[event]()
 
     def kill(self):
-        self.app.widgets.remove(self)
+        if self in self.app.widgets:
+            self.app.widgets.remove(self)
 
     def load_text_and_image(self, text, image):
         if text:
@@ -207,3 +212,213 @@ class Button(Label):
             self.set_atts(self.hov_atts)
         else:
             self.set_atts(self.reg_atts)
+
+class TowerInfo(Widget):
+    def __init__(self, app, tower):
+        Widget.__init__(self, app, "midtop")
+        self.image = pygame.Surface((180, 150)).convert_alpha()
+        self.image.fill((75, 75, 255, 75))
+        pygame.draw.rect(self.image, (0,0,0), (0,0,180,150), 2)
+        self.rect = self.image.get_rect()
+        self.set_pos((tower.rect.centerx, tower.rect.bottom-10))
+        if self.rect.right > 800:
+            self.rect.right = 800
+        if self.rect.bottom > 600:
+            self.rect.bottom = 600
+        if self.rect.left < 0:
+            self.rect.left = 0
+        if self.rect.top < 0:
+            self.rect.top = 0
+
+        self.tower = tower
+
+        font = data.font(None, 16)
+
+        self.name_text = font.render("%s - L%s"%(tower.name, tower.level), 1, (0,0,0))
+        self.name_text2 = font.render("%s - L%s"%(tower.name, tower.level), 1, (255,255,255))
+        self.name_text_pos = (2,2)
+
+        self.damage_text = font.render("damage - %s"%tower.damage, 1, (0,0,0))
+        self.damage_text2 = font.render("damage - %s"%tower.damage, 1, (255,255,255))
+        self.damage_text_pos = (2,16)
+
+        self.range_text = font.render("range - %s"%tower.range, 1, (0,0,0))
+        self.range_text2 = font.render("range - %s"%tower.range, 1, (255,255,255))
+        self.range_text_pos = (2,30)
+
+        #we have four spots, 3 for potential new tower types to morph to, and 1 for just upgrading this tower
+        self.upgrades = []
+        spaces = [60, 20, 100]
+        if tower.level == 1:
+            for i in tower.upgrade_types:
+                image = data.image(i.ui_icon).copy()
+                target = i.name
+                rect = image.get_rect()
+                rect.centerx = spaces.pop(0)
+                rect.centery = 80 #???
+                cost = font.render("cost:", 1, (0,0,0))
+                cost2 = font.render("cost:", 1, (255,255,255))
+                color = (255,255,255) if tower.game.money >= i.money_cost else (255,0,0)
+                cost_money = font.render(str(i.money_cost)+"m", 1, (0,0,0))
+                cost_money2 = font.render(str(i.money_cost)+"m", 1, color)
+                color = (255,255,255) if tower.game.scraps >= i.scrap_cost else (255,0,0)
+                cost_scrap = font.render(str(i.scrap_cost)+"s", 1, (0,0,0))
+                cost_scrap2 = font.render(str(i.scrap_cost)+"s", 1, color)
+                cost_rect = cost.get_rect()
+                cost_rect.midtop = (rect.centerx, 110)
+                cost_money_rect = cost_money.get_rect()
+                cost_money_rect.topleft = cost_rect.bottomleft
+                cost_scrap_rect = cost_scrap.get_rect()
+                cost_scrap_rect.topleft = cost_money_rect.bottomleft
+
+                rect.height = cost_scrap_rect.bottom - rect.top
+                hover_rect = pygame.Rect(0,0,35,100)
+                hover_rect.centerx = rect.centerx
+                hover_rect.bottom = 150
+
+                hover_image = pygame.Surface(hover_rect.size).convert_alpha()
+
+                hover_image.fill((75,255,75,50))
+                pygame.draw.rect(hover_image, (0,0,0), ((0,0), hover_image.get_size()), 2)
+
+                level = 1
+
+                self.upgrades.append((image, target, hover_image, rect, hover_rect,
+                                      cost, cost2, cost_rect,
+                                      cost_money, cost_money2, cost_money_rect,
+                                      cost_scrap, cost_scrap2, cost_scrap_rect, level))
+
+        #upgrade now!
+        image = tower.image.copy()
+        image.blit(data.image("data/arrow.png"), (0,0))
+        target = tower.name
+        rect = image.get_rect()
+        rect.centerx = 150
+        rect.centery = 80 #???
+
+        cost = font.render("cost:", 1, (0,0,0))
+        cost2 = font.render("cost:", 1, (255,255,255))
+        color = (255,255,255) if tower.game.money >= tower.money_cost else (255,0,0)
+        cost_money = font.render(str(tower.money_cost)+"m", 1, (0,0,0))
+        cost_money2 = font.render(str(tower.money_cost)+"m", 1, color)
+        color = (255,255,255) if tower.game.scraps >= tower.scrap_cost else (255,0,0)
+        cost_scrap = font.render(str(tower.scrap_cost)+"s", 1, (0,0,0))
+        cost_scrap2 = font.render(str(tower.scrap_cost)+"s", 1, color)
+        cost_rect = cost.get_rect()
+        cost_rect.midtop = (rect.centerx, 110)
+        cost_money_rect = cost_money.get_rect()
+        cost_money_rect.topleft = cost_rect.bottomleft
+        cost_scrap_rect = cost_scrap.get_rect()
+        cost_scrap_rect.topleft = cost_money_rect.bottomleft
+
+        rect.height = cost_scrap_rect.bottom - rect.top
+
+        hover_rect = pygame.Rect(0,0,35,100)
+        hover_rect.centerx = rect.centerx
+        hover_rect.bottom = 150
+
+        hover_image = pygame.Surface(hover_rect.size).convert_alpha()
+        hover_image.fill((75,255,75,50))
+        pygame.draw.rect(hover_image, (0,0,0), ((0,0), hover_image.get_size()), 2)
+
+        level = tower.level + 1
+        self.upgrades.append((image, target, hover_image, rect, hover_rect,
+                                  cost, cost2, cost_rect,
+                                  cost_money, cost_money2, cost_money_rect,
+                                  cost_scrap, cost_scrap2, cost_scrap_rect, level))
+
+        self.events["click"] = self.handle_click
+
+    def handle_click(self):
+        x, y = self.rect.topleft
+        mx, my = pygame.mouse.get_pos()
+        mx -= x
+        my -= y
+
+        for i in self.upgrades:
+            (image, target, hover_image, rect, hover_rect,
+             cost, cost2, cost_rect,
+             cost_money, cost_money2, cost_money_rect,
+             cost_scrap, cost_scrap2, cost_scrap_rect, level) = i
+
+            if hover_rect.collidepoint((mx, my)):
+                if target == self.tower.name:
+                    if self.tower.game.money >= self.tower.money_cost and\
+                       self.tower.game.scraps >= self.tower.scrap_cost:
+                        self.tower.upgrade()
+                        self.kill()
+                        self.tower.game.selected_ui = TowerInfo(self.app, self.tower)
+                else:
+                    if target == "Missile Tower":
+                        to_build = objects.MissileTower
+                    else:
+                        to_build = objects.MissileTower
+                    if to_build.money_cost <= self.tower.game.money and\
+                       to_build.scrap_cost <= self.tower.game.scraps:
+                        self.tower.kill()
+                        x, y = self.tower.rect.midbottom
+                        objects.BuildTower(self.tower.game, self.tower.game.map_grid.screen_to_screen((x-10, y-20)), target)
+                        for i in self.tower.game.worker_group.objects:
+                            i.reset_target()
+                        self.kill()
+                
+
+    def render(self):
+        Widget.render(self)
+        x, y = self.rect.topleft
+
+        _x, _y = self.name_text_pos
+        _x += x
+        _y += y
+        self.app.surf.blit(self.name_text, (_x, _y))
+        self.app.surf.blit(self.name_text2, (_x+1, _y+1))
+
+        _x, _y = self.damage_text_pos
+        _x += x
+        _y += y
+        self.app.surf.blit(self.damage_text, (_x, _y))
+        self.app.surf.blit(self.damage_text2, (_x+1, _y+1))
+
+        _x, _y = self.range_text_pos
+        _x += x
+        _y += y
+        self.app.surf.blit(self.range_text, (_x, _y))
+        self.app.surf.blit(self.range_text2, (_x+1, _y+1))
+
+        mx, my = pygame.mouse.get_pos()
+        mx -= x
+        my -= y
+
+        for i in self.upgrades:
+            (image, target, hover_image, rect, hover_rect,
+             cost, cost2, cost_rect,
+             cost_money, cost_money2, cost_money_rect,
+             cost_scrap, cost_scrap2, cost_scrap_rect, level) = i
+            _x, _y = rect.topleft
+            _x += x
+            _y += y
+            self.app.surf.blit(image, (_x, _y))
+
+            _x, _y = cost_rect.topleft
+            _x += x
+            _y += y
+            self.app.surf.blit(cost, (_x, _y))
+            self.app.surf.blit(cost2, (_x+1, _y+1))
+
+            _x, _y = cost_money_rect.topleft
+            _x += x
+            _y += y
+            self.app.surf.blit(cost_money, (_x, _y))
+            self.app.surf.blit(cost_money2, (_x+1, _y+1))
+
+            _x, _y = cost_scrap_rect.topleft
+            _x += x
+            _y += y
+            self.app.surf.blit(cost_scrap, (_x, _y))
+            self.app.surf.blit(cost_scrap2, (_x+1, _y+1))
+
+            if hover_rect.collidepoint((mx, my)):
+                _x, _y = hover_rect.topleft
+                _x += x
+                _y += y
+                self.app.surf.blit(hover_image, (_x, _y))
