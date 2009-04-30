@@ -345,8 +345,7 @@ class Scraps(GameObject):
         self.groups = game.main_group, game.scraps_group, game.blocking_group
         GameObject.__init__(self, game)
 
-        self.image = pygame.Surface((20,20))
-        pygame.draw.polygon(self.image, (200,200,200), ((3, 3), (17, 17), (3, 17), (15, 3), (3,3)), 1)
+        self.image = data.image("data/scraps-1.png")
 
         self.rect = self.image.get_rect()
         self.rect.topleft = pos
@@ -368,9 +367,7 @@ class Boulder(GameObject):
         self.groups = game.main_group, game.blocking_group
         GameObject.__init__(self, game)
 
-        self.image = pygame.Surface((20,20)).convert_alpha()
-        self.image.fill((0,0,0,0))
-        pygame.draw.polygon(self.image, (200,0,200), ((3, 3), (17, 17), (17, 3), (3, 17), (3,3)), 3)
+        self.image = data.image("data/rock-%s.png"%(random.randrange(2)+1))
 
         self.rect = self.image.get_rect()
         self.rect.topleft = pos
