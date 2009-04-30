@@ -840,16 +840,16 @@ class DamageNote(GameObject):
         self.groups = [game.damage_notes_group]
         GameObject.__init__(self, game)
 
-        font = data.font("data/font.ttf", 11, True, True)
+        font = data.font("data/font.ttf", 12, True)
 
         amount = str(amount)
         chars = []
         for char in amount:
             big = font.render(char, 1, (0,0,0))
-            new = pygame.Surface((big.get_width()+2, big.get_height()+1)).convert_alpha()
+            new = pygame.Surface((big.get_width()+1, big.get_height()+1)).convert_alpha()
             new.fill((0,0,0,0))
             little = font.render(char, 1, color)
-            big.blit(little, (2, 1))
+            big.blit(little, (1, 1))
             chars.append(big)
 
         width = 0
