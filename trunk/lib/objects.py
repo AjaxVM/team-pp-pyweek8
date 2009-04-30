@@ -891,3 +891,49 @@ class DamageNote(GameObject):
             y -= 1
             self.pos = x, y
             self.rect.center = self.pos
+
+
+class Trap(GameObject):
+    money_cost = 10
+    scrap_cost = 20
+    def __init__(self, game, pos):
+        self.groups = game.main_group, game.trap_group
+        GameObject.__init__(self, game)
+
+        self.image = pygame.Surface((20,20)) #tile size...
+        pygame.draw.rect(self.image, (255,255,0), (0,0,20,20), 3)
+
+        self.rect = self.image.get_rect()
+        x, y = pos
+        x += 10
+        y += 20 #so we can put it at center...
+        self.rect.midbottom = x, y
+
+        self.game.money -= self.money_cost
+        self.game.scraps -= self.scrap_cost
+        self.game.update_money()
+
+        self.times = 0
+        self.max_times = 5
+
+        #set blocking!
+        self.game.map_grid.set(self.game.map_grid.screen_to_grid(pos), 1)
+
+        self.attack_timer = 0
+        self.damage = 2
+
+    def kill(self):
+        GameObject.kill(self)
+        self.game.map_grid.set(self.game.map_grid.screen_to_grid(self.rect.topleft), 0)
+
+    def update(self):
+        for i in self.game.insect_group.objects:
+            if self.rect.colliderect(i.rect):
+                self.attack_timer += 1
+                if self.attack_timer >= 15:
+                    self.attack_timer = 0
+                    i.hit(self.damage)
+                    self.times += 1
+                    if self.times >= self.max_times:
+                        self.kill()
+                        return
