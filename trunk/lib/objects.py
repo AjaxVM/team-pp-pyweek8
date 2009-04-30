@@ -134,7 +134,7 @@ class Hero(GameObject):
         self.rect = self.image.get_rect()
         self.rect.bottomright = (800,500) #bottom 100 is the ui bar!
 
-        self.hp = 50
+        self.hp = 20
 
         self.building = None
         self.build_timer = 0
@@ -166,7 +166,7 @@ class Hive(GameObject):
         self.rect = self.image.get_rect()
         self.rect.topleft = (5,5)
 
-        self.hp = 75
+        self.hp = 20
 
         self.counter = 0
 
@@ -346,10 +346,17 @@ class Boulder(GameObject):
                 self.cooldown = False
 
 class RandomTarget(object):
-    def __init__(self):
+    def __init__(self, game):
         self.rect = pygame.Rect(0,0,20,20)
-        self.rect.left = random.randrange(790)
-        self.rect.top = random.randrange(490)
+        res = 0
+        while 1:
+            x = random.randrange(game.map_grid.size[0])
+            y = random.randrange(game.map_grid.size[1])
+            if game.map_grid.is_open((x, y)):
+                self.rect.topleft = game.map_grid.grid_to_screen((x, y))
+            res += 1
+            if res >= 10:
+                break #oh well, charge the enemy, shall we?
 
         self.was_killed = False
 
@@ -378,7 +385,9 @@ class Worker(Animation):
         self.target = None
         self.move_timer = 0
         self.have_scraps = False
-        self.damage = 5
+        self.damage = 1
+        self.hp = 5
+        self.attack_timer = 0
 
     def reset_target(self):
         if not self.target == self.game.hero:
@@ -387,6 +396,27 @@ class Worker(Animation):
             self.target = None
 
     def update(self):
+        #Battling first, because we gotta stop movement for that!
+        do_hit = []
+
+        if self.rect.colliderect(self.game.hive):
+            self.game.hive.hit(1)
+            self.kill()
+
+        for i in self.game.insect_group.objects:
+            if misc.distance(i.rect.center, self.rect.center) <= 22:
+                do_hit.append(i)
+
+        if do_hit:
+            self.attack_timer += 1
+            if self.attack_timer >= 5:
+                self.attack_timer = 0
+                for i in do_hit:
+                    i.hit(self.damage)
+            return #we can't move anymore ;)
+        else:
+            self.attack_timer = 0
+
         if not self.target or isinstance(self.target, Scraps) or isinstance(self.target, RandomTarget):
             #if we have no target, or are just going for scraps, see if something more important is needed of us!
             if isinstance(self.target, Scraps):
@@ -431,7 +461,7 @@ class Worker(Animation):
             else:
                 #ok, can't do ANYTHING
                 if self.target == None:
-                    self.target = RandomTarget()
+                    self.target = RandomTarget(self.game)
 
         if self.target.was_killed:
             self.reset_target()
@@ -473,7 +503,7 @@ class Worker(Animation):
                 self.target = None
                 #do addition of scraps to inventory stuff here!!!
             elif isinstance(self.target, RandomTarget):
-                self.target = RandomTarget() #move again O.o
+                self.target = RandomTarget(self.game) #move again O.o
 
     def kill(self):
         self.reset_target()
@@ -502,6 +532,7 @@ class Insect(Animation):
 
         self.hp = 25
         self.worth = 2
+        self.damage = 1
 
     def reset_target(self):
         self.target = None
@@ -517,15 +548,12 @@ class Insect(Animation):
 
         do_hit = []
 
-        for i in self.game.worker_group.objects:
-            if misc.distance(i.rect.center, self.rect.center) <= 22:
-                do_hit.append(i)
-
         for i in self.game.build_tower_group.objects:
             if misc.distance(i.rect.center, self.rect.center) <= 22:
-                do_hit.append(i)
+                i.kill()
 
-        for i in self.game.tower_group.objects:
+
+        for i in self.game.worker_group.objects:
             if misc.distance(i.rect.center, self.rect.center) <= 22:
                 do_hit.append(i)
 
@@ -534,9 +562,8 @@ class Insect(Animation):
             if self.attack_timer >= 5:
                 self.attack_timer = 0
                 for i in do_hit:
-                    i.hit(1)
-                    if isinstance(i, Worker):
-                        self.hit(i.damage)
+                    i.hit(self.damage)
+            return #we can't move anymore ;)
         else:
             self.attack_timer = 0
 
@@ -579,7 +606,7 @@ class Insect(Animation):
                     elif grid_pos[1] > self.rect.centery:
                         self.rect.move_ip(0, 1)
         else:
-            self.target.hit(5) #or whatever
+            self.target.hit(1)
             self.kill()
 
     def render(self):
