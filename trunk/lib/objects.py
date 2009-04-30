@@ -221,10 +221,7 @@ class Hive(GameObject):
             Insect(self.game)
 
 class BuildTower(GameObject):
-    time_cost = 250
-    money_cost = 50
-    scrap_cost = 50
-    def __init__(self, game, pos, to_build="base"):
+    def __init__(self, game, pos, to_build="Base Tower"):
         self.groups = game.main_group, game.build_tower_group, game.blocking_group
         GameObject.__init__(self, game)
 
@@ -237,11 +234,14 @@ class BuildTower(GameObject):
         y += 20 #so we can put it at center...
         self.rect.midbottom = x, y
 
-        if to_build == "base":
+        if to_build == "Base Tower":
             to_build = TowerBase
-        elif to_build == "Missile":
+        elif to_build == "Missile Tower":
             to_build = MissileTower
         self.to_build = to_build
+        self.game.money -= self.to_build.money_cost
+        self.game.scraps -= self.to_build.scrap_cost
+        self.game.update_money()
 
         #set blocking!
         self.game.map_grid.set(self.game.map_grid.screen_to_grid(pos), 1)
@@ -253,9 +253,16 @@ class BuildTower(GameObject):
         self.game.map_grid.set(self.game.map_grid.screen_to_grid(self.rect.topleft), 0)
 
 class TowerBase(GameObject):
+    ui_icon = "data/tower-missile.png" #the ui needs these :S
+    time_cost = 250
+    money_cost = 50
+    scrap_cost = 50
+    name = "Base Tower"
     def __init__(self, game, pos):
         self.groups = game.main_group, game.tower_group, game.blocking_group
         GameObject.__init__(self, game)
+
+        self.level = 1
 
         self.image = data.image("data/tower-base.png")
 
@@ -267,7 +274,7 @@ class TowerBase(GameObject):
         #and for rendering of the range circle
 
         #set blocking!
-        x, y = pos #this makes sure we don;t grab like the center of the tower which is one tile too high!
+        x, y = pos #this makes sure we don't grab like the center of the tower which is one tile too high!
         x -= 10
         y -= 20
         self.game.map_grid.set(self.game.map_grid.screen_to_grid((x,y)), 3)
@@ -276,10 +283,27 @@ class TowerBase(GameObject):
         self.shot_type = Bullet
         self.shot_speed = 45
 
+        self.inc_cost()
+
         for i in self.game.insect_group.objects:
             i.update_path(self.game.map_grid.screen_to_grid((x, y)))
 
-        self.upgrade_types = {"Missile":MissileTower}
+        self.damage = 5
+
+        self.upgrade_types = [MissileTower]
+
+    def inc_cost(self):
+        self.money_cost = int(self.money_cost * 2.25)
+        self.scrap_cost = int(self.scrap_cost * 2.25)
+
+    def upgrade(self):
+        self.level += 1
+        self.game.money -= self.money_cost
+        self.game.scraps -= self.scrap_cost
+        self.game.update_money()
+        self.inc_cost()
+        self.damage *= 2
+        self.range += 10
 
     def update(self):
         diso = (None, self.range+1)
@@ -293,7 +317,7 @@ class TowerBase(GameObject):
             if self.shot_timer >= self.shot_speed:
                 self.shot_timer = 0
                 target = diso[0]
-                self.shot_type(self.game, self.rect.center, self.range+20, target)
+                self.shot_type(self.game, self.rect.center, self.range+20, target, self.damage)
         else:
             self.shot_timer = int(self.shot_speed/2)
 
@@ -310,10 +334,17 @@ class TowerBase(GameObject):
             pygame.draw.circle(self.game.screen, (255,255,255), self.rect.center, self.range, 1)
 
 class MissileTower(TowerBase):
+    ui_icon = "data/tower-missile.png"
+    time_cost = 300
+    money_cost = 100
+    scrap_cost = 100
+    name = "Missile Tower"
     def __init__(self, game, pos):
         TowerBase.__init__(self, game, pos)
 
         self.image = data.image("data/tower-missile.png")
+
+        self.level = 1
 
         self.rect = self.image.get_rect()
         self.rect.midbottom = pos
@@ -321,11 +352,20 @@ class MissileTower(TowerBase):
         self.shot_speed = 60
         self.shot_type = Missile
         self.range = 150
+        self.damage = 10
 
         self.upgrade_types = []
 
+    def upgrade(self):
+        self.level += 1
+        self.inc_cost()
+        self.game.money -= self.money_cost
+        self.game.scraps -= self.scrap_cost
+        self.damage += 7
+        self.range += 10
+
 class Bullet(GameObject):
-    def __init__(self, game, pos, range, target):
+    def __init__(self, game, pos, range, target, damage):
         self.groups = game.main_group, game.bullet_group
         GameObject.__init__(self, game)
 
@@ -347,7 +387,7 @@ class Bullet(GameObject):
         self.age = 0
         self.speed = 4
         self.target = target
-        self.damage = 5
+        self.damage = damage
 
     def update(self):
         self.age += 1
@@ -369,9 +409,9 @@ class Bullet(GameObject):
                 Explosion(self.game, self.rect.center)
 
 class Missile(Bullet):
-    def __init__(self, game, pos, range, target):
+    def __init__(self, game, pos, range, target, damage):
         self.groups = game.main_group, game.bullet_group
-        Bullet.__init__(self, game, pos, range*2, target)
+        Bullet.__init__(self, game, pos, range*2, target, damage)
         self.angle = random.randrange(360)
         self.image.fill((255,0,0))
         self.damage = 10
@@ -624,7 +664,7 @@ class Worker(Animation):
         else:
             if isinstance(self.target, BuildTower):
                 self.target.built += 1
-                if self.target.built >= self.target.time_cost:
+                if self.target.built >= self.target.to_build.time_cost:
                     self.target.kill()
                     t = self.target.to_build(self.game, self.target.rect.midbottom)
                     self.reset_target()
