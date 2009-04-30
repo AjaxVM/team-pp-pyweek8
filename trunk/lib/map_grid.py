@@ -16,6 +16,9 @@ class MapGrid(object):
         self.fill((0,0), (10, 10)) #fill in the enemy area so we can't build there!
         self.fill((self.size[0]-8, self.size[1]-8), (8,8))
 
+        self.group_seed = 0
+        self.seed_next = False
+
     def make_base_grid(self):
         """This creates the base grid.
            Each grid must have one of 3 states:
@@ -89,7 +92,7 @@ class MapGrid(object):
                         return True
         return False
 
-    def calculate_path(self, start, end, avoid_towers=True):
+    def calculate_path(self, start, end, avoid_towers=True, very_random=True):
         """Calculates a path using an a* like algorithm.
         @param start: coordinates of start
         @param end: coordinates of end
@@ -141,14 +144,24 @@ class MapGrid(object):
         inlist[start[0]][start[1]] = INOPENLIST
 
         # loop through map until path is found
-        group = random.randrange(5)
-        if not group:
-            r = lambda x: 0
+        if self.seed_next:
+            random.seed(self.group_seed)
+            self.seed_next = False
         else:
-            r = random.randrange
+            group = not bool(random.randrange(5))
+            if group:
+                self.seed_next = True
+                self.group_seed += 1
+                random.seed(self.group_seed)
+        r = random.randrange
+
+        if very_random:
+            ru = 50
+        else:
+            ru = 10
         #this is weighted so that the less obvious paths are given some advantage
         #since bottomright is the most direct course to the hero base, that is weighted the lowest
-        adjacent = [(0,-1, 1+r(50)), (-1, 0, 1+r(50)), (1, 0, 1+r(50)), (0, 1, 1+r(100))]
+        adjacent = [(0,-1, 1+r(ru)), (-1, 0, 1+r(ru)), (1, 0, 1+r(ru)), (0, 1, 1+r(ru*2))]
 
         swap_adj = 0
 
@@ -156,7 +169,7 @@ class MapGrid(object):
             swap_adj += 1
             if swap_adj > 25:
                 swap_adj = 0
-                adjacent = [(0,-1, 1+r(50)), (-1, 0, 1+r(50)), (1, 0, 1+r(50)), (0, 1, 1+r(100))]
+                adjacent = [(0,-1, 1+r(ru)), (-1, 0, 1+r(ru)), (1, 0, 1+r(ru)), (0, 1, 1+r(ru*2))]
             # if open heap is empty, no path is available
             if len(openlist) == 0:
                 return False
