@@ -120,14 +120,10 @@ class Game(GameState):
 
             bo = pygame.Surface((800,500)).convert_alpha()
             bo.fill((0,0,0,0))
-            for i in self.build_tower_group.objects +\
-                    self.tower_group.objects +\
-                    self.blocking_group.objects +\
-                    self.scraps_group.objects:
-                x, y = i.rect.midbottom
-                x -= 10
-                y -= 20
-                pygame.draw.rect(bo, (200,0,0,85), ((x - 20, y - 20), (60, 60)))
+            for x in xrange(self.map_grid.size[0]):
+                for y in xrange(self.map_grid.size[1]):
+                    if not self.map_grid.empty_around((x, y)):
+                        pygame.draw.rect(bo, (200,0,0,85), (self.map_grid.grid_to_screen((x, y)), (20,20)))
             pygame.draw.rect(bo, (200,0,0,85), ((0,0), (11*20,11*20)))
             pygame.draw.rect(bo, (200,0,0,85), ((800-9*20,500-9*20), (9*20,9*20)))
 

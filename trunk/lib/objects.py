@@ -224,7 +224,7 @@ class BuildTower(GameObject):
     time_cost = 250
     money_cost = 50
     scrap_cost = 50
-    def __init__(self, game, pos):
+    def __init__(self, game, pos, to_build="base"):
         self.groups = game.main_group, game.build_tower_group, game.blocking_group
         GameObject.__init__(self, game)
 
@@ -237,6 +237,12 @@ class BuildTower(GameObject):
         y += 20 #so we can put it at center...
         self.rect.midbottom = x, y
 
+        if to_build == "base":
+            to_build = TowerBase
+        elif to_build == "Missile":
+            to_build = MissileTower
+        self.to_build = to_build
+
         #set blocking!
         self.game.map_grid.set(self.game.map_grid.screen_to_grid(pos), 1)
 
@@ -246,12 +252,12 @@ class BuildTower(GameObject):
         GameObject.kill(self)
         self.game.map_grid.set(self.game.map_grid.screen_to_grid(self.rect.topleft), 0)
 
-class Tower(GameObject):
+class TowerBase(GameObject):
     def __init__(self, game, pos):
         self.groups = game.main_group, game.tower_group, game.blocking_group
         GameObject.__init__(self, game)
 
-        self.image = data.image("data/tower-1.png")
+        self.image = data.image("data/tower-base.png")
 
         self.rect = self.image.get_rect()
         self.rect.midbottom = pos
@@ -267,9 +273,13 @@ class Tower(GameObject):
         self.game.map_grid.set(self.game.map_grid.screen_to_grid((x,y)), 3)
 
         self.shot_timer = 0
+        self.shot_type = Bullet
+        self.shot_speed = 45
 
         for i in self.game.insect_group.objects:
             i.update_path(self.game.map_grid.screen_to_grid((x, y)))
+
+        self.upgrade_types = {"Missile":MissileTower}
 
     def update(self):
         diso = (None, self.range+1)
@@ -280,17 +290,12 @@ class Tower(GameObject):
 
         if diso[0] and diso[1] < self.range:
             self.shot_timer += 1
-            if self.shot_timer >= 45:
+            if self.shot_timer >= self.shot_speed:
                 self.shot_timer = 0
                 target = diso[0]
-                ydiff = target.rect.centery - self.rect.centery
-                xdiff = target.rect.centerx - self.rect.centerx
-                angle = math.degrees(math.atan2(xdiff, ydiff))
-                x = math.sin(math.radians(angle))
-                y = math.cos(math.radians(angle))
-                Bullet(self.game, self.rect.center, self.range+20, (x, y), angle)
+                self.shot_type(self.game, self.rect.center, self.range+20, target)
         else:
-            self.shot_timer = 30
+            self.shot_timer = int(self.shot_speed/2)
 
     def kill(self):
         GameObject.kill(self)
@@ -304,10 +309,31 @@ class Tower(GameObject):
         if self.selected:
             pygame.draw.circle(self.game.screen, (255,255,255), self.rect.center, self.range, 1)
 
+class MissileTower(TowerBase):
+    def __init__(self, game, pos):
+        TowerBase.__init__(self, game, pos)
+
+        self.image = data.image("data/tower-missile.png")
+
+        self.rect = self.image.get_rect()
+        self.rect.midbottom = pos
+
+        self.shot_speed = 60
+        self.shot_type = Missile
+        self.range = 150
+
+        self.upgrade_types = []
+
 class Bullet(GameObject):
-    def __init__(self, game, pos, range, direction, angle):
+    def __init__(self, game, pos, range, target):
         self.groups = game.main_group, game.bullet_group
         GameObject.__init__(self, game)
+
+        ydiff = target.rect.centery - pos[1]
+        xdiff = target.rect.centerx - pos[0]
+        angle = math.degrees(math.atan2(xdiff, ydiff))
+        x = math.sin(math.radians(angle))
+        y = math.cos(math.radians(angle))
 
         self.image = pygame.Surface((5,5))
         self.rect = self.image.get_rect()
@@ -316,10 +342,12 @@ class Bullet(GameObject):
 
         self.angle = angle
 
-        self.direction = direction
+        self.direction = (x, y)
         self.range = range
         self.age = 0
         self.speed = 4
+        self.target = target
+        self.damage = 5
 
     def update(self):
         self.age += 1
@@ -336,9 +364,38 @@ class Bullet(GameObject):
 
         for i in self.game.insect_group.objects:
             if self.rect.colliderect(i.rect):
-                i.hit(5)
+                i.hit(self.damage)
                 self.kill()
                 Explosion(self.game, self.rect.center)
+
+class Missile(Bullet):
+    def __init__(self, game, pos, range, target):
+        self.groups = game.main_group, game.bullet_group
+        Bullet.__init__(self, game, pos, range*2, target)
+        self.angle = random.randrange(360)
+        self.image.fill((255,0,0))
+        self.damage = 10
+        self.speed = 2
+
+    def update(self):
+        if self.target.was_killed:
+            self.kill()
+        ydiff = self.target.rect.centery - self.pos[1]
+        xdiff = self.target.rect.centerx - self.pos[0]
+        angle = math.degrees(math.atan2(xdiff, ydiff))
+
+        if abs(angle-self.angle) <= 25:
+            self.angle = angle
+        
+        if angle< self.angle:
+            self.angle -= 20
+        else:
+            self.angle += 20
+        x = math.sin(math.radians(self.angle))
+        y = math.cos(math.radians(self.angle))
+        self.direction = (x, y)
+        
+        Bullet.update(self)
 
 class Scraps(GameObject):
     def __init__(self, game, pos):
@@ -348,7 +405,10 @@ class Scraps(GameObject):
         self.image = data.image("data/scraps-1.png")
 
         self.rect = self.image.get_rect()
-        self.rect.topleft = pos
+        x, y = pos
+        x += 10
+        y += 10
+        self.rect.center = x, y
 
         self.cooldown = False
         self.timer = 0
@@ -370,7 +430,10 @@ class Boulder(GameObject):
         self.image = data.image("data/rock-%s.png"%(random.randrange(2)+1))
 
         self.rect = self.image.get_rect()
-        self.rect.topleft = pos
+        x, y = pos
+        x += 10
+        y += 10
+        self.rect.center = x, y
 
         self.cooldown = False
         self.timer = 0
@@ -563,7 +626,7 @@ class Worker(Animation):
                 self.target.built += 1
                 if self.target.built >= self.target.time_cost:
                     self.target.kill()
-                    t = Tower(self.game, self.target.rect.midbottom)
+                    t = self.target.to_build(self.game, self.target.rect.midbottom)
                     self.reset_target()
                     self.animate("stand", 1, 1)
                     self.target = None
