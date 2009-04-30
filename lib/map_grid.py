@@ -81,23 +81,14 @@ class MapGrid(object):
 
     def should_avoid(self, pos):
         """Return whether there are no filled spaces +/- 1 of pos."""
-        for x in xrange(pos[0]-2, pos[0]+3):
-            for y in xrange(pos[1]-2, pos[1]+3):
+        for x in xrange(pos[0]-3, pos[0]+4):
+            for y in xrange(pos[1]-3, pos[1]+4):
                 if not self.out_of_bounds((x, y)):
                     if self.grid[x][y] == 3:
                         return True
         return False
 
-    def disable_diag(self, pos):
-        """Return whether there are no filled spaces +/- 1 of pos."""
-        for x in xrange(pos[0]-1, pos[0]+2):
-            for y in xrange(pos[1]-1, pos[1]+2):
-                if not self.out_of_bounds((x, y)):
-                    if self.grid[x][y] > 1:
-                        return True
-        return False
-
-    def calculate_path(self, start, end):
+    def calculate_path(self, start, end, avoid_towers=True):
         """Calculates a path using an a* like algorithm.
         @param start: coordinates of start
         @param end: coordinates of end
@@ -156,7 +147,7 @@ class MapGrid(object):
             r = random.randrange
         #this is weighted so that the less obvious paths are given some advantage
         #since bottomright is the most direct course to the hero base, that is weighted the lowest
-        adjacent = [(0,-1, 1+r(25)), (-1, 0, 1+r(30)), (1, 0, 1+r(50)), (0, 1, 1+r(25))]
+        adjacent = [(0,-1, 1+r(50)), (-1, 0, 1+r(50)), (1, 0, 1+r(50)), (0, 1, 1+r(100))]
 
         swap_adj = 0
 
@@ -164,7 +155,7 @@ class MapGrid(object):
             swap_adj += 1
             if swap_adj > 25:
                 swap_adj = 0
-                adjacent = [(0,-1, 1+r(25)), (-1, 0, 1+r(30)), (1, 0, 1+r(50)), (0, 1, 1+r(25))]
+                adjacent = [(0,-1, 1+r(50)), (-1, 0, 1+r(50)), (1, 0, 1+r(50)), (0, 1, 1+r(100))]
             # if open heap is empty, no path is available
             if len(openlist) == 0:
                 return False
@@ -201,7 +192,8 @@ class MapGrid(object):
 
                 # skip if not walkable
                 if blockedmap[newx][newy] >= 2:
-                    continue
+                    if not (newx, newy) == end:
+                        continue
 
                 # skip if on closed list
                 if inlist[newx][newy] == INCLOSEDLIST:
@@ -238,6 +230,10 @@ class MapGrid(object):
                     newcost, newmovecost, newhcost = nodelist[newx][newy]
                     newmovecost = costs[1] + modmovecost
                     newcost = newmovecost + newhcost
+
+                    if avoid_towers:
+                        if not self.empty_around((newx, newy)):
+                            newcost += 750
 
                     # add to open list
                     heapq.heappush(openlist, (newcost, (newx,newy), coordinates))

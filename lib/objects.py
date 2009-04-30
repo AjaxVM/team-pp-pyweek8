@@ -226,6 +226,9 @@ class Tower(GameObject):
         self.hp = 200
         self.shot_timer = 0
 
+        for i in self.game.insect_group.objects:
+            i.update_path(self.game.map_grid.screen_to_grid((x, y)))
+
     def update(self):
         diso = (None, self.range+1)
         for i in self.game.insect_group.objects:
@@ -490,7 +493,7 @@ class Insect(Animation):
         self.image = self.walk_images[0]
         self.add_animation("walk", self.walk_images)
         self.rect = self.image.get_rect()
-        self.rect.center = self.game.hive.rect.bottomright
+        self.rect.center = self.game.hive.rect.center
 
         self.target = None
         self.move_timer = 0
@@ -561,7 +564,7 @@ class Insect(Animation):
             if grid_pos:
                 self.move_timer += 1
                 if self.move_timer >= 2:
-                    self.animate("walk", 5, 1)
+                    self.animate("walk", 10, 1)
                     ydiff = grid_pos[1] - self.rect.centery
                     xdiff = grid_pos[0] - self.rect.centerx
                     self.angle = math.degrees(math.atan2(xdiff, ydiff)) + 180
@@ -578,6 +581,18 @@ class Insect(Animation):
         else:
             self.target.hit(5) #or whatever
             self.kill()
+
+    def render(self):
+        Animation.render(self)
+        if self.path:
+            last = None
+            for i in self.path:
+                x, y = self.game.map_grid.grid_to_screen(i)
+                x += 10
+                y += 10
+                if last:
+                    pygame.draw.line(self.game.screen, (0, 255, 0), last, (x, y))
+                last = (x, y)
 
 class Explosion(Animation):
     
