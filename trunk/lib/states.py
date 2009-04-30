@@ -76,12 +76,13 @@ class Game(GameState):
         ui.Button(self.app, "Build Tower!", pos=(160,520), callback=self.set_tower_build)
         ui.Button(self.app, "Build Worker!", pos=(160, 560), callback=self.build_worker)
         ui.Button(self.app, "Build Trap!", pos=(320, 520), callback=self.build_trap)
+        ui.Button(self.app, "Build Warrior!", pos=(320, 560), callback=self.build_warrior)
 
         self.main_group = objects.GameGroup()
         self.hero_group = objects.GameGroup()
         self.hive_group = objects.GameGroup()
         self.build_tower_group = objects.GameGroup()
-        self.worker_group = objects.GameGroup()
+        self.bot_group = objects.GameGroup()
         self.tower_group = objects.GameGroup()
         self.insect_group = objects.GameGroup()
         self.scraps_group = objects.GameGroup()
@@ -149,6 +150,11 @@ class Game(GameState):
             self.build_active = False
             self.build_overlay = None
 
+    def build_warrior(self):
+        #TODO: replace with warrior type selection
+        if self.money >= objects.BattleBot.money_cost and self.scraps >= objects.BattleBot.scrap_cost:
+            self.hero.build_warrior()
+
     def update(self):
 
         for event in pygame.event.get():
@@ -171,7 +177,7 @@ class Game(GameState):
                             if self.map_grid.empty_around(grid):
                                 self.build_active = False
                                 objects.BuildTower(self, self.map_grid.grid_to_screen(grid))
-                                for i in self.worker_group.objects:
+                                for i in self.bot_group.objects:
                                     i.reset_target()
                         else:
                             if self.building_trap:
@@ -198,7 +204,7 @@ class Game(GameState):
         self.hero_group.update()
         self.hive_group.update()
         self.build_tower_group.update()
-        self.worker_group.update()
+        self.bot_group.update()
         self.insect_group.update()
         self.scraps_group.update()
         self.tower_group.update()
