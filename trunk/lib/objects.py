@@ -419,7 +419,7 @@ class Missile(Bullet):
         Bullet.__init__(self, game, pos, range*2, target, damage)
         self.angle = random.randrange(360)
         self.image.fill((255,0,0))
-        self.damage = 10
+        self.damage = damage
         self.speed = 2
 
     def update(self):
@@ -919,7 +919,7 @@ class Trap(GameObject):
         self.game.update_money()
 
         self.times = 0
-        self.max_times = 5
+        self.max_times = 25
 
         #set blocking!
         self.game.map_grid.set(self.game.map_grid.screen_to_grid(pos), 1)
