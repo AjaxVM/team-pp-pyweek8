@@ -66,19 +66,18 @@ class App(object):
         self.widgets.reverse()
 
 class Widget(object):
-    def __init__(self, app, anchor="topleft"):
+    def __init__(self, app, anchor="topleft", text_color=(255,255,255)):
         self.app = app
         self.app.widgets.insert(0, self)
 
         self.anchor = anchor
 
+        self.text_color = text_color
+
         self.image = None
         self.text = None
         self.rect = None
         self.font = data.font("data/font.ttf", 32)
-        self.text_color = (255,255,255,255)
-        self.image_border_size = None
-        self.tsize = (0,0)
 
         self.hover = False
         self.click = False
@@ -101,8 +100,9 @@ class Widget(object):
             self.app.widgets.remove(self)
 
     def load_text_and_image(self, text, image):
+        rect = None
         if text:
-            text = [self.font.render(t, 1, self.text_color) for t in text.split("\n")]
+            text = [self.font.render(t, 1, self.text_color) for t in text.split("\n") if t]
             rects = [t.get_rect() for t in text]
             w, h = 0,0
             for i in rects:
@@ -110,108 +110,93 @@ class Widget(object):
                     w = i.width
                 h += i.height
             rect = pygame.rect.Rect(0,0,w,h)
-        else:
-            text = None
-            rect = None
         if image:
+            image = data.image(image)
             if not rect:
-                rect = data.image(image).get_rect()
-            image, image_tsize = resize_image(data.image(image), rect.size,
-                                               self.image_border_size)
-            rect = self.image.get_rect()
-        else:
-            image = None
-            image_tsize = (0,0)
-        return text, image, rect, image_tsize
+                rect = image.get_rect()
+            else:
+                nr = image.get_rect()
+                rect = rect.union(nr)
+        return text, image, rect
 
     def update(self, event):
-        if event.type == MOUSEMOTION:
-            if self.rect.collidepoint(event.pos):
-                self.hover = True
-                for i in self.app.widgets:
-                    if not i == self:
-                        i.hover = False
-                return True
-            else:
-                self.hover = False
-        if event.type == MOUSEBUTTONDOWN:
-            if event.button == 1:
-                if self.hover:
-                    self.click = True
+        if self.rect:
+            if event.type == MOUSEMOTION:
+                if self.rect.collidepoint(event.pos):
+                    self.hover = True
                     for i in self.app.widgets:
                         if not i == self:
                             i.hover = False
-                            i.click = False
                     return True
                 else:
-                    self.click = False
-        if event.type == MOUSEBUTTONUP:
-            if event.button == 1:
-                if self.click and self.hover:
-                    self.fire_event("click")
-                    self.click = False
-                    for i in self.app.widgets:
-                        if not i == self:
-                            i.hover = False
-                            i.click = False
-                    return True
+                    self.hover = False
+            if event.type == MOUSEBUTTONDOWN:
+                if event.button == 1:
+                    if self.hover:
+                        self.click = True
+                        for i in self.app.widgets:
+                            if not i == self:
+                                i.hover = False
+                                i.click = False
+                        return True
+                    else:
+                        self.click = False
+            if event.type == MOUSEBUTTONUP:
+                if event.button == 1:
+                    if self.click and self.hover:
+                        self.fire_event("click")
+                        self.click = False
+                        for i in self.app.widgets:
+                            if not i == self:
+                                i.hover = False
+                                i.click = False
+                        return True
 
     def render(self):
         if self.image:
             self.app.surf.blit(self.image, self.rect)
         if self.text:
             x, y = self.rect.topleft
-            x += self.tsize[0]
-            y += self.tsize[1]
             down = 0
             for t in self.text:
                 self.app.surf.blit(t, (x, y+down))
                 down += t.get_height()
+        if self.hover and self.rect:
+            surf = pygame.Surface(self.rect.inflate(4,4).size).convert_alpha()
+            surf.fill((75,75,255,50))
+            new_rect = surf.get_rect(center=self.rect.center)
+            pygame.draw.rect(surf, (0,0,0), ((0,0),self.rect.inflate(4,4).size), 2)
+            self.app.surf.blit(surf, new_rect)
+
+    def get_status(self):
+        return None
 
 class Label(Widget):
-    def __init__(self, app, text, background_image=None, text_color=(255,255,255,255),
-                 background_border=None, pos=(0,0), anchor="topleft"):
-        Widget.__init__(self, app, anchor)
+    def __init__(self, app, text, image=None, pos=(0,0), anchor="topleft",
+                 text_color=(255,255,255)):
+        Widget.__init__(self, app, anchor, text_color)
 
-        self.text_color=text_color
-        self.image_border_size = background_border
-
-        self.text, self.image, self.rect, self.tsize = self.load_text_and_image(text, background_image)
+        self.text, self.image, self.rect = self.load_text_and_image(text, image)
         self.set_pos(pos)
 
 
 class Button(Label):
-    def __init__(self, app, text=None, image=None, image_hover=None, image_click=None,
-                 text_color=(255,255,255), text_color_hover=(255,255,255),
-                 text_color_click=(255,255,255), image_border=None, pos=(0,0), anchor="topleft",
-                 callback=None):
-        Widget.__init__(self, app, anchor)
+    def __init__(self, app, text=None, image=None, pos=(0,0), anchor="topleft",
+                 callback=None, text_color=(255,255,255),
+                 status_message=""):
+        Widget.__init__(self, app, anchor, text_color)
 
-        self.text_color = text_color
-        self.reg_atts = self.load_text_and_image(text, image)
-        self.text_color = text_color_hover
-        self.hov_atts = self.load_text_and_image(text, image_hover)
-        self.text_color = text_color_click
-        self.cli_atts = self.load_text_and_image(text, image_click)
+        self.text, self.image, self.rect = self.load_text_and_image(text, image)
 
         if callback:
             self.events["click"] = callback
-        self._pos = pos
-        self.set_atts(self.reg_atts)
+        self.set_pos(pos)
 
-    def set_atts(self, atts):
-        self.text, self.image, self.rect, self.tsize = atts
-        self.set_pos(self._pos)
+        self.status_message = status_message
 
-    def update(self, event):
-        Widget.update(self, event)
-
-        if self.hover and self.click:
-            self.set_atts(self.cli_atts)
-        elif self.hover:
-            self.set_atts(self.hov_atts)
-        else:
-            self.set_atts(self.reg_atts)
+    def get_status(self):
+        if self.hover:
+            return self.status_message
 
 class TowerInfo(Widget):
     def __init__(self, app, tower):
@@ -348,6 +333,10 @@ class TowerInfo(Widget):
                         self.tower.upgrade()
                         self.kill()
                         self.tower.game.selected_ui = TowerInfo(self.app, self.tower)
+                        self.tower.game.selected_ui.hover = True
+                        for i in self.app.widgets:
+                            if not i == self.tower.game.selected_ui:
+                                i.hover = False
                 else:
                     if target == "Missile Tower":
                         to_build = objects.MissileTower
@@ -361,7 +350,20 @@ class TowerInfo(Widget):
                         for i in self.tower.game.bot_group.objects:
                             i.reset_target()
                         self.kill()
-                
+
+    def get_status(self):
+        if self.hover:
+            x, y = self.rect.topleft
+            mx, my = pygame.mouse.get_pos()
+            mx -= x
+            my -= y
+            for i in self.upgrades:
+                (image, target, hover_image, rect, hover_rect,
+                 cost, cost2, cost_rect,
+                 cost_money, cost_money2, cost_money_rect,
+                 cost_scrap, cost_scrap2, cost_scrap_rect, level) = i
+                if hover_rect.collidepoint((mx, my)):
+                    return target
 
     def render(self):
         Widget.render(self)
@@ -422,3 +424,27 @@ class TowerInfo(Widget):
                 _x += x
                 _y += y
                 self.app.surf.blit(hover_image, (_x, _y))
+
+
+class PopupManager(Widget):
+    def __init__(self, app):
+        Widget.__init__(self, app, "bottomleft")
+
+        self.messages = []
+        self.bg = None
+        self.font = data.font("data/font.ttf", 32)
+
+        self.rect = None
+        self.pos = (2,498)
+
+    def set(self, text):
+        if text:
+            self.text, i, self.rect = self.load_text_and_image(text, None)
+            self.set_pos(self.pos)
+        else:
+            self.text, self.rect = None, None
+
+    def render(self):
+        self.hover = True
+        Widget.render(self)
+        self.hover = False
