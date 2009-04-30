@@ -84,8 +84,22 @@ class GameObject(object):
         if hasattr(self, "path"):
             if self.path and grid in self.path:
                 p = self.path.index(grid)
-                changes = [(grid[0]-1, grid[1]-1), (grid[0], grid[1]-1), (grid[0]+1, grid[1]-1)]
-                self.path = self.path[0:p] + changes + self.path[p+1::]
+                changes = [(grid[0]-1,grid[1]-1), (grid[0],grid[1]-1), (grid[0]+1,grid[1]-1),
+                           (grid[0]+1,grid[1]),                        (grid[0]+1,grid[1]+1),
+                           (grid[0],grid[1]+1), (grid[0]-1,grid[1]+1), (grid[0]-1,grid[1])]
+                if p == 0 or p == len(self.path)-1:
+                    return #useless info now!
+                start = changes.index(self.path[p-1])
+                do = []
+                for i in xrange(8):
+                    i = start+i
+                    if i >= 7:
+                        i = 7 - i
+                    if not changes[i] in (self.path[p+1::]):
+                        do.append(changes[i])
+                    else:
+                        break
+                self.path = self.path[0:p] + do + self.path[p+1::]
 
 class Animation(GameObject):
    
@@ -254,7 +268,7 @@ class Tower(GameObject):
 
         self.shot_timer = 0
 
-        for i in self.game.insect_group.objects:
+        for i in self.game.insect_group.objects + self.game.worker_group.objects:
             i.update_path(self.game.map_grid.screen_to_grid((x, y)))
 
     def update(self):
@@ -419,6 +433,8 @@ class Worker(Animation):
         self.show_hp_bar = True
         self.attack_timer = 0
 
+        self.path = None
+
     def hit(self, damage):
         Animation.hit(self, damage)
         DamageNote(self.game, self.rect.midtop, (255,0,0), damage)
@@ -453,6 +469,7 @@ class Worker(Animation):
 
         if not self.target or isinstance(self.target, Scraps) or isinstance(self.target, RandomTarget):
             #if we have no target, or are just going for scraps, see if something more important is needed of us!
+            old_target = self.target
             if isinstance(self.target, Scraps):
                 self.reset_target() #in case it is a scrap O.o
             diso = None
@@ -491,11 +508,24 @@ class Worker(Animation):
 
             if diso:
                 self.target = diso[0]
+                if not self.path or old_target != self.target:
+                    if not self.path:
+                        start = self.game.map_grid.screen_to_grid(self.rect.center)
+                    else:
+                        start = self.path[0]
+                    self.path = self.game.map_grid.calculate_path(start, self.game.map_grid.screen_to_grid(self.target.rect.center), False, False)
                 self.used_targets.append(self.target)
             else:
                 #ok, can't do ANYTHING
                 if self.target == None:
                     self.target = RandomTarget(self.game)
+                    self.target = diso[0]
+                    if not self.path or old_target != self.target:
+                        if not self.path:
+                            start = self.game.map_grid.screen_to_grid(self.rect.center)
+                        else:
+                            start = self.path[0]
+                        self.path = self.game.map_grid.calculate_path(start, self.game.map_grid.screen_to_grid(self.target.rect.center), False, False)
 
         if self.target.was_killed:
             self.reset_target()
@@ -503,18 +533,34 @@ class Worker(Animation):
             return
 
         if not self.rect.colliderect(self.target.rect):
-            #TODO: replace with pathfinding!
-            prev_pos = self.rect.center
-            self.move_timer += 1
-            self.animate("walk", 15, 1)
-            if self.move_timer >= 4:
-                self.move_timer = 0
-                ydiff = self.target.rect.centery - self.rect.centery
-                xdiff = self.target.rect.centerx - self.rect.centerx
-                angle = math.atan2(xdiff, ydiff)
-                self.angle = math.degrees(angle)
-                self.rect.x += math.sin(math.radians(self.angle))*3
-                self.rect.y += math.cos(math.radians(self.angle))*3
+            grid_pos = None
+            if self.path:
+                x, y = self.game.map_grid.grid_to_screen(self.path[0])
+                grid_pos = x+10, y+10
+                if self.rect.centerx == grid_pos[0] and self.rect.centery == grid_pos[1]:
+                    self.path.pop(0)
+                    if self.path:
+                        x, y = self.game.map_grid.grid_to_screen(self.path[0])
+                        grid_pos = x+10, y+10
+                    else:
+                        grid_pos = None
+            if grid_pos:
+                self.move_timer += 1
+                if self.move_timer >= 1:
+                    self.animate("walk", 15, 1)
+                    ydiff = grid_pos[1] - self.rect.centery
+                    xdiff = grid_pos[0] - self.rect.centerx
+                    self.angle = math.degrees(math.atan2(xdiff, ydiff)) + 180
+                    self.move_timer = 0
+                    if grid_pos[0] < self.rect.centerx:
+                        self.rect.move_ip(-1, 0)
+                    elif grid_pos[0] > self.rect.centerx:
+                        self.rect.move_ip(1, 0)
+
+                    if grid_pos[1] < self.rect.centery:
+                        self.rect.move_ip(0, -1)
+                    elif grid_pos[1] > self.rect.centery:
+                        self.rect.move_ip(0, 1)
         else:
             if isinstance(self.target, BuildTower):
                 self.target.built += 1
@@ -529,12 +575,15 @@ class Worker(Animation):
                 self.target.cooldown = True
                 self.reset_target()
                 self.target = self.game.hero
+                start = self.game.map_grid.screen_to_grid(self.rect.center)
+                self.path = self.game.map_grid.calculate_path(start, self.game.map_grid.screen_to_grid(self.target.rect.center), False, False)
             elif isinstance(self.target, Hero):
                 self.have_scraps = False
                 self.game.scraps += 5
                 self.game.update_money()
                 self.reset_target()
                 self.target = None
+                self.path = None
                 #do addition of scraps to inventory stuff here!!!
             elif isinstance(self.target, RandomTarget):
                 self.target = RandomTarget(self.game) #move again O.o
@@ -544,6 +593,17 @@ class Worker(Animation):
 
         Animation.kill(self)
 
+    def render(self):
+        Animation.render(self)
+        if self.path:
+            last = None
+            for i in self.path:
+                x, y = self.game.map_grid.grid_to_screen(i)
+                x += 10
+                y += 10
+                if last:
+                    pygame.draw.line(self.game.screen, (0, 255, 0), last, (x, y))
+                last = (x, y)
 
 class Insect(Animation):
     def __init__(self, game):
