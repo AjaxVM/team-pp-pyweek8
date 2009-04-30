@@ -93,7 +93,7 @@ class Game(GameState):
         self.scraps = 250
         self.kills = 0
 
-        self.font = data.font(None, 24)
+        self.font = data.font("data/font.ttf", 24)
 
         self.money_ui = self.font.render("money: %s"%self.money, 1, (255,255,255))
         self.money_ui_pos = (0, 530)
@@ -170,8 +170,10 @@ class Game(GameState):
                                     i.selected = True
                                     self.selected_object = i
                                     self.selected_ui = ui.TowerInfo(self.app, i)
-                    if event.button == 3: #left
+                    else:
                         self.build_active = False
+                if event.button == 3: #right
+                    self.build_active = False
 
             if event.type == KEYDOWN:
                 if event.key == K_s:

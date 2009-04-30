@@ -75,7 +75,7 @@ class Widget(object):
         self.image = None
         self.text = None
         self.rect = None
-        self.font = data.font(None, 32)
+        self.font = data.font("data/font.ttf", 32)
         self.text_color = (255,255,255,255)
         self.image_border_size = None
         self.tsize = (0,0)
@@ -216,9 +216,9 @@ class Button(Label):
 class TowerInfo(Widget):
     def __init__(self, app, tower):
         Widget.__init__(self, app, "midtop")
-        self.image = pygame.Surface((180, 150)).convert_alpha()
+        self.image = pygame.Surface((180, 175)).convert_alpha()
         self.image.fill((75, 75, 255, 75))
-        pygame.draw.rect(self.image, (0,0,0), (0,0,180,150), 2)
+        pygame.draw.rect(self.image, (0,0,0), (0,0,180,175), 2)
         self.rect = self.image.get_rect()
         self.set_pos((tower.rect.centerx, tower.rect.bottom-10))
         if self.rect.right > 800:
@@ -232,7 +232,7 @@ class TowerInfo(Widget):
 
         self.tower = tower
 
-        font = data.font(None, 16)
+        font = data.font("data/font.ttf", 14)
 
         self.name_text = font.render("%s - L%s"%(tower.name, tower.level), 1, (0,0,0))
         self.name_text2 = font.render("%s - L%s"%(tower.name, tower.level), 1, (255,255,255))
@@ -272,9 +272,9 @@ class TowerInfo(Widget):
                 cost_scrap_rect.topleft = cost_money_rect.bottomleft
 
                 rect.height = cost_scrap_rect.bottom - rect.top
-                hover_rect = pygame.Rect(0,0,35,100)
+                hover_rect = pygame.Rect(0,0,35,115)
                 hover_rect.centerx = rect.centerx
-                hover_rect.bottom = 150
+                hover_rect.bottom = 165
 
                 hover_image = pygame.Surface(hover_rect.size).convert_alpha()
 
@@ -313,9 +313,9 @@ class TowerInfo(Widget):
 
         rect.height = cost_scrap_rect.bottom - rect.top
 
-        hover_rect = pygame.Rect(0,0,35,100)
+        hover_rect = pygame.Rect(0,0,35,115)
         hover_rect.centerx = rect.centerx
-        hover_rect.bottom = 150
+        hover_rect.bottom = 165
 
         hover_image = pygame.Surface(hover_rect.size).convert_alpha()
         hover_image.fill((75,255,75,50))

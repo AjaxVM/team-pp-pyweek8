@@ -840,15 +840,16 @@ class DamageNote(GameObject):
         self.groups = [game.damage_notes_group]
         GameObject.__init__(self, game)
 
-        small_font = data.font(None, 15, True, True)
-        big_font = data.font(None, 17, True, True)
+        font = data.font("data/font.ttf", 11, True, True)
 
         amount = str(amount)
         chars = []
         for char in amount:
-            big = big_font.render(char, 1, (0,0,0))
-            little = small_font.render(char, 1, color)
-            big.blit(little, (1, 0))
+            big = font.render(char, 1, (0,0,0))
+            new = pygame.Surface((big.get_width()+2, big.get_height()+1)).convert_alpha()
+            new.fill((0,0,0,0))
+            little = font.render(char, 1, color)
+            big.blit(little, (2, 1))
             chars.append(big)
 
         width = 0
@@ -862,6 +863,8 @@ class DamageNote(GameObject):
         my_surf.fill((0,0,0,0))
 
         self.waft_dir = random.randint(-1,1)
+
+        self.pos = pos
 
         left = 0
         for i in chars:
@@ -881,6 +884,10 @@ class DamageNote(GameObject):
             self.kill()
 
         self.move_counter += 1
-        if self.move_counter >= 5:
+        if self.move_counter >= 3:
             self.move_counter = 0
-            self.rect.move_ip(self.waft_dir, -1)
+            x, y = self.pos
+            x += self.waft_dir*.5
+            y -= 1
+            self.pos = x, y
+            self.rect.center = self.pos
