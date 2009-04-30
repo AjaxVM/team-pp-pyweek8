@@ -258,7 +258,7 @@ class BuildTower(GameObject):
         self.game.map_grid.set(self.game.map_grid.screen_to_grid(self.rect.topleft), 0)
 
 class TowerBase(GameObject):
-    ui_icon = "data/tower-missile.png" #the ui needs these :S
+    ui_icon = "data/tower-base.png" #the ui needs these :S
     fire_sound = 'gun1.ogg'
     time_cost = 250
     money_cost = 50
@@ -366,11 +366,11 @@ class MissileTower(TowerBase):
 
     def upgrade(self):
         self.level += 1
-        self.inc_cost()
         self.game.money -= self.money_cost
         self.game.scraps -= self.scrap_cost
         self.damage += 7
         self.range += 10
+        self.inc_cost()
 
 class Bullet(GameObject):
     def __init__(self, game, pos, range, target, damage):
@@ -516,6 +516,7 @@ class Worker(Animation):
     money_cost = 0
     scrap_cost = 35
     used_targets = []
+    ui_icon = "data/worker-1.png"
     def __init__(self, game):
         self.groups = game.main_group, game.bot_group
         Animation.__init__(self, game)
@@ -908,6 +909,7 @@ class DamageNote(GameObject):
 class Trap(GameObject):
     money_cost = 10
     scrap_cost = 20
+    ui_icon = "data/tower-base.png"
     def __init__(self, game, pos):
         self.groups = game.main_group, game.trap_group
         GameObject.__init__(self, game)
@@ -955,6 +957,7 @@ class BattleBot(Worker):
     time_cost = 75
     money_cost = 15
     scrap_cost = 45
+    ui_icon = "data/worker-1.png"
     def __init__(self, game):
         self.groups = game.main_group, game.bot_group
         Animation.__init__(self, game)

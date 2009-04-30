@@ -182,6 +182,33 @@ class Label(Widget):
         self.highlight = False
 
 
+class LinesGroup(Widget):
+    def __init__(self, app, obj):
+        Widget.__init__(self, app)
+
+        r = obj.rect
+
+        lines = []
+        left, top = r.topleft
+        right, bottom = r.bottomright
+        y = r.centery
+        height = int(r.height / 3)
+
+        lines.append(((left-3, top+height*2), (left-7, top+height*2)))
+        lines.append(((left-7, top+height*2), (left-7, top+height*4)))
+        lines.append(((left-7, top+height*4), (left-3, top+height*4)))
+
+        lines.append(((right+3, top+height*2), (right+7, top+height*2)))
+        lines.append(((right+7, top+height*2), (right+7, top+height*4)))
+        lines.append(((right+7, top+height*4), (right+3, top+height*4)))
+
+        self.lines = lines
+
+    def render(self):
+        for i in self.lines:
+            pygame.draw.line(self.app.surf, (255,255,255), i[0], i[1], 1)
+
+
 class Button(Label):
     def __init__(self, app, text=None, image=None, pos=(0,0), anchor="topleft",
                  callback=None, text_color=(255,255,255),

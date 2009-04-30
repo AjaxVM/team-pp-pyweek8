@@ -76,14 +76,25 @@ class Game(GameState):
         self.app = ui.App(self.screen)
         ui.Button(self.app, "Quit Game", pos=(0,500), callback=self.goback,
                   status_message="Quit game...?")
-        ui.Button(self.app, "Build Tower!", pos=(160,520), callback=self.set_tower_build,
-                  status_message="build a tower already!")
-        ui.Button(self.app, "Build Worker!", pos=(160, 560), callback=self.build_worker,
-                  status_message="build a worker to build that tower already!")
-        ui.Button(self.app, "Build Trap!", pos=(320, 520), callback=self.build_trap,
-                  status_message="build a trap?!?!")
-        ui.Button(self.app, "Build Warrior!", pos=(320, 560), callback=self.build_warrior,
-                  status_message="Let's Ruuuumble!")
+
+        l = ui.Label(self.app, "Basic", pos=(200, 500))
+        ui.LinesGroup(self.app, l)
+        b = ui.Button(self.app, image=objects.TowerBase.ui_icon, pos=l.rect.inflate(0,2).bottomleft,
+                  callback=self.build_tower, status_message="Build a Tower already!", anchor="topleft")
+        
+        b = ui.Button(self.app, image=objects.Worker.ui_icon, pos=b.rect.inflate(8,0).topright,
+                  callback=self.build_worker, status_message="Build a Worker to build a tower!", anchor="topleft")
+
+        l = ui.Label(self.app, "Warriors", pos=(300, 500))
+        ui.LinesGroup(self.app, l)
+        b = ui.Button(self.app, image=objects.BattleBot.ui_icon, pos=l.rect.inflate(0,2).bottomleft,
+                  callback=self.build_warrior, status_message="Let's ruuuumble!!!!!", anchor="topleft")
+        
+
+        l = ui.Label(self.app, "Traps", pos=(450, 500))
+        ui.LinesGroup(self.app, l)
+        b = ui.Button(self.app, image=objects.BattleBot.ui_icon, pos=l.rect.inflate(0,2).bottomleft,
+                  callback=self.build_trap, status_message="Let's ruuuumble!!!!!", anchor="topleft")
 
         self.status_message = ui.PopupManager(self.app)
         self.status_message.set("Testing, 1,2,3")
@@ -129,7 +140,7 @@ class Game(GameState):
         self.selected_object = None
         self.selected_ui = None
 
-    def set_tower_build(self):
+    def build_tower(self):
         if self.money >= objects.TowerBase.money_cost and self.scraps >= objects.TowerBase.scrap_cost:
             self.build_active = True
 
