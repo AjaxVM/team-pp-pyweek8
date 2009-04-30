@@ -259,6 +259,7 @@ class BuildTower(GameObject):
 
 class TowerBase(GameObject):
     ui_icon = "data/tower-missile.png" #the ui needs these :S
+    fire_sound = 'gun1.ogg'
     time_cost = 250
     money_cost = 50
     scrap_cost = 50
@@ -323,6 +324,7 @@ class TowerBase(GameObject):
                 self.shot_timer = 0
                 target = diso[0]
                 self.shot_type(self.game, self.rect.center, self.range+20, target, self.damage)
+                self.game.audio.sounds[self.fire_sound].play()
         else:
             self.shot_timer = int(self.shot_speed/2)
 
@@ -340,6 +342,7 @@ class TowerBase(GameObject):
 
 class MissileTower(TowerBase):
     ui_icon = "data/tower-missile.png"
+    fire_sound = 'missile1.ogg'
     time_cost = 300
     money_cost = 100
     scrap_cost = 100
@@ -393,8 +396,6 @@ class Bullet(GameObject):
         self.speed = 4
         self.target = target
         self.damage = damage
-        
-        self.game.audio.sounds['lazor1.ogg'].play()
         
 
     def update(self):
@@ -728,6 +729,8 @@ class Insect(Animation):
         self.rect = self.image.get_rect()
         self.rect.center = self.game.hive.rect.center
 
+        self.diesound = 'die1.ogg'
+
         self.target = None
         self.move_timer = 0
         self.attack_timer = 0
@@ -745,6 +748,7 @@ class Insect(Animation):
     def hit(self, damage):
         Animation.hit(self, damage)
         if self.hp <= 0:
+            self.game.audio.sounds[self.diesound].play()
             self.game.money += self.worth
             self.game.kills += 1
             self.game.update_money()

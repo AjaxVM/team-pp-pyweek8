@@ -18,3 +18,4 @@ class SoundManager(object):
 
     def __del__(_):
         pygame.mixer.quit()
+
