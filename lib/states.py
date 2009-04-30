@@ -73,8 +73,9 @@ class Game(GameState):
 
         self.app = ui.App(self.screen)
         ui.Button(self.app, "Quit Game", pos=(0,500), callback=self.goback)
-        ui.Button(self.app, "Build Tower!", pos=(165,520), callback=self.set_tower_build)
-        ui.Button(self.app, "Build Worker!", pos=(165, 560), callback=self.build_worker)
+        ui.Button(self.app, "Build Tower!", pos=(160,520), callback=self.set_tower_build)
+        ui.Button(self.app, "Build Worker!", pos=(160, 560), callback=self.build_worker)
+        ui.Button(self.app, "Build Trap!", pos=(320, 520), callback=self.build_trap)
 
         self.main_group = objects.GameGroup()
         self.hero_group = objects.GameGroup()
@@ -86,6 +87,7 @@ class Game(GameState):
         self.scraps_group = objects.GameGroup()
         self.blocking_group = objects.GameGroup()
         self.bullet_group = objects.GameGroup()
+        self.trap_group = objects.GameGroup()
 
         self.damage_notes_group = objects.GameGroup()
 
@@ -110,6 +112,7 @@ class Game(GameState):
         self.map_grid.make_random(40, 7)
 
         self.build_active = None
+        self.building_trap = False
         self.build_overlay = None
 
         self.selected_object = None
@@ -139,6 +142,13 @@ class Game(GameState):
         if self.money >= objects.Worker.money_cost and self.scraps >= objects.Worker.scrap_cost:
             self.hero.build_worker()
 
+    def build_trap(self):
+        #TODO: replace with trap type picker
+        if self.money >= objects.Trap.money_cost and self.scraps >= objects.Trap.scrap_cost:
+            self.building_trap = True
+            self.build_active = False
+            self.build_overlay = None
+
     def update(self):
 
         for event in pygame.event.get():
@@ -157,23 +167,29 @@ class Game(GameState):
                         self.selected_object.selected = False
                     if event.pos[1] <= 500: #this is for us!
                         grid = self.map_grid.screen_to_grid(event.pos)
-                        if self.map_grid.empty_around(grid):
-                            if self.build_active:
+                        if self.build_active:
+                            if self.map_grid.empty_around(grid):
                                 self.build_active = False
                                 objects.BuildTower(self, self.map_grid.grid_to_screen(grid))
                                 for i in self.worker_group.objects:
                                     i.reset_target()
                         else:
-                            self.build_active = False
-                            for i in self.tower_group.objects:
-                                if i.rect.collidepoint(event.pos):
-                                    i.selected = True
-                                    self.selected_object = i
-                                    self.selected_ui = ui.TowerInfo(self.app, i)
+                            if self.building_trap:
+                                if self.map_grid.is_open(grid):
+                                    self.building_trap = False
+                                    objects.Trap(self, self.map_grid.grid_to_screen(grid))
+                        self.build_active = False
+                        for i in self.tower_group.objects:
+                            if i.rect.collidepoint(event.pos):
+                                i.selected = True
+                                self.selected_object = i
+                                self.selected_ui = ui.TowerInfo(self.app, i)
                     else:
                         self.build_active = False
+                        self.building_trap = False
                 if event.button == 3: #right
                     self.build_active = False
+                    self.building_trap = False
 
             if event.type == KEYDOWN:
                 if event.key == K_s:
@@ -188,6 +204,7 @@ class Game(GameState):
         self.tower_group.update()
         self.bullet_group.update()
         self.damage_notes_group.update()
+        self.trap_group.update()
         self.main_group.sort()
 
         self.screen.blit(self.background, (0,0))
