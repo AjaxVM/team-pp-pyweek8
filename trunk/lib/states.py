@@ -72,11 +72,19 @@ class Game(GameState):
         self.background = data.image("data/background1.png")
 
         self.app = ui.App(self.screen)
-        ui.Button(self.app, "Quit Game", pos=(0,500), callback=self.goback)
-        ui.Button(self.app, "Build Tower!", pos=(160,520), callback=self.set_tower_build)
-        ui.Button(self.app, "Build Worker!", pos=(160, 560), callback=self.build_worker)
-        ui.Button(self.app, "Build Trap!", pos=(320, 520), callback=self.build_trap)
-        ui.Button(self.app, "Build Warrior!", pos=(320, 560), callback=self.build_warrior)
+        ui.Button(self.app, "Quit Game", pos=(0,500), callback=self.goback,
+                  status_message="Quit game...?")
+        ui.Button(self.app, "Build Tower!", pos=(160,520), callback=self.set_tower_build,
+                  status_message="build a tower already!")
+        ui.Button(self.app, "Build Worker!", pos=(160, 560), callback=self.build_worker,
+                  status_message="build a worker to build that tower already!")
+        ui.Button(self.app, "Build Trap!", pos=(320, 520), callback=self.build_trap,
+                  status_message="build a trap?!?!")
+        ui.Button(self.app, "Build Warrior!", pos=(320, 560), callback=self.build_warrior,
+                  status_message="Let's Ruuuumble!")
+
+        self.status_message = ui.PopupManager(self.app)
+        self.status_message.set("Testing, 1,2,3")
 
         self.main_group = objects.GameGroup()
         self.hero_group = objects.GameGroup()
@@ -200,6 +208,16 @@ class Game(GameState):
             if event.type == KEYDOWN:
                 if event.key == K_s:
                     pygame.image.save(self.screen, "test.png")
+
+        used = False
+        for i in self.app.widgets:
+            x = i.get_status()
+            if x:
+                self.status_message.set(x)
+                used = True
+                break
+        if not used:
+            self.status_message.set(None)
 
         self.hero_group.update()
         self.hive_group.update()
