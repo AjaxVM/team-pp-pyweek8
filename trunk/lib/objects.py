@@ -43,6 +43,10 @@ class GameObject(object):
             i.add(self)
 
         self.was_killed = False
+        self.show_hp_bar = False
+        self.hp = 0
+        self.max_hp = 0
+        self.hp_bar_color=(255,0,0)
 
     def kill(self):
         for i in self.groups:
@@ -55,6 +59,18 @@ class GameObject(object):
     def render(self):
         if self.image and self.rect:
             self.game.screen.blit(self.image, self.rect)
+
+        if self.show_hp_bar and self.hp and self.max_hp:
+            outer = pygame.Surface((20, 5))
+            full = 18 #by 3
+            total = int(self.hp*1.0/self.max_hp*full)
+            pygame.draw.rect(outer, self.hp_bar_color, (1,1,total, 3))
+
+            r = pygame.Rect(0,0,20,20)
+            r.center = self.rect.center
+            r.top -= 7
+
+            self.game.screen.blit(outer, r)
 
     def hit(self, damage):
         if hasattr(self, "hp"):
@@ -112,11 +128,23 @@ class Animation(GameObject):
             imgs = self.images[self.current_name]
             self.image = pygame.transform.rotate(imgs[self.frame/self.delay%imgs_len], self.angle)
             self.rect = self.image.get_rect(center = self.rect.center)
-        self.game.screen.blit(self.image, self.rect.center)
+        self.game.screen.blit(self.image, self.rect)
         if self.num_loops < self.loops and self.loops > -1:
             if self.frame >= len(self.images[self.current_name])*self.delay - 1:
                 self.num_loops += 1
                 self.on_animation_end()
+
+        if self.show_hp_bar and self.hp and self.max_hp:
+            outer = pygame.Surface((20, 5))
+            full = 18 #by 3
+            total = int(self.hp*1.0/self.max_hp*full)
+            pygame.draw.rect(outer, self.hp_bar_color, (1,1,total, 3))
+
+            r = pygame.Rect(0,0,20,20)
+            r.center = self.rect.center
+            r.top -= 7
+
+            self.game.screen.blit(outer, r)
 
     def on_animation_end(self):
         pass
@@ -135,6 +163,7 @@ class Hero(GameObject):
         self.rect.bottomright = (800,500) #bottom 100 is the ui bar!
 
         self.hp = 20
+        self.max_hp = 20
 
         self.building = None
         self.build_timer = 0
@@ -167,6 +196,7 @@ class Hive(GameObject):
         self.rect.topleft = (5,5)
 
         self.hp = 20
+        self.max_hp = 20
 
         self.counter = 0
 
@@ -198,7 +228,6 @@ class BuildTower(GameObject):
 
         self.built = 0
 
-
     def kill(self):
         GameObject.kill(self)
         self.game.map_grid.set(self.game.map_grid.screen_to_grid(self.rect.topleft), 0)
@@ -223,7 +252,6 @@ class Tower(GameObject):
         y -= 20
         self.game.map_grid.set(self.game.map_grid.screen_to_grid((x,y)), 3)
 
-        self.hp = 200
         self.shot_timer = 0
 
         for i in self.game.insect_group.objects:
@@ -387,6 +415,8 @@ class Worker(Animation):
         self.have_scraps = False
         self.damage = 1
         self.hp = 5
+        self.max_hp = 5
+        self.show_hp_bar = True
         self.attack_timer = 0
 
     def hit(self, damage):
@@ -535,6 +565,8 @@ class Insect(Animation):
         self.path = None
 
         self.hp = 25
+        self.max_hp = 25
+        self.show_hp_bar = True
         self.worth = 2
         self.damage = 1
 
@@ -586,12 +618,12 @@ class Insect(Animation):
             grid_pos = None
             if self.path:
                 x, y = self.game.map_grid.grid_to_screen(self.path[0])
-                grid_pos = x, y
+                grid_pos = x+10, y+10
                 if self.rect.centerx == grid_pos[0] and self.rect.centery == grid_pos[1]:
                     self.path.pop(0)
                     if self.path:
                         x, y = self.game.map_grid.grid_to_screen(self.path[0])
-                        grid_pos = x, y
+                        grid_pos = x+10, y+10
                     else:
                         grid_pos = None
             if grid_pos:
@@ -668,6 +700,8 @@ class DamageNote(GameObject):
         my_surf = pygame.Surface((width, height)).convert_alpha()
         my_surf.fill((0,0,0,0))
 
+        self.waft_dir = random.randint(-1,1)
+
         left = 0
         for i in chars:
             my_surf.blit(i, (left, 0))
@@ -688,4 +722,4 @@ class DamageNote(GameObject):
         self.move_counter += 1
         if self.move_counter >= 5:
             self.move_counter = 0
-            self.rect.move_ip(random.randint(-1,1), -1)
+            self.rect.move_ip(self.waft_dir, -1)
