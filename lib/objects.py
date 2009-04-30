@@ -393,6 +393,9 @@ class Bullet(GameObject):
         self.speed = 4
         self.target = target
         self.damage = damage
+        
+        self.game.audio.sounds['lazor1.ogg'].play()
+        
 
     def update(self):
         self.age += 1

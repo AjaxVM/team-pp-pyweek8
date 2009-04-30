@@ -3,7 +3,7 @@ from pygame.locals import *
 
 import random, time
 
-import data, ui, objects, map_grid
+import data, ui, objects, map_grid, sound
 
 class GameState(object):
     def __init__(self, parent=None):
@@ -68,6 +68,8 @@ class Game(GameState):
         GameState.__init__(self, parent)
 
         self.screen = self.get_root().screen
+
+        self.audio = sound.SoundManager('data')
 
         self.background = data.image("data/background1.png")
 
