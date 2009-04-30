@@ -257,7 +257,7 @@ class Tower(GameObject):
         self.rect.midbottom = pos
 
         self.range = 100
-        self.selected = True #this is for the ui to swap to upgrading
+        self.selected = False #this is for the ui to swap to upgrading
         #and for rendering of the range circle
 
         #set blocking!
@@ -268,7 +268,7 @@ class Tower(GameObject):
 
         self.shot_timer = 0
 
-        for i in self.game.insect_group.objects + self.game.worker_group.objects:
+        for i in self.game.insect_group.objects:
             i.update_path(self.game.map_grid.screen_to_grid((x, y)))
 
     def update(self):
@@ -283,8 +283,8 @@ class Tower(GameObject):
             if self.shot_timer >= 45:
                 self.shot_timer = 0
                 target = diso[0]
-                ydiff = target.rect.bottom - self.rect.centery
-                xdiff = target.rect.right - self.rect.centerx
+                ydiff = target.rect.centery - self.rect.centery
+                xdiff = target.rect.centerx - self.rect.centerx
                 angle = math.degrees(math.atan2(xdiff, ydiff))
                 x = math.sin(math.radians(angle))
                 y = math.cos(math.radians(angle))
@@ -570,6 +570,7 @@ class Worker(Animation):
                     self.reset_target()
                     self.animate("stand", 1, 1)
                     self.target = None
+                    self.path = None
             elif isinstance(self.target, Scraps):
                 self.have_scraps = True
                 self.target.cooldown = True
