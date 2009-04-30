@@ -1,4 +1,5 @@
 import random, heapq
+import objects
 
 INOPENLIST = 1
 INCLOSEDLIST = 2
@@ -258,7 +259,7 @@ class MapGrid(object):
         toprightgroup = self.group((self.size[0]-10, 0), (10,10))
         bottomleftgroup = self.group((0, self.size[1]-10), (10,10))
 
-        mid_group = self.group((self.size[0]/2-5+random.randint(-10, 10), self.size[1]/2-5-random.randint(-10,10)), (10,10))
+        mid_group = self.group((self.size[0]/2-5+random.randint(-5, 5), self.size[1]/2-5-random.randint(-5,5)), (5,5))
         bridge = random.randrange(3) #0=none, 1=center to bl, 2=center to tr
 
         if bridge == 0:
@@ -267,3 +268,53 @@ class MapGrid(object):
             bridge_group = self.group((10, self.size[1]-20), (15, 15))
         else:
             bridge_group = self.group((self.size[0]-20, 10), (15,15))
+
+        if bridge_group:
+            for i in xrange(int(blocking/4)):
+                x = random.choice(toprightgroup)
+                toprightgroup.remove(x)
+                objects.Boulder(self.game, self.grid_to_screen(x))
+
+                x = random.choice(bottomleftgroup)
+                bottomleftgroup.remove(x)
+                objects.Boulder(self.game, self.grid_to_screen(x))
+
+                x = random.choice(mid_group)
+                mid_group.remove(x)
+                objects.Boulder(self.game, self.grid_to_screen(x))
+
+                x = random.choice(bridge_group)
+                bridge_group.remove(x)
+                objects.Boulder(self.game, self.grid_to_screen(x))
+        else:
+            for i in xrange(int(blocking/3)):
+                x = random.choice(toprightgroup)
+                toprightgroup.remove(x)
+                objects.Boulder(self.game, self.grid_to_screen(x))
+
+                x = random.choice(bottomleftgroup)
+                bottomleftgroup.remove(x)
+                objects.Boulder(self.game, self.grid_to_screen(x))
+
+                x = random.choice(mid_group)
+                mid_group.remove(x)
+                objects.Boulder(self.game, self.grid_to_screen(x))
+
+        s_pos = []
+        reps = 0
+        while len(s_pos) < scraps:
+            if random.randrange(3):
+                x = random.randrange(self.size[0])
+                y = random.randrange(self.size[1])
+            else:
+                x = random.randrange(15) + self.size[0]/2+10
+                y = random.randrange(15) + self.size[1]/2+10
+            if self.empty_around((x, y)):
+                s_pos.append((x, y))
+
+            reps += 1
+            if reps >= 500:
+                break #no good probably
+
+        for i in s_pos:
+            objects.Scraps(self.game, self.grid_to_screen(i))
