@@ -87,6 +87,8 @@ class Game(GameState):
         self.blocking_group = objects.GameGroup()
         self.bullet_group = objects.GameGroup()
 
+        self.damage_notes_group = objects.GameGroup()
+
         self.money = 250
         self.scraps = 250
         self.kills = 0
@@ -175,6 +177,7 @@ class Game(GameState):
         self.scraps_group.update()
         self.tower_group.update()
         self.bullet_group.update()
+        self.damage_notes_group.update()
         self.main_group.sort()
 
         self.screen.blit(self.background, (0,0))
@@ -185,6 +188,7 @@ class Game(GameState):
 
 
         self.main_group.render()
+        self.damage_notes_group.render()
         pygame.draw.rect(self.screen, (125,125,125), (0,500,800,600))
         self.app.render()
         self.screen.blit(self.money_ui, self.money_ui_pos)

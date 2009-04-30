@@ -10,9 +10,9 @@ def image(filename):
     return image
 
 _fonts = {}
-def font(fname, size):
-    if (fname, size) in _fonts:
-        return _fonts[(fname, size)]
+def font(fname, size, bold=False, italic=False):
+    if (fname, size, bold, italic) in _fonts:
+        return _fonts[(fname, size, bold, italic)]
     font = pygame.font.Font(fname, size)
-    _fonts[(fname, size)] = font
+    _fonts[(fname, size, bold, italic)] = font
     return font
