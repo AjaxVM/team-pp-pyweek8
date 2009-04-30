@@ -92,8 +92,8 @@ class Game(GameState):
 
         self.damage_notes_group = objects.GameGroup()
 
-        self.money = 250
-        self.scraps = 250
+        self.money = 2500
+        self.scraps = 2500
         self.kills = 0
 
         self.font = data.font("data/font.ttf", 24)
