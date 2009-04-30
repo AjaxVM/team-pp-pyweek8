@@ -105,13 +105,7 @@ class Game(GameState):
         self.hero = objects.Hero(self)
         self.hive = objects.Hive(self)
 
-        for i in ((25, 5), (17, 22), (34, 15)):
-            objects.Scraps(self, self.map_grid.grid_to_screen(i))
-
-        for i in xrange(25):
-            pos = random.randrange(self.map_grid.size[0]), random.randrange(self.map_grid.size[1])
-            if self.map_grid.empty_around(pos):
-                objects.Boulder(self, self.map_grid.grid_to_screen(pos))
+        self.map_grid.make_random(40, 7)
 
         self.build_active = None
         self.build_overlay = None
