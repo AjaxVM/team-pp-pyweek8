@@ -389,6 +389,10 @@ class Worker(Animation):
         self.hp = 5
         self.attack_timer = 0
 
+    def hit(self, damage):
+        Animation.hit(self, damage)
+        DamageNote(self.game, self.rect.midtop, (255,0,0), damage)
+
     def reset_target(self):
         if not self.target == self.game.hero:
             if self.target in self.used_targets:
@@ -544,6 +548,8 @@ class Insect(Animation):
             self.game.kills += 1
             self.game.update_money()
 
+        DamageNote(self.game, self.rect.midtop, (100,100,255), damage)
+
     def update(self):
 
         do_hit = []
@@ -634,3 +640,52 @@ class Explosion(Animation):
     
     def on_animation_end(self):
         self.kill()
+
+
+class DamageNote(GameObject):
+    def __init__(self, game, pos, color, amount):
+        self.groups = [game.damage_notes_group]
+        GameObject.__init__(self, game)
+
+        small_font = data.font(None, 15, True, True)
+        big_font = data.font(None, 17, True, True)
+
+        amount = str(amount)
+        chars = []
+        for char in amount:
+            big = big_font.render(char, 1, (0,0,0))
+            little = small_font.render(char, 1, color)
+            big.blit(little, (1, 0))
+            chars.append(big)
+
+        width = 0
+        height = 0
+        for i in chars:
+            width += i.get_width()
+            if i.get_height() > height:
+                height = i.get_height()
+
+        my_surf = pygame.Surface((width, height)).convert_alpha()
+        my_surf.fill((0,0,0,0))
+
+        left = 0
+        for i in chars:
+            my_surf.blit(i, (left, 0))
+            left += i.get_width()
+
+        self.image = my_surf
+        self.rect = self.image.get_rect()
+        self.rect.center = pos
+
+        self.age = 0
+        self.move_counter = 0
+
+    def update(self):
+        self.age += 1
+        if self.age > 50:
+            self.kill()
+
+        self.move_counter += 1
+        if self.move_counter >= 5:
+            self.move_counter = 0
+            self.rect.move_ip(random.randint(-1,1), -1)
