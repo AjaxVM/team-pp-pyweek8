@@ -290,6 +290,9 @@ class TowerBase(GameObject):
     money_cost = 50
     scrap_cost = 50
     name = "Base Tower"
+    base_attack = 5
+    base_shoot_speed = 45
+    base_range = 100
     def __init__(self, game, pos):
         self.groups = game.main_group, game.tower_group, game.blocking_group
         GameObject.__init__(self, game)
@@ -301,7 +304,7 @@ class TowerBase(GameObject):
         self.rect = self.image.get_rect()
         self.rect.midbottom = pos
 
-        self.range = 100
+        self.range = int(self.base_range)
         self.selected = False #this is for the ui to swap to upgrading
         #and for rendering of the range circle
 
@@ -313,16 +316,21 @@ class TowerBase(GameObject):
 
         self.shot_timer = 0
         self.shot_type = Bullet
-        self.shot_speed = 45
+        self.shot_speed = int(self.base_shoot_speed)
 
         self.inc_cost()
 
         for i in self.game.insect_group.objects:
             i.update_path(self.game.map_grid.screen_to_grid((x, y)))
 
-        self.damage = 5
+        self.damage = int(self.base_attack)
 
         self.upgrade_types = [MissileTower]
+
+    def get_stats_at_next_level(self):
+        return (self.damage + (5 + int(self.damage/5)),#damage
+                10 + self.range,#range
+                self.shot_speed) #speed
 
     def inc_cost(self):
         self.money_cost = int(self.money_cost * 1.75)
@@ -373,6 +381,9 @@ class MissileTower(TowerBase):
     money_cost = 100
     scrap_cost = 100
     name = "Missile Tower"
+    base_attack = 13
+    base_shoot_speed = 60
+    base_range = 150
     def __init__(self, game, pos):
         TowerBase.__init__(self, game, pos)
 
@@ -383,19 +394,24 @@ class MissileTower(TowerBase):
         self.rect = self.image.get_rect()
         self.rect.midbottom = pos
 
-        self.shot_speed = 60
+        self.shot_speed = int(self.base_shoot_speed)
         self.shot_type = Missile
-        self.range = 150
-        self.damage = 13
+        self.range = int(self.base_range)
+        self.damage = int(self.base_attack)
 
         self.upgrade_types = []
+
+    def get_stats_at_next_level(self):
+        return (self.damage + 7 + int(self.damage/7),#damage
+                20 + self.range,#range
+                self.shot_speed)
 
     def upgrade(self):
         self.level += 1
         self.game.money -= self.money_cost
         self.game.scraps -= self.scrap_cost
         self.damage += 7 + int(self.damage/7)
-        self.range += 10
+        self.range += 20
         self.inc_cost()
 
 class Bullet(GameObject):
