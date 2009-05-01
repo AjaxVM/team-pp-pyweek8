@@ -180,8 +180,8 @@ class Hero(GameObject):
         self.warrior_level = 1
         self.trap_level = 1
 
-        self.hp = 2
-        self.max_hp = 2
+        self.hp = 20
+        self.max_hp = 20
 
         self.building = None
         self.build_timer = 0
@@ -220,8 +220,8 @@ class Hive(GameObject):
 
         self.level = 1
 
-        self.hp = 2
-        self.max_hp = 2
+        self.hp = 20
+        self.max_hp = 20
 
         self.counter = 0
         self.num_spawned = 0
@@ -568,7 +568,7 @@ class Worker(Animation):
         self.show_hp_bar = True
         self.attack_timer = 0
 
-        self.speed = 5
+        self.speed = 3
         self.speed -= int(self.level / 2)
         if self.speed < 1:
             self.speed = 1
