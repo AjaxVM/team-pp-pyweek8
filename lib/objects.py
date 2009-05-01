@@ -773,18 +773,6 @@ class Worker(Animation):
 
         Animation.kill(self)
 
-    def render(self):
-        Animation.render(self)
-        if self.path:
-            last = None
-            for i in self.path:
-                x, y = self.game.map_grid.grid_to_screen(i)
-                x += 10
-                y += 10
-                if last:
-                    pygame.draw.line(self.game.screen, (0, 255, 0), last, (x, y))
-                last = (x, y)
-
 class Insect(Animation):
     def __init__(self, game, level=1):
         self.groups = game.main_group, game.insect_group
@@ -892,18 +880,6 @@ class Insect(Animation):
         else:
             self.target.hit(1)
             self.kill()
-
-    def render(self):
-        Animation.render(self)
-        if self.path:
-            last = None
-            for i in self.path:
-                x, y = self.game.map_grid.grid_to_screen(i)
-                x += 10
-                y += 10
-                if last:
-                    pygame.draw.line(self.game.screen, (0, 255, 0), last, (x, y))
-                last = (x, y)
 
 class Explosion(Animation):
     
@@ -1172,15 +1148,3 @@ class BattleBot(Worker):
             if isinstance(self.target, Hive):
                 self.target.hit(1)
                 self.kill()
-
-    def render(self):
-        Animation.render(self)
-        if self.path:
-            last = None
-            for i in self.path:
-                x, y = self.game.map_grid.grid_to_screen(i)
-                x += 10
-                y += 10
-                if last:
-                    pygame.draw.line(self.game.screen, (0, 255, 0), last, (x, y))
-                last = (x, y)

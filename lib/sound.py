@@ -14,7 +14,7 @@ class SoundManager(object):
             stripped_filename = filename.replace(os.path.join(basepath,''), '')
             _.sounds[stripped_filename] = pygame.mixer.Sound(filename)
 
-        print "Loaded sounds:", `_.sounds.keys()`
+##        print "Loaded sounds:", `_.sounds.keys()`
 
     def __del__(_):
         pygame.mixer.quit()
