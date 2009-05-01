@@ -173,8 +173,28 @@ class Game(GameState):
 
         self.damage_notes_group = objects.GameGroup()
 
-        self.money = 500
-        self.scraps = 500
+        if mode == "easy":
+            level = 1
+            scraps = 10
+            self.money = 500
+            self.scraps = 500
+        elif mode=="medium":
+            level = 4
+            scraps = 6
+            self.money = 425
+            self.scraps = 425
+        else:
+            level = 7
+            scraps = 3
+            self.money = 350
+            self.scraps = 350
+        self.hive = objects.Hive(self)
+        self.hive.level = level
+        self.hive.max_hp += level
+        self.hive.hp += level
+
+
+
         self.kills = 0
 
         self.font = data.font("data/font.ttf", 24)
@@ -189,20 +209,6 @@ class Game(GameState):
         self.map_grid = map_grid.MapGrid(self)
 
         self.hero = objects.Hero(self)
-
-        if mode == "easy":
-            level = 1
-            scraps = 10
-        elif mode=="medium":
-            level = 6
-            scraps = 6
-        else:
-            level = 10
-            scraps = 3
-        self.hive = objects.Hive(self)
-        self.hive.level = level
-        self.hive.max_hp += level
-        self.hive.hp += level
 
         self.map_grid.make_random(random.randint(40, 60), scraps)
 
