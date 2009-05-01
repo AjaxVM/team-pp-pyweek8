@@ -185,26 +185,23 @@ class Hero(GameObject):
 
         self.building = None
         self.build_timer = 0
-        self.build_level = 0
 
     def build_worker(self):
         if not self.building:
             self.building = Worker
             self.build_timer = 0
-            self.build_level = self.worker_level
 
     def build_warrior(self):
         if not self.building:
             self.building = BattleBot
             self.build_timer = 0
-            self.build_level = self.warrior_level
 
     def update(self):
         if self.building:
             self.build_timer += 1
             if self.build_timer > self.building.time_cost:
                 self.build_timer = 0
-                self.building(self.game, self.build_level)
+                self.building(self.game)
                 self.game.money -= self.building.money_cost
                 self.game.scraps -= self.building.scrap_cost
                 self.building = None
@@ -542,7 +539,7 @@ class Worker(Animation):
     scrap_cost = 35
     used_targets = []
     ui_icon = "data/worker-1.png"
-    def __init__(self, game, level=1):
+    def __init__(self, game):
         self.groups = game.main_group, game.bot_group
         Animation.__init__(self, game)
         self.walk_images = [
@@ -559,7 +556,7 @@ class Worker(Animation):
         self.rect = self.image.get_rect()
         self.rect.center = self.game.hero.rect.topleft
 
-        self.level = level
+        self.level = self.game.hero.worker_level
 
         self.target = None
         self.move_timer = 0
@@ -569,6 +566,11 @@ class Worker(Animation):
         self.hp = int(self.max_hp)
         self.show_hp_bar = True
         self.attack_timer = 0
+
+        self.speed = 5
+        self.speed -= int(self.level / 2)
+        if self.speed < 1:
+            self.speed = 1
 
         self.level = 1
 
@@ -689,7 +691,7 @@ class Worker(Animation):
                         grid_pos = None
             if grid_pos:
                 self.move_timer += 1
-                if self.move_timer >= 1:
+                if self.move_timer >= self.speed:
                     self.animate("walk", 15, 1)
                     ydiff = grid_pos[1] - self.rect.centery
                     xdiff = grid_pos[0] - self.rect.centerx
@@ -993,7 +995,7 @@ class BattleBot(Worker):
     money_cost = 15
     scrap_cost = 45
     ui_icon = "data/warrior-1.png"
-    def __init__(self, game, level=1):
+    def __init__(self, game):
         self.groups = game.main_group, game.bot_group
         Animation.__init__(self, game)
         self.walk_images = [
@@ -1007,7 +1009,7 @@ class BattleBot(Worker):
         self.add_animation("walk", self.walk_images)
         self.add_animation("stand", self.stand_images)
 
-        self.level = level
+        self.level = self.game.hero.warrior_level
 
         self.rect = self.image.get_rect()
         self.rect.center = self.game.hero.rect.topleft
