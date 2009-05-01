@@ -234,7 +234,7 @@ class TowerInfo(Widget):
     def __init__(self, app, tower):
         Widget.__init__(self, app, "midtop")
         self.image = pygame.Surface((180, 135)).convert_alpha()
-        self.image.fill((75, 75, 255, 75))
+        self.image.fill((75, 75, 255, 150))
         pygame.draw.rect(self.image, (0,0,0), (0,0,180,135), 2)
         self.rect = self.image.get_rect()
         self.set_pos((tower.rect.centerx, tower.rect.bottom-10))
