@@ -207,7 +207,7 @@ class Game(GameState):
         self.map_grid.make_random(random.randint(40, 60), scraps)
 
         self.build_active = None
-        self.building_trap = False
+        self.building = None
         self.build_overlay = None
 
         self.selected_object = None
@@ -228,7 +228,6 @@ class Game(GameState):
                       status_message="Build a Tower\ncost:\n  money: %s\n  scraps: %s"%(objects.TowerBase.money_cost,
                                                                                         objects.TowerBase.scrap_cost),
                       anchor="topleft")
-        self.build_tower_button = b
         
         b = ui.Button(self.app, image=objects.Worker.ui_icon, pos=b.rect.inflate(8,0).topright,
                   callback=self.build_worker,
@@ -329,6 +328,7 @@ class Game(GameState):
     def build_tower(self):
         if self.money >= objects.TowerBase.money_cost and self.scraps >= objects.TowerBase.scrap_cost:
             self.build_active = True
+            self.building = objects.TowerBase
 
             bo = pygame.Surface((800,500)).convert_alpha()
             bo.fill((0,0,0,0))
@@ -354,9 +354,19 @@ class Game(GameState):
     def build_trap(self):
         #TODO: replace with trap type picker
         if self.money >= objects.Trap.money_cost and self.scraps >= objects.Trap.scrap_cost:
-            self.building_trap = True
-            self.build_active = False
-            self.build_overlay = None
+            self.building = objects.Trap
+            self.build_active = True
+
+            bo = pygame.Surface((800,500)).convert_alpha()
+            bo.fill((0,0,0,0))
+            for x in xrange(self.map_grid.size[0]):
+                for y in xrange(self.map_grid.size[1]):
+                    if not self.map_grid.is_open((x, y)):
+                        pygame.draw.rect(bo, (200,0,0,85), (self.map_grid.grid_to_screen((x, y)), (20,20)))
+            pygame.draw.rect(bo, (200,0,0,85), ((0,0), (11*20,11*20)))
+            pygame.draw.rect(bo, (200,0,0,85), ((800-9*20,500-9*20), (9*20,9*20)))
+
+            self.build_overlay = bo
 
     def build_warrior(self):
         #TODO: replace with warrior type selection
@@ -383,16 +393,16 @@ class Game(GameState):
                     if event.pos[1] <= 500: #this is for us!
                         grid = self.map_grid.screen_to_grid(event.pos)
                         if self.build_active:
-                            if self.map_grid.empty_around(grid):
-                                self.build_active = False
-                                objects.BuildTower(self, self.map_grid.grid_to_screen(grid))
-                                for i in self.bot_group.objects:
-                                    i.reset_target()
-                        else:
-                            if self.building_trap:
+                            if self.building == objects.TowerBase:
+                                if self.map_grid.empty_around(grid):
+                                    self.build_active = False
+                                    objects.BuildTower(self, self.map_grid.grid_to_screen(grid))
+                                    for i in self.bot_group.objects:
+                                        i.reset_target()
+                            elif self.building: #must be a trap of some sort!
                                 if self.map_grid.is_open(grid):
-                                    self.building_trap = False
-                                    objects.Trap(self, self.map_grid.grid_to_screen(grid))
+                                    self.build_active = False
+                                    self.building(self, self.map_grid.grid_to_screen(grid))
                         self.build_active = False
                         for i in self.tower_group.objects:
                             if i.rect.collidepoint(event.pos):
@@ -401,10 +411,10 @@ class Game(GameState):
                                 self.selected_ui = ui.TowerInfo(self.app, i)
                     else:
                         self.build_active = False
-                        self.building_trap = False
+                        self.building = None
                 if event.button == 3: #right
                     self.build_active = False
-                    self.building_trap = False
+                    self.building = None
 
             if event.type == KEYDOWN:
                 if event.key == K_s:
@@ -436,7 +446,10 @@ class Game(GameState):
 
         if self.build_active:
             self.screen.blit(self.build_overlay, (0,0))
+
+        #mouse stuffs!
         pygame.draw.rect(self.screen, (255,0,255), (self.map_grid.screen_to_screen(pygame.mouse.get_pos()), (20,20)), 2)
+        
 
 
         self.main_group.render()
