@@ -447,13 +447,30 @@ class Game(GameState):
         if self.build_active:
             self.screen.blit(self.build_overlay, (0,0))
 
-        #mouse stuffs!
-        pygame.draw.rect(self.screen, (255,0,255), (self.map_grid.screen_to_screen(pygame.mouse.get_pos()), (20,20)), 2)
-        
-
 
         self.main_group.render()
         self.damage_notes_group.render()
+
+        #mouse stuffs!
+        pygame.draw.rect(self.screen, (255,0,255), (self.map_grid.screen_to_screen(pygame.mouse.get_pos()), (20,20)), 2)
+        if self.build_active:
+            x, y = self.map_grid.screen_to_screen(pygame.mouse.get_pos())
+            grid = self.map_grid.screen_to_grid((x,y))
+            if self.building == objects.TowerBase:
+                if self.map_grid.empty_around(grid):
+                    i = data.image(self.building.ui_icon)
+                    r = i.get_rect()
+                    r.midbottom = x+10, y+20
+                    self.screen.blit(i, r)
+            else:
+                if self.map_grid.is_open(grid):
+                    i = data.image(self.building.ui_icon)
+                    r = i.get_rect()
+                    r.midbottom = x+10, y+20
+                    self.screen.blit(i, r)
+            
+
+
         pygame.draw.rect(self.screen, (125,125,125), (0,500,800,600))
         self.app.render()
         self.screen.blit(self.money_ui, self.money_ui_pos)

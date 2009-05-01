@@ -52,7 +52,9 @@ class MapGrid(object):
         return pos[0] < 0 or pos[0] >= self.size[0] or pos[1] < 0 or pos[1] >= self.size[1]
 
     def is_open(self, pos):
-        return self.grid[pos[0]][pos[1]] == 0
+        if not self.out_of_bounds(pos):
+            return self.grid[pos[0]][pos[1]] == 0
+        return True
 
     def is_blocking(self, pos):
         return self.grid[pos[0]][pos[1]] == 2
