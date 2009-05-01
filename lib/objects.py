@@ -634,7 +634,7 @@ class Worker(Animation):
             self.kill()
 
         for i in self.game.insect_group.objects:
-            if self.rect.colliderect(i.rect) or misc.distance(i.rect.center, self.rect.center) <= 31:
+            if self.rect.inflate(6,6).colliderect(i.rect.inflate(6,6)):
                 do_hit.append(i)
 
         if do_hit:
@@ -831,11 +831,11 @@ class Ant(Animation):
         do_hit = []
 
         for i in self.game.build_tower_group.objects:
-            if self.rect.colliderect(i.rect) or misc.distance(i.rect.center, self.rect.center) <= 31:
+            if self.rect.inflate(6,6).colliderect(i.rect.inflate(6,6)):
                 i.kill()
 
         for i in self.game.bot_group.objects:
-            if self.rect.colliderect(i.rect) or misc.distance(i.rect.center, self.rect.center) <= 31:
+            if self.rect.inflate(6,6).colliderect(i.rect.inflate(6,6)):
                 do_hit.append(i)
 
         if do_hit:
@@ -940,6 +940,8 @@ class DamageNote(GameObject):
         font = data.font("data/font.ttf", size, True)
 
         amount = str(amount)
+        if _big:
+            amount="+"+amount
         chars = []
         for char in amount:
             big = font.render(char, 1, (0,0,0))
@@ -1118,7 +1120,7 @@ class BattleBot(Worker):
             self.kill()
 
         for i in self.game.insect_group.objects:
-            if self.rect.colliderect(i.rect) or misc.distance(i.rect.center, self.rect.center) <= 31:
+            if self.rect.inflate(6,6).colliderect(i.rect.inflate(6,6)):
                 do_hit.append(i)
 
         if do_hit:
