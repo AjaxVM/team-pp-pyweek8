@@ -560,6 +560,10 @@ class Worker(Animation):
     used_targets = []
     ui_icon = "data/worker-1.png"
     diesound = 'boom2.ogg'
+
+    base_speed = 4
+    base_hp = 5
+    base_damage = 1
     def __init__(self, game):
         self.groups = game.main_group, game.bot_group
         Animation.__init__(self, game)
@@ -577,24 +581,25 @@ class Worker(Animation):
         self.rect = self.image.get_rect()
         self.rect.center = self.game.hero.rect.topleft
 
-        self.level = int(self.game.hero.worker_level)
+        self.level = 1
 
         self.target = None
         self.move_timer = 0
         self.have_scraps = False
-        self.damage = 1
-        self.max_hp = 5*self.level
+        self.damage = int(self.base_damage)
+        self.max_hp = int(self.base_hp)
         self.hp = int(self.max_hp)
         self.show_hp_bar = True
         self.attack_timer = 0
 
-        self.speed = 4 - self.level
+        self.speed = self.base_speed
         if self.speed < 1:
             self.speed = 1
 
         self.scrap_load = 10 * self.level
 
-        self.level = 1
+        for i in xrange(self.game.hero.worker_level-1):
+            self.upgrade_level()
 
         self.path = None
 
@@ -959,6 +964,10 @@ class Trap(GameObject):
     scrap_cost = 20
     ui_icon = "data/spikes.png"
     diesound = 'boom1.ogg'
+
+    base_usage_count = 25
+    base_damage = 3
+    special = None
     def __init__(self, game, pos):
         self.groups = game.main_group, game.trap_group
         GameObject.__init__(self, game)
@@ -975,21 +984,22 @@ class Trap(GameObject):
         self.game.scraps -= self.scrap_cost
         self.game.update_money()
 
-        self.level = int(self.game.hero.trap_level)
+        self.level = 1
 
         self.times = 0
-        self.max_times = 25 + self.level*10
+        self.max_times = int(self.base_usage_count)
 
         #set blocking!
         self.game.map_grid.set(self.game.map_grid.screen_to_grid(pos), 1)
 
         self.attack_timer = 0
-        self.damage = 2 + self.level
+        self.damage = int(self.base_damage)
+        for i in xrange(self.game.hero.trap_level-1):
+            self.upgrade_level()
 
     def upgrade_level(self):
-        self.max_hp += 10
-        self.hp += 10
-        self.damage += 1
+        self.damage += int(self.level/2)
+        self.max_times = int(self.max_times * 1.5)
         self.level += 1
 
     def kill(self):
@@ -1015,6 +1025,11 @@ class BattleBot(Worker):
     money_cost = 20
     scrap_cost = 35
     ui_icon = "data/warrior-1.png"
+
+    base_speed = 2
+    base_hp = 25
+    base_damage = 5
+    special = None
     def __init__(self, game):
         self.groups = game.main_group, game.bot_group
         Animation.__init__(self, game)
@@ -1029,7 +1044,7 @@ class BattleBot(Worker):
         self.add_animation("walk", self.walk_images)
         self.add_animation("stand", self.stand_images)
 
-        self.level = self.game.hero.warrior_level
+        self.level = 1
 
         self.rect = self.image.get_rect()
         self.rect.center = self.game.hero.rect.topleft
@@ -1037,12 +1052,15 @@ class BattleBot(Worker):
         self.target = None
         self.move_timer = 0
         self.have_scraps = False
-        self.damage = 3 + self.level*2
-        self.max_hp = 25 + 7 * self.level
+        self.damage = int(self.base_damage)
+        self.max_hp = int(self.base_hp)
         self.hp = int(self.max_hp)
         self.show_hp_bar = True
         self.attack_timer = 0
-        self.speed = 3
+        self.speed = int(self.base_speed)
+
+        for i in xrange(self.game.hero.warrior_level-1):
+            self.upgrade_level()
 
         self.path = None
 

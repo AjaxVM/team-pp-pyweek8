@@ -231,32 +231,52 @@ class Game(GameState):
         ui.LinesGroup(self.app, l)
         b = ui.Button(self.app, image=objects.TowerBase.ui_icon, pos=l.rect.inflate(0,2).bottomleft,
                   callback=self.build_tower,
-                      status_message="Build a Tower\ncost:\n  money: %s\n  scraps: %s"%(objects.TowerBase.money_cost,
-                                                                                        objects.TowerBase.scrap_cost),
+                      status_message=("Build a Tower\ncost:\n  money: %s\n  scraps: %s"+\
+                                      "\n----------\nattack: %s\nrange: %s\nspeed: %s")%(objects.TowerBase.money_cost,
+                                                                                         objects.TowerBase.scrap_cost,
+                                                                                         objects.TowerBase.base_attack,
+                                                                                         objects.TowerBase.base_range,
+                                                                                         objects.TowerBase.base_shoot_speed),
                       anchor="topleft")
         
         b = ui.Button(self.app, image=objects.Worker.ui_icon, pos=b.rect.inflate(8,0).topright,
                   callback=self.build_worker,
-                      status_message="Build a Worker\ncost:\n  money: %s\n  scraps: %s"%(objects.Worker.money_cost,
-                                                                                          objects.Worker.scrap_cost),
+                      status_message=("Build a Worker\ncost:\n  money: %s\n  scraps: %s"+\
+                                      "\n----------\nattack: %s\nhp: %s\nspeed: %s")%(objects.Worker.money_cost,
+                                                                                      objects.Worker.scrap_cost,
+                                                                                      objects.Worker.base_damage,
+                                                                                      objects.Worker.base_hp,
+                                                                                      objects.Worker.base_speed),
                       anchor="topleft")
+        self.build_worker_button = b
 
         l = ui.Label(self.app, "Warriors", pos=(300, 500))
         ui.LinesGroup(self.app, l)
         b = ui.Button(self.app, image=objects.BattleBot.ui_icon, pos=l.rect.inflate(0,2).bottomleft,
                   callback=self.build_warrior,
-                      status_message="Build a Warrior\ncost:\n  money: %s\n  scraps: %s"%(objects.BattleBot.money_cost,
-                                                                                          objects.BattleBot.scrap_cost),
+                      status_message=("Build a Warrior\ncost:\n  money: %s\n  scraps: %s"+\
+                                      "\n----------\nattack: %s\nhp: %s\nspeed: %s\nspecial: %s")%(objects.BattleBot.money_cost,
+                                                                                      objects.BattleBot.scrap_cost,
+                                                                                      objects.BattleBot.base_damage,
+                                                                                      objects.BattleBot.base_hp,
+                                                                                      objects.BattleBot.base_speed,
+                                                                                                   objects.BattleBot.special),
                       anchor="topleft")
+        self.build_warrior_button = b
         
 
         l = ui.Label(self.app, "Traps", pos=(420, 500))
         ui.LinesGroup(self.app, l)
         b = ui.Button(self.app, image=objects.Trap.ui_icon, pos=l.rect.inflate(0,2).bottomleft,
                   callback=self.build_trap,
-                      status_message="Build a Trap\ncost:\n  money: %s\n  scraps: %s"%(objects.Trap.money_cost,
-                                                                                        objects.Trap.scrap_cost),
+                      status_message=("Build a Trap\ncost:\n  money: %s\n  scraps: %s"+\
+                                      "\n----------\nattack: %s\nuses: %s\nspecial: %s")%(objects.Trap.money_cost,
+                                                                                      objects.Trap.scrap_cost,
+                                                                                      objects.Trap.base_damage,
+                                                                                      objects.Trap.base_usage_count,
+                                                                                      objects.Trap.special),
                       anchor="topleft")
+        self.build_trap_button = b
 
 
         #Ooh, techs, gotta love them!
@@ -308,6 +328,16 @@ class Game(GameState):
                     i.upgrade_level()
             self.update_money()
 
+            test = objects.Worker(self)
+            test.kill() #we don't want to leave this laying around O.o
+            b = ("Build a Worker\ncost:\n  money: %s\n  scraps: %s"+\
+                 "\n----------\nattack: %s\nhp: %s\nspeed: %s")%(test.money_cost,
+                                                                 test.scrap_cost,
+                                                                 test.damage,
+                                                                 test.max_hp,
+                                                                 test.speed)
+            self.build_worker_button.status_message = b
+
     def upgrade_warrior(self):
         if self.money >= self.hero.tech_warrior_upgrade_cost:
             self.hero.warrior_level += 1
@@ -320,6 +350,17 @@ class Game(GameState):
                     i.upgrade_level()
             self.update_money()
 
+            test = objects.BattleBot(self)
+            test.kill() #we don't want to leave this laying around O.o
+            b = ("Build a Warrior\ncost:\n  money: %s\n  scraps: %s"+\
+                  "\n----------\nattack: %s\nhp: %s\nspeed: %s\nspecial: %s")%(test.money_cost,
+                                                                  test.scrap_cost,
+                                                                  test.damage,
+                                                                  test.max_hp,
+                                                                  test.speed,
+                                                                   test.special)
+            self.build_warrior_button.status_message = b
+
     def upgrade_traps(self):
         if self.money >= self.hero.tech_trap_upgrade_cost:
             self.hero.trap_level += 1
@@ -331,6 +372,16 @@ class Game(GameState):
                 i.upgrade_level()
             self.update_money()
 
+            test = objects.Trap(self, (0,0))
+            test.kill() #we don't want to leave this laying around O.o
+            b = ("Build a Trap\ncost:\n  money: %s\n  scraps: %s"+\
+                  "\n----------\nattack: %s\nuses: %s\nspecial: %s")%(test.money_cost,
+                                                                  test.scrap_cost,
+                                                                  test.damage,
+                                                                  test.max_times,
+                                                                  test.special)
+            self.build_trap_button.status_message = b
+
     def build_tower(self):
         if self.money >= objects.TowerBase.money_cost and self.scraps >= objects.TowerBase.scrap_cost:
             self.build_active = True
@@ -341,9 +392,9 @@ class Game(GameState):
             for x in xrange(self.map_grid.size[0]):
                 for y in xrange(self.map_grid.size[1]):
                     if not self.map_grid.empty_around((x, y)):
-                        pygame.draw.rect(bo, (200,0,0,85), (self.map_grid.grid_to_screen((x, y)), (20,20)))
-            pygame.draw.rect(bo, (200,0,0,85), ((0,0), (11*20,11*20)))
-            pygame.draw.rect(bo, (200,0,0,85), ((800-9*20,500-9*20), (9*20,9*20)))
+                        pygame.draw.rect(bo, (200,0,0,125), (self.map_grid.grid_to_screen((x, y)), (20,20)))
+            pygame.draw.rect(bo, (200,0,0,125), ((0,0), (11*20,11*20)))
+            pygame.draw.rect(bo, (200,0,0,125), ((800-9*20,500-9*20), (9*20,9*20)))
 
             self.build_overlay = bo
 
@@ -368,9 +419,9 @@ class Game(GameState):
             for x in xrange(self.map_grid.size[0]):
                 for y in xrange(self.map_grid.size[1]):
                     if not self.map_grid.is_open((x, y)):
-                        pygame.draw.rect(bo, (200,0,0,85), (self.map_grid.grid_to_screen((x, y)), (20,20)))
-            pygame.draw.rect(bo, (200,0,0,85), ((0,0), (11*20,11*20)))
-            pygame.draw.rect(bo, (200,0,0,85), ((800-9*20,500-9*20), (9*20,9*20)))
+                        pygame.draw.rect(bo, (200,0,0,125), (self.map_grid.grid_to_screen((x, y)), (20,20)))
+            pygame.draw.rect(bo, (200,0,0,125), ((0,0), (11*20,11*20)))
+            pygame.draw.rect(bo, (200,0,0,125), ((800-9*20,500-9*20), (9*20,9*20)))
 
             self.build_overlay = bo
 
