@@ -561,25 +561,36 @@ class Worker(Animation):
         self.rect = self.image.get_rect()
         self.rect.center = self.game.hero.rect.topleft
 
-        self.level = self.game.hero.worker_level
+        self.level = int(self.game.hero.worker_level)
 
         self.target = None
         self.move_timer = 0
         self.have_scraps = False
         self.damage = 1
-        self.max_hp = 5*int((self.level+1)*.5)
+        self.max_hp = 5*self.level
         self.hp = int(self.max_hp)
         self.show_hp_bar = True
         self.attack_timer = 0
 
-        self.speed = 3
-        self.speed -= int(self.level / 2)
+        self.speed = 4 - self.level
         if self.speed < 1:
             self.speed = 1
+
+        self.scrap_load = 5 * self.level
 
         self.level = 1
 
         self.path = None
+
+    def upgrade_level(self):
+        self.max_hp += 5
+        self.hp += 5
+        self.damage += 1
+        self.speed -= 1
+        if self.speed < 1:
+            self.speed = 1
+        self.level += 1
+        self.scrap_load += 5
 
     def hit(self, damage):
         Animation.hit(self, damage)
@@ -697,7 +708,7 @@ class Worker(Animation):
             if grid_pos:
                 self.move_timer += 1
                 if self.move_timer >= self.speed:
-                    self.animate("walk", 15, 1)
+                    self.animate("walk", int(15/self.speed), 1)
                     ydiff = grid_pos[1] - self.rect.centery
                     xdiff = grid_pos[0] - self.rect.centerx
                     self.angle = math.degrees(math.atan2(xdiff, ydiff)) + 180
@@ -730,7 +741,7 @@ class Worker(Animation):
                 self.path = self.game.map_grid.calculate_path(start, self.game.map_grid.screen_to_grid(self.target.rect.center), False, False)
             elif isinstance(self.target, Hero):
                 self.have_scraps = False
-                self.game.scraps += 5
+                self.game.scraps += self.scrap_load
                 self.game.update_money()
                 self.reset_target()
                 self.target = None
@@ -786,6 +797,8 @@ class Insect(Animation):
         self.show_hp_bar = True
         self.worth = 1 * self.level
         self.damage = 1 * self.level
+
+        self.speed = 2
 
     def reset_target(self):
         self.target = None
@@ -845,8 +858,8 @@ class Insect(Animation):
                         grid_pos = None
             if grid_pos:
                 self.move_timer += 1
-                if self.move_timer >= 2:
-                    self.animate("walk", 10, 1)
+                if self.move_timer >= self.speed:
+                    self.animate("walk", int(15/self.speed), 1)
                     ydiff = grid_pos[1] - self.rect.centery
                     xdiff = grid_pos[0] - self.rect.centerx
                     self.angle = math.degrees(math.atan2(xdiff, ydiff)) + 180
@@ -970,7 +983,7 @@ class Trap(GameObject):
         self.game.scraps -= self.scrap_cost
         self.game.update_money()
 
-        self.level = self.game.hero.trap_level
+        self.level = int(self.game.hero.trap_level)
 
         self.times = 0
         self.max_times = 25 + self.level*10
@@ -980,6 +993,12 @@ class Trap(GameObject):
 
         self.attack_timer = 0
         self.damage = 2 + self.level
+
+    def upgrade_level(self):
+        self.max_hp += 10
+        self.hp += 10
+        self.damage += 1
+        self.level += 1
 
     def kill(self):
         GameObject.kill(self)
@@ -1026,15 +1045,22 @@ class BattleBot(Worker):
         self.target = None
         self.move_timer = 0
         self.have_scraps = False
-        self.damage = 3 + self.level
-        self.max_hp = 25*int((self.level+1)*.5)
+        self.damage = 3 + self.level*2
+        self.max_hp = 25 + 7 * self.level
         self.hp = int(self.max_hp)
         self.show_hp_bar = True
         self.attack_timer = 0
+        self.speed = 2
 
         self.path = None
 
         self.count = 0
+
+    def upgrade_level(self):
+        self.max_hp += 7
+        self.hp += 7
+        self.damage += 2
+        self.level += 1
 
     def update(self):
         #Battling first, because we gotta stop movement for that!
@@ -1111,8 +1137,8 @@ class BattleBot(Worker):
                         grid_pos = None
             if grid_pos:
                 self.move_timer += 1
-                if self.move_timer >= 1:
-                    self.animate("walk", 15, 1)
+                if self.move_timer >= self.speed:
+                    self.animate("walk", int(15/self.speed), 1)
                     ydiff = grid_pos[1] - self.rect.centery
                     xdiff = grid_pos[0] - self.rect.centerx
                     self.angle = math.degrees(math.atan2(xdiff, ydiff)) + 180

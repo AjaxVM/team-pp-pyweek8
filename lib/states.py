@@ -294,6 +294,10 @@ class Game(GameState):
             self.hero.tech_worker_upgrade_cost = int(self.hero.tech_worker_upgrade_cost * 2.25)
             self.upg_worker.status_message = "Upgrade Workers\ncurrent level: %s\ncost: %s"%(self.hero.worker_level,
                                                                                              self.hero.tech_worker_upgrade_cost)
+
+            for i in self.bot_group.objects:
+                if isinstance(i, objects.Worker):
+                    i.upgrade_level()
             self.update_money()
 
     def upgrade_warrior(self):
@@ -303,6 +307,9 @@ class Game(GameState):
             self.hero.tech_warrior_upgrade_cost = int(self.hero.tech_warrior_upgrade_cost * 2.25)
             self.upg_warrior.status_message = "Upgrade Warriors\ncurrent level: %s\ncost: %s"%(self.hero.warrior_level,
                                                                                                self.hero.tech_warrior_upgrade_cost)
+            for i in self.bot_group.objects:
+                if not isinstance(i, objects.Worker): #must be a warrior!
+                    i.upgrade_level()
             self.update_money()
 
     def upgrade_traps(self):
@@ -312,6 +319,8 @@ class Game(GameState):
             self.hero.tech_trap_upgrade_cost = int(self.hero.tech_trap_upgrade_cost * 2.25)
             self.upg_traps.status_message = "Upgrade Traps\ncurrent level: %s\ncost: %s"%(self.hero.trap_level,
                                                                                           self.hero.tech_trap_upgrade_cost)
+            for i in self.trap_group.objects:
+                i.upgrade_level()
             self.update_money()
 
     def build_tower(self):
