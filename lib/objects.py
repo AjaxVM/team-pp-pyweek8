@@ -180,8 +180,8 @@ class Hero(GameObject):
         self.warrior_level = 1
         self.trap_level = 1
 
-        self.hp = 20
-        self.max_hp = 20
+        self.hp = 2
+        self.max_hp = 2
 
         self.building = None
         self.build_timer = 0
@@ -220,8 +220,8 @@ class Hive(GameObject):
 
         self.level = 1
 
-        self.hp = 20
-        self.max_hp = 20
+        self.hp = 2
+        self.max_hp = 2
 
         self.counter = 0
         self.num_spawned = 0
