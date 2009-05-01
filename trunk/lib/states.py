@@ -46,10 +46,67 @@ class Menu(GameState):
         GameState.__init__(self, parent)
 
         self.app = ui.App(self.get_root().screen)
-        ui.Label(self.app, "Testing,\n123", text_color=(255,0,0), pos=(0,0), anchor="topleft")
+        ui.Label(self.app, "Game Name!", text_color=(255,255,255), pos=(100,25), anchor="topleft")
 
-        ui.Button(self.app, "Play!", text_color=(0,255,0), pos=(0,75),
-                  callback=lambda: self.parent.use_child("game"))
+        ui.Button(self.app, "Play - easy", text_color=(0,0,0), pos=(150,100),
+                  callback=lambda: self.parent.use_child("game-easy"))
+        ui.Button(self.app, "Play - medium", text_color=(0,0,0), pos=(325,100),
+                  callback=lambda: self.parent.use_child("game-medium"))
+        ui.Button(self.app, "Play - hard", text_color=(0,0,0), pos=(525,100),
+                  callback=lambda: self.parent.use_child("game-hard"))
+
+        ui.Button(self.app, "Quit", text_color=(0,0,0), pos=(100,150),
+                  callback=self._kill)
+
+        self.bg = data.image("data/background1.png").copy()
+        for i in xrange(100):
+            self.bg.blit(data.image("data/worker-1.png"), (random.randint(0,800), random.randint(200,300)))
+            self.bg.blit(data.image("data/tower-base.png"), (random.randint(0,800), random.randint(200,300)))
+
+        for i in xrange(300):
+            self.bg.blit(data.image("data/ant-1.png"), (random.randint(0,800), random.randint(350,600)))
+
+        n = self.bg.copy()
+        n.fill((255,228,196,65))
+        self.bg.blit(n, (0,0))
+        self.killed = False
+
+    def _kill(self):
+        self.get_root().shutdown()
+        self.killed = True
+
+    def update(self):
+        for event in pygame.event.get():
+            if self.app.update(event):
+                if self.killed:
+                    return
+                continue
+            if event.type == QUIT:
+                self.get_root().shutdown()
+                return
+
+        self.get_root().screen.blit(self.bg, (0,0))
+        self.app.render()
+        pygame.display.flip()
+
+class YouWonMenu(GameState):
+    def __init__(self, parent):
+        GameState.__init__(self, parent)
+
+        self.app = ui.App(self.get_root().screen)
+        ui.Label(self.app, "You won, congratulations!", text_color=(75,75,255), pos=(0,0), anchor="topleft")
+
+        ui.Button(self.app, "Menu", text_color=(0,0,0), pos=(50,150),
+                  callback=lambda: self.parent.use_child("menu"))
+
+        self.bg = data.image("data/background1.png").copy()
+        for i in xrange(100):
+            self.bg.blit(data.image("data/worker-1.png"), (random.randint(0,800), random.randint(200,600)))
+            self.bg.blit(data.image("data/tower-base.png"), (random.randint(0,800), random.randint(200,600)))
+
+        n = self.bg.copy()
+        n.fill((0,0,0,75))
+        self.bg.blit(n, (0,0))
 
     def update(self):
         for event in pygame.event.get():
@@ -59,12 +116,41 @@ class Menu(GameState):
                 self.get_root().shutdown()
                 return
 
-        self.get_root().screen.fill((0,0,0))
+        self.get_root().screen.blit(self.bg, (0,0))
+        self.app.render()
+        pygame.display.flip()
+
+class YouLostMenu(GameState):
+    def __init__(self, parent):
+        GameState.__init__(self, parent)
+
+        self.app = ui.App(self.get_root().screen)
+        ui.Label(self.app, 'You lost...\noh well, like they say:\n    Try, try again :)', text_color=(255,0,0), pos=(0,0), anchor="topleft")
+
+        ui.Button(self.app, "Menu", text_color=(0,0,0), pos=(50,150),
+                  callback=lambda: self.parent.use_child("menu"))
+
+        self.bg = data.image("data/background1.png").copy()
+        for i in xrange(500):
+            self.bg.blit(data.image("data/ant-1.png"), (random.randint(0,800), random.randint(200,600)))
+        n = self.bg.copy()
+        n.fill((0,0,0,75))
+        self.bg.blit(n, (0,0))
+
+    def update(self):
+        for event in pygame.event.get():
+            if self.app.update(event):
+                continue
+            if event.type == QUIT:
+                self.get_root().shutdown()
+                return
+
+        self.get_root().screen.blit(self.bg, (0,0))
         self.app.render()
         pygame.display.flip()
 
 class Game(GameState):
-    def __init__(self, parent):
+    def __init__(self, parent, mode="easy"):
         GameState.__init__(self, parent)
 
         self.screen = self.get_root().screen
@@ -103,7 +189,17 @@ class Game(GameState):
         self.map_grid = map_grid.MapGrid(self)
 
         self.hero = objects.Hero(self)
+
+        if mode == "easy":
+            level = 1
+        elif mode=="medium":
+            level = 5
+        else:
+            level = 10
         self.hive = objects.Hive(self)
+        self.hive.level = level
+        self.hive.max_hp += level
+        self.hive.hp += level
 
         self.map_grid.make_random(40, 7)
 
@@ -322,6 +418,11 @@ class Game(GameState):
         self.screen.blit(self.scraps_ui, self.scraps_ui_pos)
         self.screen.blit(self.kills_ui, self.kills_ui_pos)
         self.screen.blit(self.font.render("units: %s/20"%len(self.bot_group.objects), 1, (255,255,255)), (90,570))
+
+        if self.hero.was_killed:
+            self.parent.use_child("lose")
+        if self.hive.was_killed:
+            self.parent.use_child("win")
 
         text = self.font.render("Insect level: %s"%self.hive.level, 1, (255,255,255))
         new = pygame.Surface((text.get_width()+8, text.get_height()+8)).convert_alpha()
