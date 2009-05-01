@@ -176,6 +176,9 @@ class Hero(GameObject):
         self.rect = self.image.get_rect()
         self.rect.bottomright = (800,500) #bottom 100 is the ui bar!
 
+        self.worker_level = 1
+        self.warrior_level = 1
+
         self.hp = 20
         self.max_hp = 20
 
@@ -214,16 +217,34 @@ class Hive(GameObject):
         self.rect = self.image.get_rect()
         self.rect.topleft = (5,5)
 
+        self.level = 1
+
         self.hp = 20
         self.max_hp = 20
 
         self.counter = 0
+        self.num_spawned = 0
+        self.wait_for = 10
+        self.fast = False
 
     def update(self):
         self.counter += 1
-        if self.counter >= 200:
+        if self.fast:
+            num = 40
+        else:
+            num = 200
+        if self.counter >= num:
+            if not random.randrange(10):
+                self.fast = True
+            else:
+                self.fast = False
             self.counter = 0
-            Insect(self.game)
+            Insect(self.game, self.level)
+            self.num_spawned += 1
+
+        if self.num_spawned >= self.wait_for:
+            self.wait_for += 10
+            self.level += 1
 
 class BuildTower(GameObject):
     def __init__(self, game, pos, to_build="Base Tower"):
@@ -517,7 +538,7 @@ class Worker(Animation):
     scrap_cost = 35
     used_targets = []
     ui_icon = "data/worker-1.png"
-    def __init__(self, game):
+    def __init__(self, game, level=1):
         self.groups = game.main_group, game.bot_group
         Animation.__init__(self, game)
         self.walk_images = [
@@ -534,14 +555,18 @@ class Worker(Animation):
         self.rect = self.image.get_rect()
         self.rect.center = self.game.hero.rect.topleft
 
+        self.level = level
+
         self.target = None
         self.move_timer = 0
         self.have_scraps = False
         self.damage = 1
-        self.hp = 5
-        self.max_hp = 5
+        self.max_hp = 5*int((self.level+1)*.5)
+        self.hp = int(self.max_hp)
         self.show_hp_bar = True
         self.attack_timer = 0
+
+        self.level = 1
 
         self.path = None
 
@@ -564,7 +589,7 @@ class Worker(Animation):
             self.kill()
 
         for i in self.game.insect_group.objects:
-            if misc.distance(i.rect.center, self.rect.center) <= 22:
+            if misc.distance(i.rect.center, self.rect.center) <= 31:
                 do_hit.append(i)
 
         if do_hit:
@@ -629,13 +654,17 @@ class Worker(Animation):
                 #ok, can't do ANYTHING
                 if self.target == None:
                     self.target = RandomTarget(self.game)
-                    self.target = diso[0]
                     if not self.path or old_target != self.target:
                         if not self.path:
                             start = self.game.map_grid.screen_to_grid(self.rect.center)
                         else:
                             start = self.path[0]
                         self.path = self.game.map_grid.calculate_path(start, self.game.map_grid.screen_to_grid(self.target.rect.center), False, False)
+
+        if not self.path:
+            if self.target:
+                start = self.game.map_grid.screen_to_grid(self.rect.center)
+                self.path = self.game.map_grid.calculate_path(start, self.game.map_grid.screen_to_grid(self.target.rect.center), False, False)
 
         if self.target.was_killed:
             self.reset_target()
@@ -717,7 +746,7 @@ class Worker(Animation):
                 last = (x, y)
 
 class Insect(Animation):
-    def __init__(self, game):
+    def __init__(self, game, level=1):
         self.groups = game.main_group, game.insect_group
         Animation.__init__(self, game)
 
@@ -732,16 +761,18 @@ class Insect(Animation):
 
         self.diesound = 'die1.ogg'
 
+        self.level = level
+
         self.target = None
         self.move_timer = 0
         self.attack_timer = 0
         self.path = None
 
-        self.hp = 25
-        self.max_hp = 25
+        self.max_hp = 15 * self.level
+        self.hp = int(self.max_hp)
         self.show_hp_bar = True
-        self.worth = 2
-        self.damage = 1
+        self.worth = 1 * self.level
+        self.damage = 1 * self.level
 
     def reset_target(self):
         self.target = None
@@ -764,9 +795,8 @@ class Insect(Animation):
             if misc.distance(i.rect.center, self.rect.center) <= 22:
                 i.kill()
 
-
         for i in self.game.bot_group.objects:
-            if misc.distance(i.rect.center, self.rect.center) <= 22:
+            if misc.distance(i.rect.center, self.rect.center) <= 31:
                 do_hit.append(i)
 
         if do_hit:
@@ -909,13 +939,12 @@ class DamageNote(GameObject):
 class Trap(GameObject):
     money_cost = 10
     scrap_cost = 20
-    ui_icon = "data/tower-base.png"
+    ui_icon = "data/spikes.png"
     def __init__(self, game, pos):
         self.groups = game.main_group, game.trap_group
         GameObject.__init__(self, game)
 
-        self.image = pygame.Surface((20,20)) #tile size...
-        pygame.draw.rect(self.image, (255,255,0), (0,0,20,20), 3)
+        self.image = data.image("data/spikes.png")
 
         self.rect = self.image.get_rect()
         x, y = pos
@@ -957,13 +986,13 @@ class BattleBot(Worker):
     time_cost = 75
     money_cost = 15
     scrap_cost = 45
-    ui_icon = "data/worker-1.png"
-    def __init__(self, game):
+    ui_icon = "data/warrior-1.png"
+    def __init__(self, game, level=1):
         self.groups = game.main_group, game.bot_group
         Animation.__init__(self, game)
         self.walk_images = [
-            data.image("data/worker-1.png"),
-            data.image("data/worker-2.png"),
+            data.image("data/warrior-1.png"),
+            data.image("data/warrior-2.png"),
             ]
         self.stand_images = [
             data.image("data/worker-1.png"),
@@ -972,15 +1001,17 @@ class BattleBot(Worker):
         self.add_animation("walk", self.walk_images)
         self.add_animation("stand", self.stand_images)
 
+        self.level = level
+
         self.rect = self.image.get_rect()
         self.rect.center = self.game.hero.rect.topleft
 
         self.target = None
         self.move_timer = 0
         self.have_scraps = False
-        self.damage = 3
-        self.hp = 25
-        self.max_hp = 25
+        self.damage = 3 + self.level
+        self.max_hp = 25*int((self.level+1)*.5)
+        self.hp = int(self.max_hp)
         self.show_hp_bar = True
         self.attack_timer = 0
 
@@ -997,7 +1028,7 @@ class BattleBot(Worker):
             self.kill()
 
         for i in self.game.insect_group.objects:
-            if misc.distance(i.rect.center, self.rect.center) <= 22:
+            if misc.distance(i.rect.center, self.rect.center) <= 31: #to account for biggest things!
                 do_hit.append(i)
 
         if do_hit:
@@ -1049,7 +1080,7 @@ class BattleBot(Worker):
             self.animate("stand", 1, 1)
             return
 
-        if not self.rect.colliderect(self.target.rect):
+        if not self.rect.inflate(3,3).colliderect(self.target.rect):
             grid_pos = None
             if self.path:
                 x, y = self.game.map_grid.grid_to_screen(self.path[0])

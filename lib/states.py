@@ -93,7 +93,7 @@ class Game(GameState):
 
         l = ui.Label(self.app, "Traps", pos=(450, 500))
         ui.LinesGroup(self.app, l)
-        b = ui.Button(self.app, image=objects.BattleBot.ui_icon, pos=l.rect.inflate(0,2).bottomleft,
+        b = ui.Button(self.app, image=objects.Trap.ui_icon, pos=l.rect.inflate(0,2).bottomleft,
                   callback=self.build_trap, status_message="Let's ruuuumble!!!!!", anchor="topleft")
 
         self.status_message = ui.PopupManager(self.app)
@@ -161,7 +161,8 @@ class Game(GameState):
         self.kills_ui = self.font.render("kills: %s"%self.kills, 1, (255,255,255))
 
     def build_worker(self):
-        if self.money >= objects.Worker.money_cost and self.scraps >= objects.Worker.scrap_cost:
+        if self.money >= objects.Worker.money_cost and self.scraps >= objects.Worker.scrap_cost and\
+           len(self.bot_group.objects) < 20:
             self.hero.build_worker()
 
     def build_trap(self):
@@ -173,7 +174,8 @@ class Game(GameState):
 
     def build_warrior(self):
         #TODO: replace with warrior type selection
-        if self.money >= objects.BattleBot.money_cost and self.scraps >= objects.BattleBot.scrap_cost:
+        if self.money >= objects.BattleBot.money_cost and self.scraps >= objects.BattleBot.scrap_cost and\
+           len(self.bot_group.objects) < 20:
             self.hero.build_warrior()
 
     def update(self):
@@ -258,5 +260,13 @@ class Game(GameState):
         self.screen.blit(self.money_ui, self.money_ui_pos)
         self.screen.blit(self.scraps_ui, self.scraps_ui_pos)
         self.screen.blit(self.kills_ui, self.kills_ui_pos)
+        self.screen.blit(self.font.render("units: %s/20"%len(self.bot_group.objects), 1, (255,255,255)), (90,570))
+
+        text = self.font.render("Insect level: %s"%self.hive.level, 1, (255,255,255))
+        new = pygame.Surface((text.get_width()+8, text.get_height()+8)).convert_alpha()
+        new.fill((75,75,255,50))
+        pygame.draw.rect(new, (0,0,0), ((0,0),new.get_size()), 2)
+        new.blit(text, (4, 4))
+        self.screen.blit(new, (75,3))
 
         pygame.display.flip()
