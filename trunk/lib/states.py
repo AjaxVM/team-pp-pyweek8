@@ -207,10 +207,6 @@ class Game(GameState):
         self.building_trap = False
         self.build_overlay = None
 
-        self.tech_worker_upgrade_cost = 100
-        self.tech_warrior_upgrade_cost = 125
-        self.tech_trap_upgrade_cost = 75
-
         self.selected_object = None
         self.selected_ui = None
 
@@ -219,25 +215,43 @@ class Game(GameState):
         ui.Button(self.app, "Quit Game", pos=(0,500), callback=self.goback,
                   status_message="Quit game...?")
 
+        #Make build objects gui
+        #TODO: implement multiple kinds of warriors/traps!!!
+
         l = ui.Label(self.app, "Basic", pos=(215, 500))
         ui.LinesGroup(self.app, l)
         b = ui.Button(self.app, image=objects.TowerBase.ui_icon, pos=l.rect.inflate(0,2).bottomleft,
-                  callback=self.build_tower, status_message="Build a Tower already!", anchor="topleft")
+                  callback=self.build_tower,
+                      status_message="Build a Tower\ncost:\n  money: %s\n  scraps: %s"%(objects.TowerBase.money_cost,
+                                                                                        objects.TowerBase.scrap_cost),
+                      anchor="topleft")
+        self.build_tower_button = b
         
         b = ui.Button(self.app, image=objects.Worker.ui_icon, pos=b.rect.inflate(8,0).topright,
-                  callback=self.build_worker, status_message="Build a Worker to build a tower!", anchor="topleft")
+                  callback=self.build_worker,
+                      status_message="Build a Worker\ncost:\n  money: %s\n  scraps: %s"%(objects.Worker.money_cost,
+                                                                                          objects.Worker.scrap_cost),
+                      anchor="topleft")
 
         l = ui.Label(self.app, "Warriors", pos=(300, 500))
         ui.LinesGroup(self.app, l)
         b = ui.Button(self.app, image=objects.BattleBot.ui_icon, pos=l.rect.inflate(0,2).bottomleft,
-                  callback=self.build_warrior, status_message="Let's ruuuumble!!!!!", anchor="topleft")
+                  callback=self.build_warrior,
+                      status_message="Build a Warrior\ncost:\n  money: %s\n  scraps: %s"%(objects.BattleBot.money_cost,
+                                                                                          objects.BattleBot.scrap_cost),
+                      anchor="topleft")
         
 
         l = ui.Label(self.app, "Traps", pos=(420, 500))
         ui.LinesGroup(self.app, l)
         b = ui.Button(self.app, image=objects.Trap.ui_icon, pos=l.rect.inflate(0,2).bottomleft,
-                  callback=self.build_trap, status_message="Let's ruuuumble!!!!!", anchor="topleft")
+                  callback=self.build_trap,
+                      status_message="Build a Trap\ncost:\n  money: %s\n  scraps: %s"%(objects.Trap.money_cost,
+                                                                                        objects.Trap.scrap_cost),
+                      anchor="topleft")
 
+
+        #Ooh, techs, gotta love them!
         l = ui.Label(self.app, "  Techs   ", pos=(510, 500))
         ui.LinesGroup(self.app, l)
         i = pygame.Surface((30,30)).convert_alpha()
@@ -246,7 +260,8 @@ class Game(GameState):
         i.blit(data.image("data/arrow.png"), (0,0))
         self.upg_worker = ui.Button(self.app, image=i, pos=l.rect.inflate(0,2).bottomleft,
                       callback=self.upgrade_worker,
-                      status_message="Upgrade Workers\ncurrent level: %s\ncost: 100"%self.hero.worker_level,
+                      status_message="Upgrade Workers\ncurrent level: %s\ncost: %s"%(self.hero.worker_level,
+                                                                                     self.hero.tech_worker_upgrade_cost),
                       anchor="topleft")
 
         i = pygame.Surface((40,40)).convert_alpha()
@@ -255,7 +270,8 @@ class Game(GameState):
         i.blit(data.image("data/arrow.png"), (0,0))
         self.upg_warrior = ui.Button(self.app, image=i, pos=self.upg_worker.rect.inflate(8,0).topright,
                       callback=self.upgrade_warrior,
-                      status_message="Upgrade Warriors\ncurrent level: %s\ncost: 125"%self.hero.warrior_level,
+                      status_message="Upgrade Warriors\ncurrent level: %s\ncost: %s"%(self.hero.warrior_level,
+                                                                                      self.hero.tech_warrior_upgrade_cost),
                       anchor="topleft")
 
         i = pygame.Surface((30,30)).convert_alpha()
@@ -264,37 +280,38 @@ class Game(GameState):
         i.blit(data.image("data/arrow.png"), (0,0))
         self.upg_traps = ui.Button(self.app, image=i, pos=self.upg_warrior.rect.inflate(8,0).topright,
                       callback=self.upgrade_traps,
-                      status_message="Upgrade Traps\ncurrent level: %s\ncost: 75"%self.hero.trap_level,
+                      status_message="Upgrade Traps\ncurrent level: %s\ncost: %s"%(self.hero.trap_level,
+                                                                                   self.hero.tech_trap_upgrade_cost),
                       anchor="topleft")
 
         self.status_message = ui.PopupManager(self.app)
         self.status_message.set("Testing, 1,2,3")
 
     def upgrade_worker(self):
-        if self.money >= self.tech_worker_upgrade_cost:
+        if self.money >= self.hero.tech_worker_upgrade_cost:
             self.hero.worker_level += 1
-            self.money -= self.tech_worker_upgrade_cost
-            self.tech_worker_upgrade_cost = int(self.tech_worker_upgrade_cost * 2.25)
+            self.money -= self.hero.tech_worker_upgrade_cost
+            self.hero.tech_worker_upgrade_cost = int(self.hero.tech_worker_upgrade_cost * 2.25)
             self.upg_worker.status_message = "Upgrade Workers\ncurrent level: %s\ncost: %s"%(self.hero.worker_level,
-                                                                                                   self.tech_worker_upgrade_cost)
+                                                                                             self.hero.tech_worker_upgrade_cost)
             self.update_money()
 
     def upgrade_warrior(self):
-        if self.money >= self.tech_warrior_upgrade_cost:
+        if self.money >= self.hero.tech_warrior_upgrade_cost:
             self.hero.warrior_level += 1
-            self.money -= self.tech_warrior_upgrade_cost
-            self.tech_warrior_upgrade_cost = int(self.tech_warrior_upgrade_cost * 2.25)
+            self.money -= self.hero.tech_warrior_upgrade_cost
+            self.hero.tech_warrior_upgrade_cost = int(self.hero.tech_warrior_upgrade_cost * 2.25)
             self.upg_warrior.status_message = "Upgrade Warriors\ncurrent level: %s\ncost: %s"%(self.hero.warrior_level,
-                                                                                                    self.tech_warrior_upgrade_cost)
+                                                                                               self.hero.tech_warrior_upgrade_cost)
             self.update_money()
 
     def upgrade_traps(self):
-        if self.money >= self.tech_trap_upgrade_cost:
+        if self.money >= self.hero.tech_trap_upgrade_cost:
             self.hero.trap_level += 1
-            self.money -= self.tech_trap_upgrade_cost
-            self.tech_trap_upgrade_cost = int(self.tech_trap_upgrade_cost * 2.25)
-            self.upg_warrior.status_message = "Upgrade Traps\ncurrent level: %s\ncost: %s"%(self.hero.trap_level,
-                                                                                            self.tech_trap_upgrade_cost)
+            self.money -= self.hero.tech_trap_upgrade_cost
+            self.hero.tech_trap_upgrade_cost = int(self.hero.tech_trap_upgrade_cost * 2.25)
+            self.upg_traps.status_message = "Upgrade Traps\ncurrent level: %s\ncost: %s"%(self.hero.trap_level,
+                                                                                          self.hero.tech_trap_upgrade_cost)
             self.update_money()
 
     def build_tower(self):
