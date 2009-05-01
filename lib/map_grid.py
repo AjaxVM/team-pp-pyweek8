@@ -161,9 +161,8 @@ class MapGrid(object):
             ru = 50
         else:
             ru = 10
-        #this is weighted so that the less obvious paths are given some advantage
-        #since bottomright is the most direct course to the hero base, that is weighted the lowest
-        adjacent = [(0,-1, 1+r(ru)), (-1, 0, 1+r(ru)), (1, 0, 1+r(ru)), (0, 1, 1+r(ru*2))]
+
+        adjacent = [(0,-1, 1+r(ru)), (-1, 0, 1+r(ru)), (1, 0, 1+r(ru)), (0, 1, 1+r(ru))]
 
         swap_adj = 0
 
@@ -171,7 +170,7 @@ class MapGrid(object):
             swap_adj += 1
             if swap_adj > 25:
                 swap_adj = 0
-                adjacent = [(0,-1, 1+r(ru)), (-1, 0, 1+r(ru)), (1, 0, 1+r(ru)), (0, 1, 1+r(ru*2))]
+                adjacent = [(0,-1, 1+r(ru)), (-1, 0, 1+r(ru)), (1, 0, 1+r(ru)), (0, 1, 1+r(ru))]
             # if open heap is empty, no path is available
             if len(openlist) == 0:
                 return False
