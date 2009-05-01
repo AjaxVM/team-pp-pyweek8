@@ -237,9 +237,9 @@ class Hive(GameObject):
         if self.fast:
             num = 40
         else:
-            num = 200
+            num = 220
         if self.counter >= num:
-            if not random.randrange(10):
+            if not random.randrange(3):
                 self.fast = True
             else:
                 self.fast = False
