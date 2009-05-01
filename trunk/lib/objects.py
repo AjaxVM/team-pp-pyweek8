@@ -180,9 +180,9 @@ class Hero(GameObject):
         self.warrior_level = 1
         self.trap_level = 1
 
-        self.tech_worker_upgrade_cost = 100
-        self.tech_warrior_upgrade_cost = 125
-        self.tech_trap_upgrade_cost = 75
+        self.tech_worker_upgrade_cost = 75
+        self.tech_warrior_upgrade_cost = 50
+        self.tech_trap_upgrade_cost = 25
 
         self.hp = 20
         self.max_hp = 20
@@ -229,7 +229,7 @@ class Hive(GameObject):
 
         self.counter = 0
         self.num_spawned = 0
-        self.wait_for = 10
+        self.wait_for = 20
         self.fast = False
 
     def update(self):
@@ -325,8 +325,8 @@ class TowerBase(GameObject):
         self.upgrade_types = [MissileTower]
 
     def inc_cost(self):
-        self.money_cost = int(self.money_cost * 2.25)
-        self.scrap_cost = int(self.scrap_cost * 2.25)
+        self.money_cost = int(self.money_cost * 1.75)
+        self.scrap_cost = int(self.scrap_cost * 1.75)
 
     def upgrade(self):
         self.level += 1
@@ -334,7 +334,7 @@ class TowerBase(GameObject):
         self.game.scraps -= self.scrap_cost
         self.game.update_money()
         self.inc_cost()
-        self.damage *= 2
+        self.damage += 5 + int(self.damage/5)
         self.range += 10
 
     def update(self):
@@ -386,7 +386,7 @@ class MissileTower(TowerBase):
         self.shot_speed = 60
         self.shot_type = Missile
         self.range = 150
-        self.damage = 10
+        self.damage = 13
 
         self.upgrade_types = []
 
@@ -394,7 +394,7 @@ class MissileTower(TowerBase):
         self.level += 1
         self.game.money -= self.money_cost
         self.game.scraps -= self.scrap_cost
-        self.damage += 7
+        self.damage += 7 + int(self.damage/7)
         self.range += 10
         self.inc_cost()
 
@@ -539,8 +539,8 @@ class RandomTarget(object):
 
 class Worker(Animation):
     time_cost = 30
-    money_cost = 15
-    scrap_cost = 30
+    money_cost = 10
+    scrap_cost = 20
     used_targets = []
     ui_icon = "data/worker-1.png"
     diesound = 'boom2.ogg'
@@ -576,7 +576,7 @@ class Worker(Animation):
         if self.speed < 1:
             self.speed = 1
 
-        self.scrap_load = 5 * self.level
+        self.scrap_load = 10 * self.level
 
         self.level = 1
 
@@ -590,7 +590,7 @@ class Worker(Animation):
         if self.speed < 1:
             self.speed = 1
         self.level += 1
-        self.scrap_load += 5
+        self.scrap_load += 10
 
     def hit(self, damage):
         Animation.hit(self, damage)
@@ -795,7 +795,7 @@ class Insect(Animation):
         self.max_hp = 15 * self.level
         self.hp = int(self.max_hp)
         self.show_hp_bar = True
-        self.worth = 1 * self.level
+        self.worth = 5 * self.level
         self.damage = 1 * self.level
 
         self.speed = 2
@@ -1020,8 +1020,8 @@ class Trap(GameObject):
 
 class BattleBot(Worker):
     time_cost = 75
-    money_cost = 15
-    scrap_cost = 45
+    money_cost = 20
+    scrap_cost = 35
     ui_icon = "data/warrior-1.png"
     def __init__(self, game):
         self.groups = game.main_group, game.bot_group
@@ -1050,7 +1050,7 @@ class BattleBot(Worker):
         self.hp = int(self.max_hp)
         self.show_hp_bar = True
         self.attack_timer = 0
-        self.speed = 2
+        self.speed = 3
 
         self.path = None
 

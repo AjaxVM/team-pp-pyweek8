@@ -173,8 +173,8 @@ class Game(GameState):
 
         self.damage_notes_group = objects.GameGroup()
 
-        self.money = 250
-        self.scraps = 250
+        self.money = 500
+        self.scraps = 500
         self.kills = 0
 
         self.font = data.font("data/font.ttf", 24)
@@ -192,16 +192,19 @@ class Game(GameState):
 
         if mode == "easy":
             level = 1
+            scraps = 10
         elif mode=="medium":
-            level = 5
+            level = 6
+            scraps = 6
         else:
             level = 10
+            scraps = 3
         self.hive = objects.Hive(self)
         self.hive.level = level
         self.hive.max_hp += level
         self.hive.hp += level
 
-        self.map_grid.make_random(40, 7)
+        self.map_grid.make_random(random.randint(40, 60), scraps)
 
         self.build_active = None
         self.building_trap = False
@@ -260,7 +263,7 @@ class Game(GameState):
         i.blit(data.image("data/arrow.png"), (0,0))
         self.upg_worker = ui.Button(self.app, image=i, pos=l.rect.inflate(0,2).bottomleft,
                       callback=self.upgrade_worker,
-                      status_message="Upgrade Workers\ncurrent level: %s\ncost: %s"%(self.hero.worker_level,
+                      status_message="Upgrade Workers\ncurrent level: %s\ncost:\n  money: %s"%(self.hero.worker_level,
                                                                                      self.hero.tech_worker_upgrade_cost),
                       anchor="topleft")
 
@@ -270,7 +273,7 @@ class Game(GameState):
         i.blit(data.image("data/arrow.png"), (0,0))
         self.upg_warrior = ui.Button(self.app, image=i, pos=self.upg_worker.rect.inflate(8,0).topright,
                       callback=self.upgrade_warrior,
-                      status_message="Upgrade Warriors\ncurrent level: %s\ncost: %s"%(self.hero.warrior_level,
+                      status_message="Upgrade Warriors\ncurrent level: %s\ncost:\n  money: %s"%(self.hero.warrior_level,
                                                                                       self.hero.tech_warrior_upgrade_cost),
                       anchor="topleft")
 
@@ -280,7 +283,7 @@ class Game(GameState):
         i.blit(data.image("data/arrow.png"), (0,0))
         self.upg_traps = ui.Button(self.app, image=i, pos=self.upg_warrior.rect.inflate(8,0).topright,
                       callback=self.upgrade_traps,
-                      status_message="Upgrade Traps\ncurrent level: %s\ncost: %s"%(self.hero.trap_level,
+                      status_message="Upgrade Traps\ncurrent level: %s\ncost:\n  money: %s"%(self.hero.trap_level,
                                                                                    self.hero.tech_trap_upgrade_cost),
                       anchor="topleft")
 
