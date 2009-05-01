@@ -112,7 +112,10 @@ class Widget(object):
                 h += i.height
             rect = pygame.rect.Rect(0,0,w,h)
         if image:
-            image = data.image(image)
+            if isinstance(image, pygame.Surface):
+                pass
+            else:
+                image = data.image(image)
             if not rect:
                 rect = image.get_rect()
             else:

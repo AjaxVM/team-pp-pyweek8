@@ -178,29 +178,33 @@ class Hero(GameObject):
 
         self.worker_level = 1
         self.warrior_level = 1
+        self.trap_level = 1
 
         self.hp = 20
         self.max_hp = 20
 
         self.building = None
         self.build_timer = 0
+        self.build_level = 0
 
     def build_worker(self):
         if not self.building:
             self.building = Worker
             self.build_timer = 0
+            self.build_level = self.worker_level
 
     def build_warrior(self):
         if not self.building:
             self.building = BattleBot
             self.build_timer = 0
+            self.build_level = self.warrior_level
 
     def update(self):
         if self.building:
             self.build_timer += 1
             if self.build_timer > self.building.time_cost:
                 self.build_timer = 0
-                self.building(self.game)
+                self.building(self.game, self.build_level)
                 self.game.money -= self.building.money_cost
                 self.game.scraps -= self.building.scrap_cost
                 self.building = None
@@ -956,14 +960,16 @@ class Trap(GameObject):
         self.game.scraps -= self.scrap_cost
         self.game.update_money()
 
+        self.level = self.game.hero.trap_level
+
         self.times = 0
-        self.max_times = 25
+        self.max_times = 25 + self.level*10
 
         #set blocking!
         self.game.map_grid.set(self.game.map_grid.screen_to_grid(pos), 1)
 
         self.attack_timer = 0
-        self.damage = 2
+        self.damage = 2 + self.level
 
     def kill(self):
         GameObject.kill(self)
