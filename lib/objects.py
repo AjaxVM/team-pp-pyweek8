@@ -232,6 +232,8 @@ class Hive(GameObject):
         self.wait_for = 20
         self.fast = False
 
+        self.choice_list = [Ant]*4 + [Beetle]*2
+
     def update(self):
         self.counter += 1
         if self.fast:
@@ -244,7 +246,7 @@ class Hive(GameObject):
             else:
                 self.fast = False
             self.counter = 0
-            Insect(self.game, self.level)
+            random.choice(self.choice_list)(self.game, self.level)
             self.num_spawned += 1
 
         if self.num_spawned >= self.wait_for:
@@ -632,7 +634,7 @@ class Worker(Animation):
             self.kill()
 
         for i in self.game.insect_group.objects:
-            if misc.distance(i.rect.center, self.rect.center) <= 31:
+            if self.rect.colliderect(i.rect) or misc.distance(i.rect.center, self.rect.center) <= 31:
                 do_hit.append(i)
 
         if do_hit:
@@ -778,7 +780,7 @@ class Worker(Animation):
 
         Animation.kill(self)
 
-class Insect(Animation):
+class Ant(Animation):
     def __init__(self, game, level=1):
         self.groups = game.main_group, game.insect_group
         Animation.__init__(self, game)
@@ -819,6 +821,8 @@ class Insect(Animation):
             self.game.money += self.worth
             self.game.kills += 1
             self.game.update_money()
+            DamageNote(self.game, self.rect.midtop, (220, 200, 50), self.worth, True)
+            return
 
         DamageNote(self.game, self.rect.midtop, (100,100,255), damage)
 
@@ -827,11 +831,11 @@ class Insect(Animation):
         do_hit = []
 
         for i in self.game.build_tower_group.objects:
-            if misc.distance(i.rect.center, self.rect.center) <= 22:
+            if self.rect.colliderect(i.rect) or misc.distance(i.rect.center, self.rect.center) <= 31:
                 i.kill()
 
         for i in self.game.bot_group.objects:
-            if misc.distance(i.rect.center, self.rect.center) <= 31:
+            if self.rect.colliderect(i.rect) or misc.distance(i.rect.center, self.rect.center) <= 31:
                 do_hit.append(i)
 
         if do_hit:
@@ -886,6 +890,28 @@ class Insect(Animation):
             self.target.hit(1)
             self.kill()
 
+class Beetle(Ant):
+    def __init__(self, game, level=1):
+        self.groups = game.main_group, game.insect_group
+        Ant.__init__(self, game, level)
+
+        self.walk_images = [
+            data.image("data/beetle-1.png"),
+            data.image("data/beetle-1.png"),
+            ]
+        self.image = self.walk_images[0]
+        self.add_animation("walk", self.walk_images)
+        self.rect = self.image.get_rect()
+        self.rect.center = self.game.hive.rect.center
+
+        self.max_hp = 35 * self.level
+        self.hp = int(self.max_hp)
+        self.show_hp_bar = True
+        self.worth = 10 * self.level
+        self.damage = 3 * self.level
+
+        self.speed = 3
+
 class Explosion(Animation):
     
     def __init__(self, game, pos):
@@ -902,11 +928,16 @@ class Explosion(Animation):
 
 
 class DamageNote(GameObject):
-    def __init__(self, game, pos, color, amount):
+    def __init__(self, game, pos, color, amount, _big=False):
         self.groups = [game.damage_notes_group]
         GameObject.__init__(self, game)
 
-        font = data.font("data/font.ttf", 12, True)
+        if _big:
+            size = 20
+        else:
+            size = 12
+
+        font = data.font("data/font.ttf", size, True)
 
         amount = str(amount)
         chars = []
@@ -928,8 +959,6 @@ class DamageNote(GameObject):
         my_surf = pygame.Surface((width, height)).convert_alpha()
         my_surf.fill((0,0,0,0))
 
-        self.waft_dir = random.randint(-1,1)
-
         self.pos = pos
 
         left = 0
@@ -942,19 +971,27 @@ class DamageNote(GameObject):
         self.rect.center = pos
 
         self.age = 0
+        if _big:
+            self.lifespan = 75
+            self.waft_dir = 0
+            self.vert_dir = 3
+        else:
+            self.lifespan = 50
+            self.waft_dir = random.choice((-1,1))*.5
+            self.vert_dir = 1
         self.move_counter = 0
 
     def update(self):
         self.age += 1
-        if self.age > 50:
+        if self.age > self.lifespan:
             self.kill()
 
         self.move_counter += 1
         if self.move_counter >= 3:
             self.move_counter = 0
             x, y = self.pos
-            x += self.waft_dir*.5
-            y -= 1
+            x += self.waft_dir
+            y -= self.vert_dir
             self.pos = x, y
             self.rect.center = self.pos
 
@@ -1081,7 +1118,7 @@ class BattleBot(Worker):
             self.kill()
 
         for i in self.game.insect_group.objects:
-            if misc.distance(i.rect.center, self.rect.center) <= 31: #to account for biggest things!
+            if self.rect.colliderect(i.rect) or misc.distance(i.rect.center, self.rect.center) <= 31:
                 do_hit.append(i)
 
         if do_hit:
