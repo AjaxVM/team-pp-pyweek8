@@ -159,7 +159,7 @@ class Game(GameState):
         i.blit(data.image("data/arrow.png"), (0,0))
         self.upg_warrior = ui.Button(self.app, image=i, pos=self.upg_worker.rect.inflate(8,0).topright,
                       callback=self.upgrade_warrior,
-                      status_message="Upgrade Warriors\ncurrent level: %s\ncost: 12500"%self.hero.warrior_level,
+                      status_message="Upgrade Warriors\ncurrent level: %s\ncost: 125"%self.hero.warrior_level,
                       anchor="topleft")
 
         i = pygame.Surface((30,30)).convert_alpha()
@@ -181,6 +181,7 @@ class Game(GameState):
             self.tech_worker_upgrade_cost = int(self.tech_worker_upgrade_cost * 2.25)
             self.upg_worker.status_message = "Upgrade Workers\ncurrent level: %s\ncost: %s"%(self.hero.worker_level,
                                                                                                    self.tech_worker_upgrade_cost)
+            self.update_money()
 
     def upgrade_warrior(self):
         if self.money >= self.tech_warrior_upgrade_cost:
@@ -189,6 +190,7 @@ class Game(GameState):
             self.tech_warrior_upgrade_cost = int(self.tech_warrior_upgrade_cost * 2.25)
             self.upg_warrior.status_message = "Upgrade Warriors\ncurrent level: %s\ncost: %s"%(self.hero.warrior_level,
                                                                                                     self.tech_warrior_upgrade_cost)
+            self.update_money()
 
     def upgrade_traps(self):
         if self.money >= self.tech_trap_upgrade_cost:
@@ -197,6 +199,7 @@ class Game(GameState):
             self.tech_trap_upgrade_cost = int(self.tech_trap_upgrade_cost * 2.25)
             self.upg_warrior.status_message = "Upgrade Traps\ncurrent level: %s\ncost: %s"%(self.hero.trap_level,
                                                                                             self.tech_trap_upgrade_cost)
+            self.update_money()
 
     def build_tower(self):
         if self.money >= objects.TowerBase.money_cost and self.scraps >= objects.TowerBase.scrap_cost:
