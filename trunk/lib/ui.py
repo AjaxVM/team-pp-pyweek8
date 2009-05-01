@@ -159,18 +159,18 @@ class Widget(object):
     def render(self):
         if self.image:
             self.app.surf.blit(self.image, self.rect)
+        if self.hover and self.rect and self.highlight:
+            surf = pygame.Surface(self.rect.inflate(5,5).size).convert_alpha()
+            surf.fill((75,75,255,125))
+            new_rect = surf.get_rect(center=self.rect.center)
+            pygame.draw.rect(surf, (0,0,0), ((0,0),self.rect.inflate(5,5).size), 1)
+            self.app.surf.blit(surf, new_rect)
         if self.text:
             x, y = self.rect.topleft
             down = 0
             for t in self.text:
                 self.app.surf.blit(t, (x, y+down))
                 down += t.get_height()
-        if self.hover and self.rect and self.highlight:
-            surf = pygame.Surface(self.rect.inflate(4,4).size).convert_alpha()
-            surf.fill((75,75,255,50))
-            new_rect = surf.get_rect(center=self.rect.center)
-            pygame.draw.rect(surf, (0,0,0), ((0,0),self.rect.inflate(4,4).size), 2)
-            self.app.surf.blit(surf, new_rect)
 
     def get_status(self):
         return None
