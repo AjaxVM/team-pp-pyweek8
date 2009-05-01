@@ -232,7 +232,7 @@ class Hive(GameObject):
         self.wait_for = 20
         self.fast = False
 
-        self.choice_list = [Ant]*4 + [Beetle]*2
+        self.choice_list = [Ant]*4 + [Beetle]*2 + [Worm]*1
 
     def update(self):
         self.counter += 1
@@ -350,9 +350,10 @@ class TowerBase(GameObject):
     def update(self):
         diso = (None, self.range+1)
         for i in self.game.insect_group.objects:
-            x = misc.distance(self.rect.center, i.rect.center)
-            if x < diso[1]:
-                diso = (i, x)
+            if not i.immune:
+                x = misc.distance(self.rect.center, i.rect.center)
+                if x < diso[1]:
+                    diso = (i, x)
 
         if diso[0] and diso[1] < self.range:
             self.shot_timer += 1
@@ -634,8 +635,9 @@ class Worker(Animation):
             self.kill()
 
         for i in self.game.insect_group.objects:
-            if self.rect.inflate(6,6).colliderect(i.rect.inflate(6,6)):
-                do_hit.append(i)
+            if not i.immune or i.flying:
+                if self.rect.inflate(6,6).colliderect(i.rect.inflate(6,6)):
+                    do_hit.append(i)
 
         if do_hit:
             self.attack_timer += 1
@@ -811,6 +813,9 @@ class Ant(Animation):
 
         self.speed = 2
 
+        self.immune = False
+        self.flying = False
+
     def reset_target(self):
         self.target = None
 
@@ -872,7 +877,11 @@ class Ant(Animation):
             if grid_pos:
                 self.move_timer += 1
                 if self.move_timer >= self.speed:
-                    self.animate("walk", int(15/self.speed), 1)
+                    if self.immune:
+                        ta = "walk-immune"
+                    else:
+                        ta = "walk"
+                    self.animate(ta, int(15/self.speed), 1)
                     ydiff = grid_pos[1] - self.rect.centery
                     xdiff = grid_pos[0] - self.rect.centerx
                     self.angle = math.degrees(math.atan2(xdiff, ydiff)) + 180
@@ -911,6 +920,56 @@ class Beetle(Ant):
         self.damage = 3 * self.level
 
         self.speed = 3
+
+class Worm(Ant):
+    def __init__(self, game, level=1):
+        self.groups = game.main_group, game.insect_group
+        Ant.__init__(self, game, level)
+
+        self.walk_images = [
+            data.image("data/worm-1.png"),
+            data.image("data/worm-1.png"),
+            ]
+        self.walk_images_immune = [
+            data.image("data/worm-1-immune.png"),
+            data.image("data/worm-1-immune.png"),
+            ]
+        self.image = self.walk_images[0]
+        self.add_animation("walk", self.walk_images)
+        self.add_animation("walk-immune", self.walk_images_immune)
+        self.rect = self.image.get_rect()
+        self.rect.center = self.game.hive.rect.center
+
+        self.max_hp = 30 * self.level
+        self.hp = int(self.max_hp)
+        self.show_hp_bar = True
+        self.worth = 20 * self.level
+        self.damage = 4 * self.level
+
+        self.speed = 2
+        self.immune_start = None
+        self.went_immune = False
+        self.wait = random.randint(250, 500)
+        self.wait_counter = 0
+
+    def update(self):
+        if self.immune:
+            self.speed = 4
+        else:
+            self.speed = 2
+        Ant.update(self)
+
+        if not self.immune:
+            self.wait_counter += 1
+            if self.wait_counter >= self.wait:
+                if not self.went_immune:
+                    self.went_immune = True
+                    self.immune = True
+                    self.immune_start = self.rect.center
+
+        if self.immune:
+            if misc.distance(self.rect.center, self.immune_start) >= 425:
+                self.immune = False
 
 class Explosion(Animation):
     
@@ -1120,8 +1179,9 @@ class BattleBot(Worker):
             self.kill()
 
         for i in self.game.insect_group.objects:
-            if self.rect.inflate(6,6).colliderect(i.rect.inflate(6,6)):
-                do_hit.append(i)
+            if not i.immune or i.flying:
+                if self.rect.inflate(6,6).colliderect(i.rect.inflate(6,6)):
+                    do_hit.append(i)
 
         if do_hit:
             self.attack_timer += 1
@@ -1136,12 +1196,13 @@ class BattleBot(Worker):
         old_target = self.target
         diso = None
         for i in self.game.insect_group.objects+self.game.hive_group.objects:
-            if not diso:
-                diso = (i, misc.distance(self.rect.center, i.rect.center))
-                continue
-            x = misc.distance(self.rect.center, i.rect.center)
-            if x < diso[1]:
-                diso = (i, x)
+            if not i.immune or i.flying:
+                if not diso:
+                    diso = (i, misc.distance(self.rect.center, i.rect.center))
+                    continue
+                x = misc.distance(self.rect.center, i.rect.center)
+                if x < diso[1]:
+                    diso = (i, x)
 
         if diso:
             if not (diso[0] == old_target and self.path):
