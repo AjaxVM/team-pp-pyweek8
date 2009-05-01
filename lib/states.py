@@ -504,12 +504,12 @@ class Game(GameState):
         if self.build_active:
             self.screen.blit(self.build_overlay, (0,0))
 
+        pygame.draw.rect(self.screen, (255,0,255), (self.map_grid.screen_to_screen(pygame.mouse.get_pos()), (20,20)), 2)
 
         self.main_group.render()
         self.damage_notes_group.render()
 
         #mouse stuffs!
-        pygame.draw.rect(self.screen, (255,0,255), (self.map_grid.screen_to_screen(pygame.mouse.get_pos()), (20,20)), 2)
         if self.build_active:
             x, y = self.map_grid.screen_to_screen(pygame.mouse.get_pos())
             grid = self.map_grid.screen_to_grid((x,y))
