@@ -539,6 +539,7 @@ class Worker(Animation):
     scrap_cost = 35
     used_targets = []
     ui_icon = "data/worker-1.png"
+    diesound = 'boom2.ogg'
     def __init__(self, game):
         self.groups = game.main_group, game.bot_group
         Animation.__init__(self, game)
@@ -736,6 +737,8 @@ class Worker(Animation):
 
     def kill(self):
         self.reset_target()
+
+        self.game.audio.sounds[self.diesound].play()
 
         Animation.kill(self)
 
@@ -946,6 +949,7 @@ class Trap(GameObject):
     money_cost = 10
     scrap_cost = 20
     ui_icon = "data/spikes.png"
+    diesound = 'boom1.ogg'
     def __init__(self, game, pos):
         self.groups = game.main_group, game.trap_group
         GameObject.__init__(self, game)
@@ -975,6 +979,7 @@ class Trap(GameObject):
 
     def kill(self):
         GameObject.kill(self)
+	self.game.audio.sounds[self.diesound].play()
         self.game.map_grid.set(self.game.map_grid.screen_to_grid(self.rect.topleft), 0)
 
     def update(self):
