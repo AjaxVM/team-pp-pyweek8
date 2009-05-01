@@ -288,8 +288,12 @@ class TowerInfo(Widget):
 
                 level = 1
 
+                damage = i.base_attack
+                range = i.base_range
+                speed = i.base_shoot_speed
+
                 self.upgrades.append((image, target, hover_image, rect, hover_rect,
-                                      cost, level))
+                                      cost, level, damage, range, speed))
 
         #upgrade now!
         image = tower.image.copy()
@@ -310,8 +314,10 @@ class TowerInfo(Widget):
         pygame.draw.rect(hover_image, (0,0,0), ((0,0), hover_image.get_size()), 2)
 
         level = tower.level + 1
+        damage, range, speed = tower.get_stats_at_next_level()
+
         self.upgrades.append((image, target, hover_image, rect, hover_rect,
-                                  cost, level))
+                              cost, level, damage, range, speed))
 
         self.events["click"] = self.handle_click
 
@@ -323,7 +329,7 @@ class TowerInfo(Widget):
 
         for i in self.upgrades:
             (image, target, hover_image, rect, hover_rect,
-             cost, level) = i
+             cost, level, damage, range, speed) = i
 
             if hover_rect.collidepoint((mx, my)):
                 if target == self.tower.name:
@@ -354,13 +360,14 @@ class TowerInfo(Widget):
             my -= y
             for i in self.upgrades:
                 (image, target, hover_image, rect, hover_rect,
-                 cost, level) = i
+                 cost, level, damage, range, speed) = i
                 if hover_rect.collidepoint((mx, my)):
                     if target == self.tower.name:
                         n = "Upgrade "
                     else:
                         n = ""
-                    return n + target + "\ncost:\n  money: %s\n  scraps: %s"%cost
+                    x = "\ncost:\n  money: %s\n  scraps: %s\n----------\nattack: %s\nrange: %s\nspeed: %s"
+                    return n + target + x % (cost[0], cost[1], damage, range, speed)
 
     def render(self):
         Widget.render(self)
@@ -390,7 +397,7 @@ class TowerInfo(Widget):
 
         for i in self.upgrades:
             (image, target, hover_image, rect, hover_rect,
-             cost, level) = i
+             cost, level, damage, range, speed) = i
             _x, _y = rect.topleft
             _x += x
             _y += y
