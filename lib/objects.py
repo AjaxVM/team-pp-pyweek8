@@ -180,6 +180,10 @@ class Hero(GameObject):
         self.warrior_level = 1
         self.trap_level = 1
 
+        self.tech_worker_upgrade_cost = 100
+        self.tech_warrior_upgrade_cost = 125
+        self.tech_trap_upgrade_cost = 75
+
         self.hp = 20
         self.max_hp = 20
 
@@ -535,8 +539,8 @@ class RandomTarget(object):
 
 class Worker(Animation):
     time_cost = 30
-    money_cost = 0
-    scrap_cost = 35
+    money_cost = 15
+    scrap_cost = 30
     used_targets = []
     ui_icon = "data/worker-1.png"
     diesound = 'boom2.ogg'
