@@ -371,7 +371,7 @@ class Game(GameState):
         i = pygame.transform.scale(data.image("data/spray_can.png"), (35, 70))
         self.special_spray = ui.Button(self.app, image=i, pos=l.rect.inflate(0,2).bottomleft,
                       callback=self.use_spray_special,
-                      status_message="Use your spray can - kills all baddies!",
+                      status_message="Insects whooping on you?\nUse your spray can - kills all baddies!",
                       anchor="topleft")
         i = pygame.transform.scale(data.image("data/broom.png"), (35, 70))
         self.special_broom = ui.Button(self.app, image=i, pos=self.special_spray.rect.inflate(8,0).topright,
