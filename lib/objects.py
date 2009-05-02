@@ -44,6 +44,7 @@ class GameObject(object):
 
         self.was_killed = False
         self.show_hp_bar = False
+
         self.hp = 0
         self.max_hp = 0
         self.hp_bar_color=(255,0,0)
@@ -171,7 +172,7 @@ class Hero(GameObject):
         self.image = data.image("data/steps.png")
 
         self.rect = self.image.get_rect()
-        self.rect.bottomright = (842,525) #bottom 100 is the ui bar!
+        self.rect.bottomright = (800,500) #bottom 100 is the ui bar!
 
         self.worker_level = 1
         self.warrior_level = 1
@@ -217,6 +218,19 @@ class Hero(GameObject):
                 self.game.scraps -= self.building.scrap_cost
                 self.building = None
                 self.game.update_money()
+
+    def render(self):
+        GameObject.render(self)
+        outer = pygame.Surface((12, 60))
+        full = 58 #by 3
+        total = int(self.hp*1.0/self.max_hp*full)
+        pygame.draw.rect(outer, (0,255,0), (1,1,10, full))
+
+        r = pygame.Rect(0,0,12,60)
+        r.midright = self.rect.midright
+        r.right -= 5
+
+        self.game.screen.blit(outer, r)
 
 class Hive(GameObject):
     def __init__(self, game):
@@ -266,6 +280,18 @@ class Hive(GameObject):
         if self.num_spawned >= self.wait_for:
             self.wait_for += 10
             self.level += 1
+
+    def render(self):
+        GameObject.render(self)
+        outer = pygame.Surface((12, 60))
+        full = 58 #by 3
+        total = int(self.hp*1.0/self.max_hp*full)
+        pygame.draw.rect(outer, (175,0,0), (1,1,10, full))
+
+        r = pygame.Rect(0,0,12,60)
+        r.midleft = self.rect.midleft
+
+        self.game.screen.blit(outer, r)
 
 class BuildTower(GameObject):
     def __init__(self, game, pos, to_build="Base Tower"):
