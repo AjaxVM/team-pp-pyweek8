@@ -373,6 +373,11 @@ class Game(GameState):
                       callback=self.use_spray_special,
                       status_message="Use your spray can - kills all baddies!",
                       anchor="topleft")
+        i = pygame.transform.scale(data.image("data/broom.png"), (35, 70))
+        self.special_broom = ui.Button(self.app, image=i, pos=self.special_spray.rect.inflate(8,0).topright,
+                      callback=self.use_broom_special,
+                      status_message="Wah! They are too strong!\nCall down some major beatdown\nfrom your mom's broom!",
+                      anchor="topleft")
 
         self.status_message = ui.PopupManager(self.app)
         self.status_message.set("Testing, 1,2,3")
@@ -407,6 +412,10 @@ class Game(GameState):
     def use_spray_special(self):
         self.special_spray.kill() #because you can't do it twice!
         objects.SprayCanSpecial(self)
+
+    def use_broom_special(self):
+        self.special_broom.kill() #because you can't do it twice!
+        objects.BroomSpecial(self)
 
     def upgrade_warrior(self):
         if self.money >= self.hero.tech_warrior_upgrade_cost:
