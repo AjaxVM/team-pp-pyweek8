@@ -306,6 +306,10 @@ class BuildTower(GameObject):
             to_build = TowerBase
         elif to_build == "Missile Tower":
             to_build = MissileTower
+        elif to_build == "Bird Food Tower":
+            to_build = BirdFoodTower
+        else:
+            to_build = TowerBase
         self.to_build = to_build
         self.game.money -= self.to_build.money_cost
         self.game.scraps -= self.to_build.scrap_cost
@@ -362,7 +366,7 @@ class TowerBase(GameObject):
 
         self.damage = int(self.base_attack)
 
-        self.upgrade_types = [MissileTower]
+        self.upgrade_types = [MissileTower]#remove after testing!
 
     def get_stats_at_next_level(self):
         return (self.damage + (5 + int(self.damage/5)),#damage
@@ -437,7 +441,7 @@ class MissileTower(TowerBase):
         self.range = int(self.base_range)
         self.damage = int(self.base_attack)
 
-        self.upgrade_types = []
+        self.upgrade_types = [BirdFoodTower]
 
     def get_stats_at_next_level(self):
         return (self.damage + 7 + int(self.damage/7),#damage
@@ -450,6 +454,47 @@ class MissileTower(TowerBase):
         self.game.scraps -= self.scrap_cost
         self.damage += 7 + int(self.damage/7)
         self.range += 20
+        self.inc_cost()
+        self.game.update_money()
+
+class BirdFoodTower(TowerBase):
+    ui_icon = "data/tower-bird-food.png"
+    fire_sound = 'missile1.ogg'
+    time_cost = 450
+    money_cost = 250
+    scrap_cost = 250
+    name = "Bird Food Tower"
+    base_attack = 40
+    base_shoot_speed = 100
+    base_range = 175
+    def __init__(self, game, pos):
+        TowerBase.__init__(self, game, pos)
+
+        self.image = data.image("data/tower-bird-food.png")
+
+        self.level = 1
+
+        self.rect = self.image.get_rect()
+        self.rect.midbottom = pos
+
+        self.shot_speed = int(self.base_shoot_speed)
+        self.shot_type = BirdFoodPellet
+        self.range = int(self.base_range)
+        self.damage = int(self.base_attack)
+
+        self.upgrade_types = []
+
+    def get_stats_at_next_level(self):
+        return (self.damage + 15 + int(self.damage/5),#damage
+                10 + self.range,#range
+                self.shot_speed)
+
+    def upgrade(self):
+        self.level += 1
+        self.game.money -= self.money_cost
+        self.game.scraps -= self.scrap_cost
+        self.damage += 15 + int(self.damage/5)
+        self.range += 10
         self.inc_cost()
         self.game.update_money()
 
@@ -534,6 +579,87 @@ class Missile(Bullet):
         Bullet.render(self)
         self.image = _image
         self.rect = _image.get_rect(center=self.rect.center)
+
+class SwoopingBird(Bullet):
+    def __init__(self, game, target, damage):
+        self.groups = game.main_group, game.bullet_group
+        Bullet.__init__(self, game, (0,0), 10000, target, damage)
+
+        self.image = data.image("data/bird.png")
+        self.rect = self.image.get_rect()
+        self.rect.topright = 800,0
+        self.pos = self.rect.center
+
+        self.angle = 0
+        self.speed = 6
+
+    def update(self):
+        if self.target.was_killed:
+            self.kill()
+        ydiff = self.target.rect.centery - self.pos[1]
+        xdiff = self.target.rect.centerx - self.pos[0]
+        angle = math.degrees(math.atan2(xdiff, ydiff))
+
+        if abs(angle-self.angle) <= 25:
+            self.angle = angle
+        
+        if angle< self.angle:
+            self.angle -= 20
+        else:
+            self.angle += 20
+        x = math.sin(math.radians(self.angle))
+        y = math.cos(math.radians(self.angle))
+        self.direction = (x, y)
+
+        self.age += 1
+        if self.age > self.range/self.speed:
+            self.kill()
+
+        x, y = self.pos
+        x += self.direction[0] * self.speed
+        y += self.direction[1] * self.speed
+
+        self.pos = (x, y)
+
+        self.rect.center = self.pos
+
+        if self.rect.colliderect(self.target.rect):
+            self.target.hit(self.damage)
+            self.kill()
+
+    def render(self):
+        _image = self.image
+        self.image = pygame.transform.rotate(self.image, self.angle+180)
+        self.rect = self.image.get_rect(center=self.rect.center)
+        Bullet.render(self)
+        self.image = _image
+        self.rect = _image.get_rect(center=self.rect.center)
+
+class BirdFoodPellet(Bullet):
+    def __init__(self, game, pos, range, target, damage):
+        self.groups = game.main_group, game.bullet_group
+        Bullet.__init__(self, game, pos, range, target, damage)
+
+        self.image = data.image("data/bird_food_bullet.png")
+        self.speed = 3
+
+    def update(self):
+        self.age += 1
+        if self.age > self.range/self.speed:
+            self.kill()
+
+        x, y = self.pos
+        x += self.direction[0] * self.speed
+        y += self.direction[1] * self.speed
+
+        self.pos = (x, y)
+
+        self.rect.center = self.pos
+
+        for i in self.game.insect_group.objects:
+            if self.rect.colliderect(i.rect):
+                SwoopingBird(self.game, self.target, self.damage)
+                self.kill()
 
 class Net(Bullet):
     def __init__(self, game, pos, range, target, damage, duration):

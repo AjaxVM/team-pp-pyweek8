@@ -347,6 +347,8 @@ class TowerInfo(Widget):
                 else:
                     if target == "Missile Tower":
                         to_build = objects.MissileTower
+                    elif target == "Bird Food Tower":
+                        to_build = objects.BirdFoodTower
                     else:
                         to_build = objects.MissileTower
                     if to_build.money_cost <= self.tower.game.money and\
