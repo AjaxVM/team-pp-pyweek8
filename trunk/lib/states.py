@@ -164,6 +164,7 @@ class Game(GameState):
         self.ui_background = data.image("data/porch_ui.png")
 
         self.main_group = objects.GameGroup()
+        self.flying_group = objects.GameGroup()
         self.hero_group = objects.GameGroup()
         self.hive_group = objects.GameGroup()
         self.build_tower_group = objects.GameGroup()
@@ -502,6 +503,7 @@ class Game(GameState):
         self.damage_notes_group.update()
         self.trap_group.update()
         self.main_group.sort()
+        self.flying_group.sort()
 
         self.screen.blit(self.background, (0,0))
 
@@ -511,6 +513,7 @@ class Game(GameState):
         pygame.draw.rect(self.screen, (255,0,255), (self.map_grid.screen_to_screen(pygame.mouse.get_pos()), (20,20)), 2)
 
         self.main_group.render()
+        self.flying_group.render()
         self.damage_notes_group.render()
 
         #mouse stuffs!
