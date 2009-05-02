@@ -310,6 +310,8 @@ class BuildTower(GameObject):
             to_build = BirdFoodTower
         elif to_build == "Laser Tower":
             to_build = LaserTower
+        elif to_build == "Electro Tower":
+            to_build = ElectroTower
         else:
             to_build = TowerBase
         self.to_build = to_build
@@ -507,7 +509,7 @@ class LaserTower(TowerBase):
     money_cost = 100
     scrap_cost = 100
     name = "Laser Tower"
-    base_attack = 3
+    base_attack = 5
     base_shoot_speed = 20
     base_range = 120
     def __init__(self, game, pos):
@@ -541,10 +543,10 @@ class LaserTower(TowerBase):
 
         self.damage = int(self.base_attack)
 
-        self.upgrade_types = []
+        self.upgrade_types = [ElectroTower]
 
     def get_stats_at_next_level(self):
-        return (self.damage + (2 + int(self.damage/2)),#damage
+        return (self.damage + (3 + int(self.damage/3)),#damage
                 5 + self.range,#range
                 self.shot_speed) #speed
 
@@ -556,7 +558,7 @@ class LaserTower(TowerBase):
         self.level += 1
         self.game.money -= self.money_cost
         self.game.scraps -= self.scrap_cost
-        self.damage += 2 + int(self.damage/2)
+        self.damage += 3 + int(self.damage/3)
         self.range += 5
         self.inc_cost()
         self.game.update_money()
@@ -578,6 +580,45 @@ class LaserTower(TowerBase):
                 self.game.audio.sounds[self.fire_sound].play()
         else:
             self.shot_timer = int(self.shot_speed/2)
+
+class ElectroTower(LaserTower):
+    ui_icon = "data/tower-electro.png" #the ui needs these :S
+    fire_sound = 'gun1.ogg'
+    time_cost = 400
+    money_cost = 220
+    scrap_cost = 220
+    name = "Electro Tower"
+    base_attack = 10
+    base_shoot_speed = 35
+    base_range = 130
+    def __init__(self, game, pos):
+        LaserTower.__init__(self, game, pos)
+
+        self.image = data.image("data/tower-electro.png")
+
+        self.rect = self.image.get_rect()
+        self.rect.midbottom = pos
+
+        self.upgrade_types = []
+        self.shot_type = ElectroBolt
+
+    def get_stats_at_next_level(self):
+        return (self.damage + (4 + int(self.damage/3)),#damage
+                7 + self.range,#range
+                self.shot_speed) #speed
+
+    def inc_cost(self):
+        self.money_cost = int(self.money_cost * 1.75)
+        self.scrap_cost = int(self.scrap_cost * 1.75)
+
+    def upgrade(self):
+        self.level += 1
+        self.game.money -= self.money_cost
+        self.game.scraps -= self.scrap_cost
+        self.damage += 4 + int(self.damage/3)
+        self.range += 7
+        self.inc_cost()
+        self.game.update_money()
 
 class Bullet(GameObject):
     def __init__(self, game, pos, range, target, damage):
@@ -722,51 +763,47 @@ class Laser(Bullet):
         Bullet.__init__(self, game, pos, range, target, damage)
 
         self.pos = pos
-        self.speed = 6
+        self.speed = 0
         self.to_die = False
         self.die_counter = 0
 
     def update(self):
         if self.target.was_killed:
             self.kill()
-        ydiff = self.target.rect.centery - self.pos[1]
-        xdiff = self.target.rect.centerx - self.pos[0]
-        angle = math.degrees(math.atan2(xdiff, ydiff))
-
-        if abs(angle-self.angle) <= 25:
-            self.angle = angle
-        
-        if angle< self.angle:
-            self.angle -= 20
-        else:
-            self.angle += 20
-        x = math.sin(math.radians(self.angle))
-        y = math.cos(math.radians(self.angle))
-        self.direction = (x, y)
-
-        self.age += 1
-        if self.age > self.range/self.speed:
-            self.kill()
-
-        x, y = self.pos
-        x += self.direction[0] * self.speed
-        y += self.direction[1] * self.speed
-
-        self.pos = (x, y)
-
-        self.rect.center = self.pos
 
         if self.to_die:
             self.die_counter += 1
-            if self.die_counter >= 20:
+            if self.die_counter >= 10:
                 self.kill()
 
-        self.target.hit(self.damage)
-        Explosion(self.game, self.target.rect.center)
-        self.to_die = True
+        else:
+            self.target.hit(self.damage)
+            Explosion(self.game, self.target.rect.center)
+            self.to_die = True
 
     def render(self):
         pygame.draw.line(self.game.screen, (255,0,0), self.pos, self.target.rect.center, 4)
+
+class ElectroBolt(Laser):
+    def __init__(self, game, pos, range, target, damage, used_insects=[], base_pos=None):
+        self.groups = game.main_group, game.bullet_group
+        Laser.__init__(self, game, pos, range, target, damage)
+
+        if not base_pos:
+            base_pos = pos
+        self.base_pos = base_pos
+
+        self.used_insects = used_insects
+        for i in self.game.insect_group.objects:
+            if not i in self.used_insects:
+                if misc.distance(base_pos, i.rect.center) < self.range:
+                    self.used_insects.append(i)
+                    ElectroBolt(self.game, self.target.rect.center, self.range,
+                                i, self.damage, self.used_insects, self.base_pos)
+
+    def render(self):
+        pygame.draw.line(self.game.screen, (0,0,255), self.pos, self.target.rect.center, 6)
+        pygame.draw.line(self.game.screen, (255,255,255), self.pos, self.target.rect.center, 2)
 
 class BirdFoodPellet(Bullet):
     def __init__(self, game, pos, range, target, damage):
@@ -1163,15 +1200,13 @@ class Ant(Animation):
 
     def hit(self, damage):
         Animation.hit(self, damage)
+        DamageNote(self.game, self.rect.midtop, (100,100,255), damage)
         if self.hp <= 0:
             self.game.audio.sounds[self.diesound].play()
             self.game.money += self.worth
             self.game.kills += 1
             self.game.update_money()
             DamageNote(self.game, self.rect.midtop, (220, 200, 50), self.worth, True)
-            return
-
-        DamageNote(self.game, self.rect.midtop, (100,100,255), damage)
 
     def update(self):
 
