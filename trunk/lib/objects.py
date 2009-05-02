@@ -216,9 +216,10 @@ class Hive(GameObject):
         self.groups = game.main_group, game.hive_group
         GameObject.__init__(self, game)
 
-        self.image = pygame.Surface((45, 45))
-        self.image.fill((100,0,100))
-        pygame.draw.circle(self.image, (255,0,0), (23,22), 25, 3)
+##        self.image = pygame.Surface((45, 45))
+##        self.image.fill((100,0,100))
+##        pygame.draw.circle(self.image, (255,0,0), (23,22), 25, 3)
+        self.image = data.image("data/hive.png")
         self.rect = self.image.get_rect()
         self.rect.topleft = (5,5)
 

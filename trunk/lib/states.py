@@ -158,6 +158,7 @@ class Game(GameState):
         self.audio = sound.SoundManager('data')
 
         self.background = data.image("data/background1.png")
+        self.ui_background = data.image("data/porch_ui.png")
 
         self.main_group = objects.GameGroup()
         self.hero_group = objects.GameGroup()
@@ -227,7 +228,7 @@ class Game(GameState):
         #Make build objects gui
         #TODO: implement multiple kinds of warriors/traps!!!
 
-        l = ui.Label(self.app, "Basic", pos=(215, 500))
+        l = ui.Label(self.app, "Basic", pos=(215, 520))
         ui.LinesGroup(self.app, l)
         b = ui.Button(self.app, image=objects.TowerBase.ui_icon, pos=l.rect.inflate(0,2).bottomleft,
                   callback=self.build_tower,
@@ -250,7 +251,7 @@ class Game(GameState):
                       anchor="topleft")
         self.build_worker_button = b
 
-        l = ui.Label(self.app, "Warriors", pos=(300, 500))
+        l = ui.Label(self.app, "Warriors", pos=(300, 520))
         ui.LinesGroup(self.app, l)
         b = ui.Button(self.app, image=objects.BattleBot.ui_icon, pos=l.rect.inflate(0,2).bottomleft,
                   callback=self.build_warrior,
@@ -265,7 +266,7 @@ class Game(GameState):
         self.build_warrior_button = b
         
 
-        l = ui.Label(self.app, "Traps", pos=(420, 500))
+        l = ui.Label(self.app, "Traps", pos=(420, 520))
         ui.LinesGroup(self.app, l)
         b = ui.Button(self.app, image=objects.Trap.ui_icon, pos=l.rect.inflate(0,2).bottomleft,
                   callback=self.build_trap,
@@ -280,7 +281,7 @@ class Game(GameState):
 
 
         #Ooh, techs, gotta love them!
-        l = ui.Label(self.app, "  Techs   ", pos=(510, 500))
+        l = ui.Label(self.app, "  Techs   ", pos=(510, 520))
         ui.LinesGroup(self.app, l)
         i = pygame.Surface((30,30)).convert_alpha()
         i.fill((0,0,0,0))
@@ -528,7 +529,8 @@ class Game(GameState):
             
 
 
-        pygame.draw.rect(self.screen, (125,125,125), (0,500,800,600))
+        self.screen.blit(self.ui_background, (0,500))
+        
         self.app.render()
         self.screen.blit(self.money_ui, self.money_ui_pos)
         self.screen.blit(self.scraps_ui, self.scraps_ui_pos)
