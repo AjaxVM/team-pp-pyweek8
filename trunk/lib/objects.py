@@ -216,9 +216,6 @@ class Hive(GameObject):
         self.groups = game.main_group, game.hive_group
         GameObject.__init__(self, game)
 
-##        self.image = pygame.Surface((45, 45))
-##        self.image.fill((100,0,100))
-##        pygame.draw.circle(self.image, (255,0,0), (23,22), 25, 3)
         self.image = data.image("data/hive.png")
         self.rect = self.image.get_rect()
         self.rect.topleft = (5,5)
@@ -232,6 +229,9 @@ class Hive(GameObject):
         self.num_spawned = 0
         self.wait_for = 20
         self.fast = False
+
+        self.flying = False
+        self.immune = False
 
         self.choice_list = [Ant]*4 + [Beetle]*2 + [Worm]*1
 
@@ -799,6 +799,8 @@ class Ant(Animation):
 
         self.diesound = 'die1.ogg'
 
+        self.ani_speed = 15
+
         self.level = level
 
         self.target = None
@@ -882,7 +884,7 @@ class Ant(Animation):
                         ta = "walk-immune"
                     else:
                         ta = "walk"
-                    self.animate(ta, int(15/self.speed), 1)
+                    self.animate(ta, int(self.ani_speed/self.speed), 1)
                     ydiff = grid_pos[1] - self.rect.centery
                     xdiff = grid_pos[0] - self.rect.centerx
                     self.angle = math.degrees(math.atan2(xdiff, ydiff)) + 180
@@ -929,11 +931,13 @@ class Worm(Ant):
 
         self.walk_images = [
             data.image("data/worm-1.png"),
-            data.image("data/worm-1.png"),
+            data.image("data/worm-2.png"),
             ]
         self.walk_images_immune = [
             data.image("data/worm-1-immune.png"),
-            data.image("data/worm-1-immune.png"),
+            data.image("data/worm-2-immune.png"),
+            data.image("data/worm-3-immune.png"),
+            data.image("data/worm-4-immune.png"),
             ]
         self.image = self.walk_images[0]
         self.add_animation("walk", self.walk_images)
@@ -947,17 +951,20 @@ class Worm(Ant):
         self.worth = 20 * self.level
         self.damage = 4 * self.level
 
-        self.speed = 2
+        self.speed = 3
         self.immune_start = None
         self.went_immune = False
         self.wait = random.randint(250, 500)
         self.wait_counter = 0
+        self.ani_speed = 50
 
     def update(self):
         if self.immune:
-            self.speed = 4
+            self.speed = 5
+            self.ani_speed = 65
         else:
-            self.speed = 2
+            self.speed = 3
+            self.ani_speed = 50
         Ant.update(self)
 
         if not self.immune:
