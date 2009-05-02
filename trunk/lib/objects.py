@@ -221,16 +221,13 @@ class Hero(GameObject):
 
     def render(self):
         GameObject.render(self)
-        outer = pygame.Surface((12, 60))
-        full = 58 #by 3
-        total = int(self.hp*1.0/self.max_hp*full)
-        pygame.draw.rect(outer, (0,255,0), (1,1,10, full))
 
-        r = pygame.Rect(0,0,12,60)
-        r.midright = self.rect.midright
-        r.right -= 5
-
-        self.game.screen.blit(outer, r)
+        t = data.font("data/font.ttf", 45)
+        t1 = t.render(str(self.hp), 1, (0,255,0))
+        t2 = t.render(str(self.hp), 1, (0,0,0))
+        r = t2.get_rect(center=self.rect.center)
+        self.game.screen.blit(t2, r)
+        self.game.screen.blit(t1, r.move(1,1))
 
 class Hive(GameObject):
     def __init__(self, game):
@@ -283,15 +280,13 @@ class Hive(GameObject):
 
     def render(self):
         GameObject.render(self)
-        outer = pygame.Surface((12, 60))
-        full = 58 #by 3
-        total = int(self.hp*1.0/self.max_hp*full)
-        pygame.draw.rect(outer, (175,0,0), (1,1,10, full))
 
-        r = pygame.Rect(0,0,12,60)
-        r.midleft = self.rect.midleft
-
-        self.game.screen.blit(outer, r)
+        t = data.font("data/font.ttf", 45)
+        t1 = t.render(str(self.hp), 1, (255,0,0))
+        t2 = t.render(str(self.hp), 1, (0,0,0))
+        r = t2.get_rect(center=self.rect.center)
+        self.game.screen.blit(t2, r)
+        self.game.screen.blit(t1, r.move(1,1))
 
 class BuildTower(GameObject):
     def __init__(self, game, pos, to_build="Base Tower"):
@@ -1610,7 +1605,7 @@ class TrapperBot(BattleBot):
 
     base_speed = 2
     base_hp = 25
-    base_damage = 3
+    base_damage = 4
     base_range=110
     base_net_duration=175
     special = "traps"
@@ -1670,7 +1665,7 @@ class TrapperBot(BattleBot):
             self.throw_net_counter += 1
             if self.throw_net_counter >= self.throw_net_wait:
                 self.throw_net_counter = 0
-                Net(self.game, self.rect.center, self.range+20, target[0], int(self.damage*.35), self.net_duration)
+                Net(self.game, self.rect.center, self.range+20, target[0], int(self.damage*.65), self.net_duration)
 
 class GuardBot(BattleBot):
     time_cost = 100
