@@ -177,6 +177,7 @@ class Game(GameState):
         self.blocking_group = objects.GameGroup()
         self.bullet_group = objects.GameGroup()
         self.trap_group = objects.GameGroup()
+        self.special_group = objects.GameGroup()
 
         self.damage_notes_group = objects.GameGroup()
 
@@ -234,7 +235,7 @@ class Game(GameState):
         #Make build objects gui
         #TODO: implement multiple kinds of warriors/traps!!!
 
-        l = ui.Label(self.app, "Basic", pos=(215, 500))
+        l = ui.Label(self.app, "Basic", pos=(180, 500))
         ui.LinesGroup(self.app, l)
         b = ui.Button(self.app, image=objects.TowerBase.ui_icon, pos=l.rect.inflate(0,2).bottomleft,
                   callback=self.build_tower,
@@ -257,7 +258,7 @@ class Game(GameState):
                       anchor="topleft")
         self.build_worker_button = b
 
-        l = ui.Label(self.app, "Warriors ", pos=(300, 500))
+        l = ui.Label(self.app, "Warriors ", pos=(250, 500))
         ui.LinesGroup(self.app, l)
         b = ui.Button(self.app, image=objects.BattleBot.ui_icon, pos=l.rect.inflate(0,2).bottomleft,
                   callback=self.build_warrior,
@@ -296,7 +297,7 @@ class Game(GameState):
         self.build_guard_button = b
         
 
-        l = ui.Label(self.app, " Traps ", pos=(430, 500))
+        l = ui.Label(self.app, " Traps ", pos=(370, 500))
         ui.LinesGroup(self.app, l)
         b = ui.Button(self.app, image=objects.SpikeTrap.ui_icon, pos=l.rect.inflate(0,2).bottomleft,
                   callback=self.build_spike_trap,
@@ -333,7 +334,7 @@ class Game(GameState):
 
 
         #Ooh, techs, gotta love them!
-        l = ui.Label(self.app, "  Techs   ", pos=(540, 500))
+        l = ui.Label(self.app, "  Techs   ", pos=(470, 500))
         ui.LinesGroup(self.app, l)
         i = pygame.Surface((30,30)).convert_alpha()
         i.fill((0,0,0,0))
@@ -365,6 +366,14 @@ class Game(GameState):
                                                                                    self.hero.tech_trap_upgrade_cost),
                       anchor="topleft")
 
+        l = ui.Label(self.app, "Specials     ", pos=(610, 500))
+        ui.LinesGroup(self.app, l)
+        i = pygame.transform.scale(data.image("data/spray_can.png"), (35, 70))
+        self.special_spray = ui.Button(self.app, image=i, pos=l.rect.inflate(0,2).bottomleft,
+                      callback=self.use_spray_special,
+                      status_message="Use your spray can - kills all baddies!",
+                      anchor="topleft")
+
         self.status_message = ui.PopupManager(self.app)
         self.status_message.set("Testing, 1,2,3")
 
@@ -394,6 +403,10 @@ class Game(GameState):
                                                                  test.max_hp,
                                                                  test.speed)
             self.build_worker_button.status_message = b
+
+    def use_spray_special(self):
+        self.special_spray.kill() #because you can't do it twice!
+        objects.SprayCanSpecial(self)
 
     def upgrade_warrior(self):
         if self.money >= self.hero.tech_warrior_upgrade_cost:
@@ -639,6 +652,7 @@ class Game(GameState):
         self.bullet_group.update()
         self.damage_notes_group.update()
         self.trap_group.update()
+        self.special_group.update()
         self.main_group.sort()
         self.flying_group.sort()
 
