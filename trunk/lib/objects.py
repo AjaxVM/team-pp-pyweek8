@@ -1315,6 +1315,8 @@ class CageTrap(GameObject):
         self.game.scraps -= self.scrap_cost
         self.game.update_money()
 
+        self.damage = 0
+
         self.level = 1
 
         self.times = 0
@@ -1337,8 +1339,11 @@ class CageTrap(GameObject):
 
     def update(self):
         for i in self.game.insect_group.objects:
-            if self.rect.collidepoint(i.rect.center):
+            if self.rect.inflate(-10,-10).colliderect(i.rect.inflate(-5,-5)):
+                i.rect.center = self.rect.center
                 i.stuck = True
+                if i.immune:
+                    i.immune = False
                 self.times += 1
                 if self.times >= self.max_times:
                     self.kill()
