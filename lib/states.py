@@ -255,7 +255,7 @@ class Game(GameState):
                       anchor="topleft")
         self.build_worker_button = b
 
-        l = ui.Label(self.app, "Warriors", pos=(300, 520))
+        l = ui.Label(self.app, "Warriors ", pos=(300, 520))
         ui.LinesGroup(self.app, l)
         b = ui.Button(self.app, image=objects.BattleBot.ui_icon, pos=l.rect.inflate(0,2).bottomleft,
                   callback=self.build_warrior,
@@ -280,9 +280,21 @@ class Game(GameState):
                                                                                                    objects.TrapperBot.special),
                       anchor="topleft")
         self.build_trapper_button = b
+
+        b = ui.Button(self.app, image=objects.GuardBot.ui_icon, pos=b.rect.inflate(8,0).topright,
+                  callback=self.build_guard,
+                      status_message=("Build a Guard\ncost:\n  money: %s\n  scraps: %s"+\
+                                      "\n----------\nattack: %s\nhp: %s\nspeed: %s\nspecial: %s")%(objects.GuardBot.money_cost,
+                                                                                      objects.GuardBot.scrap_cost,
+                                                                                      objects.GuardBot.base_damage,
+                                                                                      objects.GuardBot.base_hp,
+                                                                                      objects.GuardBot.base_speed,
+                                                                                                   objects.GuardBot.special),
+                      anchor="topleft")
+        self.build_guard_button = b
         
 
-        l = ui.Label(self.app, "Traps", pos=(420, 520))
+        l = ui.Label(self.app, "Traps", pos=(430, 520))
         ui.LinesGroup(self.app, l)
         b = ui.Button(self.app, image=objects.Trap.ui_icon, pos=l.rect.inflate(0,2).bottomleft,
                   callback=self.build_trap,
@@ -297,7 +309,7 @@ class Game(GameState):
 
 
         #Ooh, techs, gotta love them!
-        l = ui.Label(self.app, "  Techs   ", pos=(510, 520))
+        l = ui.Label(self.app, "  Techs   ", pos=(520, 520))
         ui.LinesGroup(self.app, l)
         i = pygame.Surface((30,30)).convert_alpha()
         i.fill((0,0,0,0))
@@ -382,13 +394,25 @@ class Game(GameState):
             test = objects.TrapperBot(self)
             test.kill() #we don't want to leave this laying around O.o
             b = ("Build a Trapper\ncost:\n  money: %s\n  scraps: %s"+\
-                  "\n----------\nattack: %s\nhp: %s\nspeed: %s\nspecial: %s")%(objects.TrapperBot.money_cost,
-                                                                  objects.TrapperBot.scrap_cost,
-                                                                  objects.TrapperBot.base_damage,
-                                                                  objects.TrapperBot.base_hp,
-                                                                  objects.TrapperBot.base_speed,
-                                                                               objects.TrapperBot.special)
+                  "\n----------\nattack: %s\nhp: %s\nspeed: %s\nspecial: %s")%(test.money_cost,
+                                                                  test.scrap_cost,
+                                                                  test.damage,
+                                                                  test.max_hp,
+                                                                  test.speed,
+                                                                   test.special)
             self.build_trapper_button.status_message = b
+
+
+            test = objects.GuardBot(self)
+            test.kill() #we don't want to leave this laying around O.o
+            b = ("Build a Guard\ncost:\n  money: %s\n  scraps: %s"+\
+                  "\n----------\nattack: %s\nhp: %s\nspeed: %s\nspecial: %s")%(test.money_cost,
+                                                                  test.scrap_cost,
+                                                                  test.damage,
+                                                                  test.max_hp,
+                                                                  test.speed,
+                                                                   test.special)
+            self.build_guard_button.status_message = b
 
     def upgrade_traps(self):
         if self.money >= self.hero.tech_trap_upgrade_cost:
@@ -464,6 +488,11 @@ class Game(GameState):
         if self.money >= objects.TrapperBot.money_cost and self.scraps >= objects.TrapperBot.scrap_cost and\
            len(self.bot_group.objects) < 20:
             self.hero.build_trapper()
+
+    def build_guard(self):
+        if self.money >= objects.GuardBot.money_cost and self.scraps >= objects.GuardBot.scrap_cost and\
+           len(self.bot_group.objects) < 20:
+            self.hero.build_guard()
 
     def update(self):
 
