@@ -368,6 +368,10 @@ class Game(GameState):
         self.status_message = ui.PopupManager(self.app)
         self.status_message.set("Testing, 1,2,3")
 
+        if mode == "easy":
+            self.money += self.hero.tech_worker_upgrade_cost
+            self.upgrade_worker()
+
     def upgrade_worker(self):
         if self.money >= self.hero.tech_worker_upgrade_cost:
             self.hero.worker_level += 1
