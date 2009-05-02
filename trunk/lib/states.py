@@ -59,6 +59,8 @@ class Menu(GameState):
                   callback=self._kill)
         ui.Button(self.app, "Tutorial", text_color=(0,255,255), pos=(200,150),
                   callback=lambda: self.parent.use_child("tut"))
+        ui.Button(self.app, "Story", text_color=(0,255,255), pos=(375,150),
+                  callback=lambda: self.parent.use_child("story"))
 
         self.bg = data.image("data/background1.png").copy()
         for i in xrange(100):
@@ -93,6 +95,53 @@ class Menu(GameState):
         self.app.render()
         pygame.display.flip()
 
+class StoryScreen(GameState):
+    def __init__(self, parent):
+        GameState.__init__(self, parent)
+
+        self.app = ui.App(self.get_root().screen)
+
+        text = """
+It is a normal day, and you are up in your room tinkering and creating your latest invention.
+All of a sudden this perfect day is shattered when your mom calls out
+"Hey, get those insects off the lawn and away from the lawn, NOW!"
+
+"Sigh, once again..." you mutter as you trudge down stares.
+Then, all of a sudden, you realize, she didn't say HOW I get rid of them.
+So, why not test my latest inventions while clearing the lawn? Yes, genius!
+
+You march out the front door, down the porch and stand firmly on the patio.
+"Hey bugs, Get off my Lawn!", you shout, as you start laying out your plan of action.
+___________________________
+Can your assortment of defenses and bots stop the insect hoard?
+"""
+
+        ui.Label(self.app, text, text_color=(255,255,255), pos=(5,70), anchor="topleft", small_text=True)
+
+        ui.Button(self.app, "Menu", text_color=(0,0,0), pos=(5,5),
+                  callback=lambda: self.parent.use_child("menu"))
+
+        self.bg = data.image("data/background1.png").copy()
+        for i in xrange(35):
+            self.bg.blit(data.image("data/worker-1.png"), (random.randint(150,800), 5))
+            self.bg.blit(data.image("data/tower-base.png"), (random.randint(150,800), 5))
+
+        n = self.bg.copy()
+        n.fill((255,228,196,65))
+        self.bg.blit(n, (0,0))
+
+    def update(self):
+        for event in pygame.event.get():
+            if self.app.update(event):
+                continue
+            if event.type == QUIT:
+                self.get_root().shutdown()
+                return
+
+        self.get_root().screen.blit(self.bg, (0,0))
+        self.app.render()
+        pygame.display.flip()
+
 class TutScreen(GameState):
     def __init__(self, parent):
         GameState.__init__(self, parent)
@@ -105,9 +154,15 @@ from your lawn!
 ___________________________________
 The game mechanics themselves are fairly simple.
 You are trying to destroy the insect hive before too many insects get
-through your defenses and into the house. The hive is at teh top left
+through your defenses and into the house. The hive is at the top left
 corner of the screen, and the way into the house is at the bottom right,
-where our hero is sitting."""
+where our hero is sitting.
+________________________________
+
+You must build towers to defend, workers to build towers and gather resources,
+and, finally, warriors to assault the insect hive.
+__________________________________
+Click Next to continue with the tutorial..."""
 
         ui.Label(self.app, text, text_color=(255,255,255), pos=(5,70), anchor="topleft", small_text=True)
 
@@ -337,7 +392,8 @@ Wasps fly (and thus can only be hit by towers)
 Worms burrow underground and come up later
     (while underground they are immune to all damage)
 
-Now go win!"""
+Now go win!
+Hit the "Menu" button to go back to the menu!"""
 
         ui.Label(self.app, text, text_color=(255,255,255), pos=(5,70), anchor="topleft", small_text=True)
 

@@ -27,7 +27,8 @@ class GameStateEngine(states.GameState):
                          "tut3":states.TutScreen3,
                          "tut4":states.TutScreen4,
                          "tut5":states.TutScreen5,
-                         "tut6":states.TutScreen6}
+                         "tut6":states.TutScreen6,
+                         "story":states.StoryScreen}
         self.use_child("menu")
 
         pygame.display.set_caption("Bug Me Not! - Pyweek #8 - April/May 2009 - Team PyedPypers")
