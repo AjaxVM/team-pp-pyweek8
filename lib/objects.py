@@ -177,8 +177,8 @@ class Hero(GameObject):
         self.hero_image = data.image("data/hero.png")
         self.hero_image_hover = data.image("data/hero_hover.png")
         self.hero_rect = self.hero_image.get_rect()
-        self.hero_rect.midbottom = self.rect.center
-        self.hero_rect.move_ip(0,15)
+        self.hero_rect.bottomright = self.rect.bottomright
+        self.hero_rect.move_ip(25,-10)
 
         self.worker_level = 1
         self.warrior_level = 1
@@ -240,7 +240,7 @@ class Hero(GameObject):
         t = data.font("data/font.ttf", 45)
         t1 = t.render(str(self.hp), 1, (0,255,0))
         t2 = t.render(str(self.hp), 1, (0,0,0))
-        r = t2.get_rect(midbottom=self.rect.inflate(0,-8).midbottom)
+        r = t2.get_rect(midleft=self.rect.inflate(-16,0).midleft)
         self.game.screen.blit(t2, r)
         self.game.screen.blit(t1, r.move(1,1))
 
@@ -320,8 +320,7 @@ class BuildTower(GameObject):
         self.groups = game.main_group, game.build_tower_group, game.blocking_group
         GameObject.__init__(self, game)
 
-        self.image = pygame.Surface((20,20)) #tile size...
-        pygame.draw.rect(self.image, (255,0,0), (0,0,20,20), 3)
+        self.image = data.image("data/base.png")
 
         self.rect = self.image.get_rect()
         x, y = pos
