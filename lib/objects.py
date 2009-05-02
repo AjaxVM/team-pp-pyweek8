@@ -2117,4 +2117,56 @@ class GuardBot(BattleBot):
                 self.target.hit(1)
                 self.kill()
 
+class PoisonSpray(GameObject):
+    def __init__(self, game, pos):
+        self.groups = game.main_group, game.special_group
+        GameObject.__init__(self, game)
+
+        self.image = data.image("data/green_cloud.png")
+        self.rot = 0
+        self.add_rot = random.choice((-1,1))
+        self.rect = self.image.get_rect()
+        self.rect.center = pos
+
+    def update(self):
+        for i in self.game.insect_group.objects:
+            if self.rect.colliderect(i.rect):
+                i.kill()
+
+        self.rect.move_ip(-1,0)
+        if self.rect.right <= 0:
+            self.kill()
+
+        self.rot += self.add_rot
+
+    def render(self):
+        _image = self.image
+        self.image = pygame.transform.rotate(self.image, self.rot)
+        self.rect = self.image.get_rect(center=self.rect.center)
+        GameObject.render(self)
+        self.image = _image
+        self.rect = self.image.get_rect(center=self.rect.center)
+
         
+class SprayCanSpecial(GameObject):
+    def __init__(self, game):
+        self.groups = game.main_group, game.special_group
+        GameObject.__init__(self, game)
+
+        self.image = data.image("data/spray_can.png")
+        self.rect = self.image.get_rect()
+        self.rect.topright = (800,0)
+
+        self.spray_count = 5
+
+    def update(self):
+        self.spray_count += 1
+        if self.spray_count >= 5:
+            PoisonSpray(self.game, self.rect.topleft)
+            PoisonSpray(self.game, (self.rect.left-40, self.rect.top))
+            PoisonSpray(self.game, (self.rect.left-80, self.rect.top))
+            self.spray_count = 0
+
+        self.rect.move_ip(0,4)
+        if self.rect.top > 500:
+            self.kill()
