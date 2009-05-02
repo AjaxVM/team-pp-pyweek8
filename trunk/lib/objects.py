@@ -506,12 +506,13 @@ class Missile(Bullet):
         Bullet.update(self)
 
 class Net(Bullet):
-    def __init__(self, game, pos, range, target, damage):
+    def __init__(self, game, pos, range, target, damage, duration):
         self.groups = game.main_group, game.bullet_group
         Bullet.__init__(self, game, pos, range*2, target, damage)
         self.angle = random.randrange(360)
         self.image = data.image("data/net_shot.png")
         self.damage = damage
+        self.duration = duration
         self.speed = 4
 
     def update(self):
@@ -531,7 +532,8 @@ class Net(Bullet):
             if self.rect.colliderect(i.rect):
                 i.netted = True
                 i.netted_count = 0
-                i.netted_duration = self.damage
+                i.hit(self.damage)
+                i.netted_duration = self.duration
                 self.kill()
 
 class Scraps(GameObject):
@@ -1227,7 +1229,7 @@ class DamageNote(GameObject):
             self.rect.center = self.pos
 
 
-class Trap(GameObject):
+class SpikeTrap(GameObject):
     money_cost = 10
     scrap_cost = 20
     ui_icon = "data/spikes.png"
@@ -1287,6 +1289,60 @@ class Trap(GameObject):
                         if self.times >= self.max_times:
                             self.kill()
                             return
+
+class CageTrap(GameObject):
+    money_cost = 25
+    scrap_cost = 50
+    ui_icon = "data/cage.png"
+    diesound = 'boom1.ogg'
+
+    base_usage_count = 200
+    base_damage = 0
+    special = None
+    def __init__(self, game, pos):
+        self.groups = game.main_group, game.trap_group
+        GameObject.__init__(self, game)
+
+        self.image = data.image("data/cage.png")
+
+        self.rect = self.image.get_rect()
+        x, y = pos
+        x += 10
+        y += 20 #so we can put it at center...
+        self.rect.midbottom = x, y
+
+        self.game.money -= self.money_cost
+        self.game.scraps -= self.scrap_cost
+        self.game.update_money()
+
+        self.level = 1
+
+        self.times = 0
+        self.max_times = int(self.base_usage_count)
+
+        #set blocking!
+        self.game.map_grid.set(self.game.map_grid.screen_to_grid(pos), 1)
+
+        for i in xrange(self.game.hero.trap_level-1):
+            self.upgrade_level()
+
+    def upgrade_level(self):
+        self.max_times = int(self.max_times * 1.5)
+        self.level += 1
+
+    def kill(self):
+        GameObject.kill(self)
+        self.game.audio.sounds[self.diesound].play()
+        self.game.map_grid.set(self.game.map_grid.screen_to_grid(self.rect.topleft), 0)
+
+    def update(self):
+        for i in self.game.insect_group.objects:
+            if self.rect.collidepoint(i.rect.center):
+                i.stuck = True
+                self.times += 1
+                if self.times >= self.max_times:
+                    self.kill()
+                    return
 
 
 class BattleBot(Worker):
@@ -1517,7 +1573,7 @@ class TrapperBot(BattleBot):
             self.throw_net_counter += 1
             if self.throw_net_counter >= self.throw_net_wait:
                 self.throw_net_counter = 0
-                Net(self.game, self.rect.center, self.range+20, target[0], self.net_duration)
+                Net(self.game, self.rect.center, self.range+20, target[0], int(self.damage*.35), self.net_duration)
 
 class GuardBot(BattleBot):
     time_cost = 100
