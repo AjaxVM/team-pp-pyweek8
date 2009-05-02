@@ -109,7 +109,7 @@ through your defenses and into the house. The hive is at teh top left
 corner of the screen, and the way into the house is at the bottom right,
 where our hero is sitting."""
 
-        ui.Label(self.app, text, text_color=(255,255,255), pos=(5,70), anchor="topleft")
+        ui.Label(self.app, text, text_color=(255,255,255), pos=(5,70), anchor="topleft", small_text=True)
 
         ui.Button(self.app, "Menu", text_color=(0,0,0), pos=(5,5),
                   callback=lambda: self.parent.use_child("menu"))
@@ -148,7 +148,7 @@ _________________________
 You can build towers to defend.
 To build a tower, click the tower icon in the "Basic" group of buttons,
 on the ui bar. The ui bar is along the bottom of the screen.
-Once oyu have clicked the tower, place it anywhere that isn't
+Once you have clicked the tower, place it anywhere that isn't
 "red" - or not allowed. You can only build towers if you have enough
 money and scraps. Once you have a tower, you need some workers to build it.
 Workers build towers, upgrade towers (only if different type), and collect scraps.
@@ -158,7 +158,7 @@ clicking the tower that has the "up arrow" and looks the same
 Upgrades the tower. Clicking one of the other Towers to upgrade to (if avaiable)
 the tower is destroyed and a new build point is placed. Your workers have to build this new tower again now."""
 
-        ui.Label(self.app, text, text_color=(255,255,255), pos=(5,70), anchor="topleft")
+        ui.Label(self.app, text, text_color=(255,255,255), pos=(5,70), anchor="topleft", small_text=True)
 
         ui.Button(self.app, "Menu", text_color=(0,0,0), pos=(5,5),
                   callback=lambda: self.parent.use_child("menu"))
@@ -201,24 +201,7 @@ There are three kinds of warriors
   Guards: these guys follow your workers around and protect them
 Warriors cannot attack Flying or immune insects, but trappers can trap flying ones."""
 
-        """Traps:
-_______________________
-Traps are used to either slow or do damage to bugs in a quick fashion.
-Basically, if you have the money, just place them anywhere that isn't red, and they are built instantly.
-The kinds are:
-  Spike: insects get hurt as they run over these, depletes over time
-  Bomb: when an insect gets close enough to this trap,
-      it detonates, hitting all bugs in a wide area with a strong attack
-  Cage: this just stops insects for a while, until it depletes"""
-
-        """Techs:
-
-Techs are used to upgrade your workers, warriors and traps.
-Just click the upgrade buttons under the tech label in the ui.
-Each button is the image of the thing it upgrades,
-with an up arrow (regular warrior for warriors, spike trap for traps.)"""
-
-        ui.Label(self.app, text, text_color=(255,255,255), pos=(5,70), anchor="topleft")
+        ui.Label(self.app, text, text_color=(255,255,255), pos=(5,70), anchor="topleft", small_text=True)
 
         ui.Button(self.app, "Menu", text_color=(0,0,0), pos=(5,5),
                   callback=lambda: self.parent.use_child("menu"))
@@ -269,7 +252,7 @@ Just click the upgrade buttons under the tech label in the ui.
 Each button is the image of the thing it upgrades,
 with an up arrow (regular warrior for warriors, spike trap for traps.)"""
 
-        ui.Label(self.app, text, text_color=(255,255,255), pos=(5,70), anchor="topleft")
+        ui.Label(self.app, text, text_color=(255,255,255), pos=(5,70), anchor="topleft", small_text=True)
 
         ui.Button(self.app, "Menu", text_color=(0,0,0), pos=(5,5),
                   callback=lambda: self.parent.use_child("menu"))
@@ -312,7 +295,7 @@ Bug-killer - spray bug killer at the insects
   Get the Mower - go grab the lawn mower and mow over everything,
       clearing the board"""
 
-        ui.Label(self.app, text, text_color=(255,255,255), pos=(5,70), anchor="topleft")
+        ui.Label(self.app, text, text_color=(255,255,255), pos=(5,70), anchor="topleft", small_text=True)
 
         ui.Button(self.app, "Menu", text_color=(0,0,0), pos=(5,5),
                   callback=lambda: self.parent.use_child("menu"))
@@ -356,7 +339,7 @@ Worms burrow underground and come up later
 
 Now go win!"""
 
-        ui.Label(self.app, text, text_color=(255,255,255), pos=(5,70), anchor="topleft")
+        ui.Label(self.app, text, text_color=(255,255,255), pos=(5,70), anchor="topleft", small_text=True)
 
         ui.Button(self.app, "Menu", text_color=(0,0,0), pos=(5,5),
                   callback=lambda: self.parent.use_child("menu"))
