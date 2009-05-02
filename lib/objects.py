@@ -985,8 +985,12 @@ class Worm(Ant):
 
 class Wasp(Ant):
     def __init__(self, game, level=1):
-        self.groups = game.main_group, game.insect_group
         Ant.__init__(self, game, level)
+        self.kill()
+        self.was_killed = False
+        self.groups = game.flying_group, game.insect_group
+        for i in self.groups:
+            i.add(self)
 
         self.walk_images = [
             data.image("data/wasp-1.png"),
