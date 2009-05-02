@@ -247,15 +247,17 @@ class Hive(GameObject):
         self.hp = 20
         self.max_hp = 20
 
-        self.counter = 0
+        self.counter = -125 #make it wait a little before first spawn
         self.num_spawned = 0
         self.wait_for = 20
         self.fast = False
 
+        self.fast_chance = 15
+
         self.flying = False
         self.immune = False
 
-        self.choice_list = [Ant]*15 + [Beetle]*8 + [Worm]*6 + [Wasp]*4
+        self.choice_list = [Ant]*10 + [Beetle]*3 + [Worm]*2 + [Wasp]
 
     def hit(self, damage):
         GameObject.hit(self, damage)
@@ -273,8 +275,12 @@ class Hive(GameObject):
             num -= self.level * 15
             if num < 75:
                 num = 75
+
+        fast_chance = self.fast_chance - int(self.level*.5)
+        if fast_chance <= 3:
+            fast_chance = 3
         if self.counter >= num:
-            if not random.randrange(3):
+            if not random.randrange(fast_chance):
                 self.fast = True
             else:
                 self.fast = False
@@ -285,6 +291,8 @@ class Hive(GameObject):
         if self.num_spawned >= self.wait_for:
             self.wait_for += 10
             self.level += 1
+            self.choice_list.extend([Ant] + [Beetle] + [Worm] + [Wasp]) #this will even it out over time ;)
+            self.wait_for += 1
 
     def render(self):
         GameObject.render(self)
@@ -1325,7 +1333,7 @@ class Beetle(Ant):
         self.max_hp = 35 * self.level
         self.hp = int(self.max_hp)
         self.show_hp_bar = True
-        self.worth = 10 * self.level
+        self.worth = 6 * self.level
         self.damage = 3 * self.level
 
         self.speed = 3
@@ -1354,7 +1362,7 @@ class Worm(Ant):
         self.max_hp = 30 * self.level
         self.hp = int(self.max_hp)
         self.show_hp_bar = True
-        self.worth = 20 * self.level
+        self.worth = 6 * self.level
         self.damage = 4 * self.level
 
         self.speed = 3
@@ -1407,7 +1415,7 @@ class Wasp(Ant):
         self.max_hp = 10 + 5*(self.level-1)
         self.hp = int(self.max_hp)
         self.show_hp_bar = True
-        self.worth = 25 * self.level
+        self.worth = 7 * self.level
         self.damage = 2 * self.level
 
         self.speed = 1
