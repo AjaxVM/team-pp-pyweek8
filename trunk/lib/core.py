@@ -21,7 +21,13 @@ class GameStateEngine(states.GameState):
                          "game-medium": lambda x:states.Game(x, "medium"),
                          "game-hard": lambda x:states.Game(x, "hard"),
                          "lose":states.YouLostMenu,
-                         "win":states.YouWonMenu}
+                         "win":states.YouWonMenu,
+                         "tut":states.TutScreen,
+                         "tut2":states.TutScreen2,
+                         "tut3":states.TutScreen3,
+                         "tut4":states.TutScreen4,
+                         "tut5":states.TutScreen5,
+                         "tut6":states.TutScreen6}
         self.use_child("menu")
 
         pygame.display.set_caption("Bug Me Not! - Pyweek #8 - April/May 2009 - Team PyedPypers")
