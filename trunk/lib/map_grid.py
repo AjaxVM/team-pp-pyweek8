@@ -321,8 +321,8 @@ class MapGrid(object):
                 x = random.randrange(self.size[0])
                 y = random.randrange(self.size[1])
             else:
-                x = random.randrange(5) + self.size[0]/2+5
-                y = random.randrange(5) + self.size[1]/2+5
+                x = random.randrange(5) + self.size[0]/2 + 3
+                y = random.randrange(5) + self.size[1]/2 + 3
             if self.empty_around((x, y)):
                 s_pos.append((x, y))
 
