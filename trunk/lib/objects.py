@@ -678,7 +678,7 @@ class Missile(Bullet):
         self.groups = game.main_group, game.bullet_group
         Bullet.__init__(self, game, pos, range*2, target, damage)
         self.angle = random.randrange(360)
-        self.image = data.image("data/missile.png")
+        self.image = pygame.transform.flip(data.image("data/missile.png"), 0, 1)
         self.damage = damage
         self.speed = 2
 
@@ -704,7 +704,7 @@ class Missile(Bullet):
 
     def render(self):
         _image = self.image
-        self.image = pygame.transform.rotate(self.image, 180-self.angle)
+        self.image = pygame.transform.rotate(self.image, self.angle)
         self.rect = self.image.get_rect(center=self.rect.center)
         Bullet.render(self)
         self.image = _image
