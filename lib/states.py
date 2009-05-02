@@ -57,6 +57,8 @@ class Menu(GameState):
 
         ui.Button(self.app, "Quit", text_color=(0,0,0), pos=(100,150),
                   callback=self._kill)
+        ui.Button(self.app, "Tutorial", text_color=(0,255,255), pos=(200,150),
+                  callback=lambda: self.parent.use_child("tut"))
 
         self.bg = data.image("data/background1.png").copy()
         for i in xrange(100):
@@ -97,9 +99,288 @@ class TutScreen(GameState):
 
         self.app = ui.App(self.get_root().screen)
 
-        text = """Welcome to"""
+        text = """Welcome to Bug Me Not!
+The Strategy game where you try and remove the invading insects
+from your lawn!
+___________________________________
+The game mechanics themselves are fairly simple.
+You are trying to destroy the insect hive before too many insects get
+through your defenses and into the house. The hive is at teh top left
+corner of the screen, and the way into the house is at the bottom right,
+where our hero is sitting."""
 
-        ui.Label(self.app, text, text_color=(255,255,255), pos=(75,75), anchor="topleft")
+        ui.Label(self.app, text, text_color=(255,255,255), pos=(5,70), anchor="topleft")
+
+        ui.Button(self.app, "Menu", text_color=(0,0,0), pos=(5,5),
+                  callback=lambda: self.parent.use_child("menu"))
+        ui.Button(self.app, "Next", text_color=(0,0,0), pos=(80,5),
+                  callback=lambda: self.parent.use_child("tut2"))
+
+        self.bg = data.image("data/background1.png").copy()
+        for i in xrange(35):
+            self.bg.blit(data.image("data/worker-1.png"), (random.randint(150,800), 5))
+            self.bg.blit(data.image("data/tower-base.png"), (random.randint(150,800), 5))
+
+        n = self.bg.copy()
+        n.fill((255,228,196,65))
+        self.bg.blit(n, (0,0))
+
+    def update(self):
+        for event in pygame.event.get():
+            if self.app.update(event):
+                continue
+            if event.type == QUIT:
+                self.get_root().shutdown()
+                return
+
+        self.get_root().screen.blit(self.bg, (0,0))
+        self.app.render()
+        pygame.display.flip()
+
+class TutScreen2(GameState):
+    def __init__(self, parent):
+        GameState.__init__(self, parent)
+
+        self.app = ui.App(self.get_root().screen)
+
+        text = """Towers and Workers:
+_________________________
+You can build towers to defend.
+To build a tower, click the tower icon in the "Basic" group of buttons,
+on the ui bar. The ui bar is along the bottom of the screen.
+Once oyu have clicked the tower, place it anywhere that isn't
+"red" - or not allowed. You can only build towers if you have enough
+money and scraps. Once you have a tower, you need some workers to build it.
+Workers build towers, upgrade towers (only if different type), and collect scraps.
+Once your tower is built, you can upgrade it by clicking on it,
+and then selecting either one of the new tower types there, or upgrading along the same type,
+clicking the tower that has the "up arrow" and looks the same
+Upgrades the tower. Clicking one of the other Towers to upgrade to (if avaiable)
+the tower is destroyed and a new build point is placed. Your workers have to build this new tower again now."""
+
+        ui.Label(self.app, text, text_color=(255,255,255), pos=(5,70), anchor="topleft")
+
+        ui.Button(self.app, "Menu", text_color=(0,0,0), pos=(5,5),
+                  callback=lambda: self.parent.use_child("menu"))
+        ui.Button(self.app, "Next", text_color=(0,0,0), pos=(80,5),
+                  callback=lambda: self.parent.use_child("tut3"))
+
+        self.bg = data.image("data/background1.png").copy()
+        for i in xrange(35):
+            self.bg.blit(data.image("data/worker-1.png"), (random.randint(150,800), 5))
+            self.bg.blit(data.image("data/tower-base.png"), (random.randint(150,800), 5))
+
+        n = self.bg.copy()
+        n.fill((255,228,196,65))
+        self.bg.blit(n, (0,0))
+
+    def update(self):
+        for event in pygame.event.get():
+            if self.app.update(event):
+                continue
+            if event.type == QUIT:
+                self.get_root().shutdown()
+                return
+
+        self.get_root().screen.blit(self.bg, (0,0))
+        self.app.render()
+        pygame.display.flip()
+
+class TutScreen3(GameState):
+    def __init__(self, parent):
+        GameState.__init__(self, parent)
+
+        self.app = ui.App(self.get_root().screen)
+
+        text = """Warriors:
+_____________________
+Building warriors is the only way to win the game.
+There are three kinds of warriors
+  Warriors: regular, the fight bugs and try to make their way to the enemy hive to assult it
+  Trapper: faster, weaker bot that throws nets around enemies
+  Guards: these guys follow your workers around and protect them
+Warriors cannot attack Flying or immune insects, but trappers can trap flying ones."""
+
+        """Traps:
+_______________________
+Traps are used to either slow or do damage to bugs in a quick fashion.
+Basically, if you have the money, just place them anywhere that isn't red, and they are built instantly.
+The kinds are:
+  Spike: insects get hurt as they run over these, depletes over time
+  Bomb: when an insect gets close enough to this trap,
+      it detonates, hitting all bugs in a wide area with a strong attack
+  Cage: this just stops insects for a while, until it depletes"""
+
+        """Techs:
+
+Techs are used to upgrade your workers, warriors and traps.
+Just click the upgrade buttons under the tech label in the ui.
+Each button is the image of the thing it upgrades,
+with an up arrow (regular warrior for warriors, spike trap for traps.)"""
+
+        ui.Label(self.app, text, text_color=(255,255,255), pos=(5,70), anchor="topleft")
+
+        ui.Button(self.app, "Menu", text_color=(0,0,0), pos=(5,5),
+                  callback=lambda: self.parent.use_child("menu"))
+        ui.Button(self.app, "Next", text_color=(0,0,0), pos=(80,5),
+                  callback=lambda: self.parent.use_child("tut4"))
+
+        self.bg = data.image("data/background1.png").copy()
+        for i in xrange(35):
+            self.bg.blit(data.image("data/worker-1.png"), (random.randint(150,800), 5))
+            self.bg.blit(data.image("data/tower-base.png"), (random.randint(150,800), 5))
+
+        n = self.bg.copy()
+        n.fill((255,228,196,65))
+        self.bg.blit(n, (0,0))
+
+    def update(self):
+        for event in pygame.event.get():
+            if self.app.update(event):
+                continue
+            if event.type == QUIT:
+                self.get_root().shutdown()
+                return
+
+        self.get_root().screen.blit(self.bg, (0,0))
+        self.app.render()
+        pygame.display.flip()
+
+class TutScreen4(GameState):
+    def __init__(self, parent):
+        GameState.__init__(self, parent)
+
+        self.app = ui.App(self.get_root().screen)
+
+        text = """Traps:
+_______________________
+Traps are used to either slow or do damage to bugs in a quick fashion.
+Basically, if you have the money, just place them anywhere that isn't red, and they are built instantly.
+The kinds are:
+  Spike: insects get hurt as they run over these, depletes over time
+  Bomb: when an insect gets close enough to this trap,
+      it detonates, hitting all bugs in a wide area with a strong attack
+  Cage: this just stops insects for a while, until it depletes
+________________________
+Techs:
+________________________
+Techs are used to upgrade your workers, warriors and traps.
+Just click the upgrade buttons under the tech label in the ui.
+Each button is the image of the thing it upgrades,
+with an up arrow (regular warrior for warriors, spike trap for traps.)"""
+
+        ui.Label(self.app, text, text_color=(255,255,255), pos=(5,70), anchor="topleft")
+
+        ui.Button(self.app, "Menu", text_color=(0,0,0), pos=(5,5),
+                  callback=lambda: self.parent.use_child("menu"))
+        ui.Button(self.app, "Next", text_color=(0,0,0), pos=(80,5),
+                  callback=lambda: self.parent.use_child("tut5"))
+
+        self.bg = data.image("data/background1.png").copy()
+        for i in xrange(35):
+            self.bg.blit(data.image("data/worker-1.png"), (random.randint(150,800), 5))
+            self.bg.blit(data.image("data/tower-base.png"), (random.randint(150,800), 5))
+
+        n = self.bg.copy()
+        n.fill((255,228,196,65))
+        self.bg.blit(n, (0,0))
+
+    def update(self):
+        for event in pygame.event.get():
+            if self.app.update(event):
+                continue
+            if event.type == QUIT:
+                self.get_root().shutdown()
+                return
+
+        self.get_root().screen.blit(self.bg, (0,0))
+        self.app.render()
+        pygame.display.flip()
+
+class TutScreen5(GameState):
+    def __init__(self, parent):
+        GameState.__init__(self, parent)
+
+        self.app = ui.App(self.get_root().screen)
+
+        text = """Specials:
+_______________
+Yeah, you have some life-lines if you get too fed up with losing:
+Bug-killer - spray bug killer at the insects
+  Mom+broom - call your mom, who naturally freaks out and whacks the
+      bugs and your bots
+  Get the Mower - go grab the lawn mower and mow over everything,
+      clearing the board"""
+
+        ui.Label(self.app, text, text_color=(255,255,255), pos=(5,70), anchor="topleft")
+
+        ui.Button(self.app, "Menu", text_color=(0,0,0), pos=(5,5),
+                  callback=lambda: self.parent.use_child("menu"))
+        ui.Button(self.app, "Next", text_color=(0,0,0), pos=(80,5),
+                  callback=lambda: self.parent.use_child("tut6"))
+
+        self.bg = data.image("data/background1.png").copy()
+        for i in xrange(35):
+            self.bg.blit(data.image("data/worker-1.png"), (random.randint(150,800), 5))
+            self.bg.blit(data.image("data/tower-base.png"), (random.randint(150,800), 5))
+
+        n = self.bg.copy()
+        n.fill((255,228,196,65))
+        self.bg.blit(n, (0,0))
+
+    def update(self):
+        for event in pygame.event.get():
+            if self.app.update(event):
+                continue
+            if event.type == QUIT:
+                self.get_root().shutdown()
+                return
+
+        self.get_root().screen.blit(self.bg, (0,0))
+        self.app.render()
+        pygame.display.flip()
+
+class TutScreen6(GameState):
+    def __init__(self, parent):
+        GameState.__init__(self, parent)
+
+        self.app = ui.App(self.get_root().screen)
+
+        text = """Insects:
+_______________
+Oh no, those pesky bugs, alright, so here is the low-down.
+Ants are fast and regular, beetles are slow and strong.
+Wasps fly (and thus can only be hit by towers)
+Worms burrow underground and come up later
+    (while underground they are immune to all damage)
+
+Now go win!"""
+
+        ui.Label(self.app, text, text_color=(255,255,255), pos=(5,70), anchor="topleft")
+
+        ui.Button(self.app, "Menu", text_color=(0,0,0), pos=(5,5),
+                  callback=lambda: self.parent.use_child("menu"))
+
+        self.bg = data.image("data/background1.png").copy()
+        for i in xrange(35):
+            self.bg.blit(data.image("data/worker-1.png"), (random.randint(150,800), 5))
+            self.bg.blit(data.image("data/tower-base.png"), (random.randint(150,800), 5))
+
+        n = self.bg.copy()
+        n.fill((255,228,196,65))
+        self.bg.blit(n, (0,0))
+
+    def update(self):
+        for event in pygame.event.get():
+            if self.app.update(event):
+                continue
+            if event.type == QUIT:
+                self.get_root().shutdown()
+                return
+
+        self.get_root().screen.blit(self.bg, (0,0))
+        self.app.render()
+        pygame.display.flip()
 
 class YouWonMenu(GameState):
     def __init__(self, parent):
