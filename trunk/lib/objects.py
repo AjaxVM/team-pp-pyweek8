@@ -1778,8 +1778,6 @@ class GuardBot(BattleBot):
                 self.path = self.game.map_grid.calculate_path(start,
                                 self.game.map_grid.screen_to_grid(self.target.rect.center), False, False)
 
-        print self.target, bool(self.path)
-
         #later!
         if self.target.was_killed:
             self.reset_target()
