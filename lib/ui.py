@@ -103,12 +103,18 @@ class Widget(object):
     def load_text_and_image(self, text, image):
         rect = None
         if text:
-            text = [self.font.render(t, 1, self.text_color) for t in text.split("\n") if t]
+            r,g,b = self.text_color
+            r = 255-r
+            g = 255-g
+            b = 255-b
+            text2 = [self.font.render(t, 1, self.text_color) for t in text.split("\n") if t]
+            text = [self.font.render(t, 1, (r,g,b)) for t in text.split("\n") if t]
+            [i.blit(j, (1,1)) for (i,j) in zip(text, text2)]
             rects = [t.get_rect() for t in text]
-            w, h = 0,0
+            w, h = 0,1
             for i in rects:
-                if i.width > w:
-                    w = i.width
+                if i.width+1 > w:
+                    w = i.width+1
                 h += i.height
             rect = pygame.rect.Rect(0,0,w,h)
         if image:
