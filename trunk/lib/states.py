@@ -46,7 +46,7 @@ class Menu(GameState):
         GameState.__init__(self, parent)
 
         self.app = ui.App(self.get_root().screen)
-        ui.Label(self.app, "Game Name!", text_color=(255,255,255), pos=(100,25), anchor="topleft")
+        ui.Label(self.app, "Bug Me Not!", text_color=(255,255,255), pos=(100,25), anchor="topleft")
 
         ui.Button(self.app, "Play - easy", text_color=(0,0,0), pos=(150,100),
                   callback=lambda: self.parent.use_child("game-easy"))
@@ -90,6 +90,16 @@ class Menu(GameState):
         self.get_root().screen.blit(self.bg, (0,0))
         self.app.render()
         pygame.display.flip()
+
+class TutScreen(GameState):
+    def __init__(self, parent):
+        GameState.__init__(self, parent)
+
+        self.app = ui.App(self.get_root().screen)
+
+        text = """Welcome to"""
+
+        ui.Label(self.app, text, text_color=(255,255,255), pos=(75,75), anchor="topleft")
 
 class YouWonMenu(GameState):
     def __init__(self, parent):

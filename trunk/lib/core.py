@@ -24,6 +24,8 @@ class GameStateEngine(states.GameState):
                          "win":states.YouWonMenu}
         self.use_child("menu")
 
+        pygame.display.set_caption("Bug Me Not! - Pyweek #8 - April/May 2009 - Team PyedPypers")
+
     def shutdown(self):
         pygame.quit()
         self.running = False
