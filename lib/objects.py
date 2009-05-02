@@ -308,6 +308,8 @@ class BuildTower(GameObject):
             to_build = MissileTower
         elif to_build == "Bird Food Tower":
             to_build = BirdFoodTower
+        elif to_build == "Laser Tower":
+            to_build = LaserTower
         else:
             to_build = TowerBase
         self.to_build = to_build
@@ -366,7 +368,7 @@ class TowerBase(GameObject):
 
         self.damage = int(self.base_attack)
 
-        self.upgrade_types = [MissileTower]#remove after testing!
+        self.upgrade_types = [MissileTower, LaserTower]
 
     def get_stats_at_next_level(self):
         return (self.damage + (5 + int(self.damage/5)),#damage
@@ -485,7 +487,7 @@ class BirdFoodTower(TowerBase):
         self.upgrade_types = []
 
     def get_stats_at_next_level(self):
-        return (self.damage + 15 + int(self.damage/5),#damage
+        return (self.damage + 20 + int(self.damage/10),#damage
                 10 + self.range,#range
                 self.shot_speed)
 
@@ -493,10 +495,89 @@ class BirdFoodTower(TowerBase):
         self.level += 1
         self.game.money -= self.money_cost
         self.game.scraps -= self.scrap_cost
-        self.damage += 15 + int(self.damage/5)
+        self.damage += 20 + int(self.damage/10)
         self.range += 10
         self.inc_cost()
         self.game.update_money()
+
+class LaserTower(TowerBase):
+    ui_icon = "data/tower-laser.png" #the ui needs these :S
+    fire_sound = 'gun1.ogg'
+    time_cost = 250
+    money_cost = 100
+    scrap_cost = 100
+    name = "Laser Tower"
+    base_attack = 3
+    base_shoot_speed = 20
+    base_range = 120
+    def __init__(self, game, pos):
+        TowerBase.__init__(self, game, pos)
+
+        self.level = 1
+
+        self.image = data.image("data/tower-laser.png")
+
+        self.rect = self.image.get_rect()
+        self.rect.midbottom = pos
+
+        self.range = int(self.base_range)
+        self.selected = False #this is for the ui to swap to upgrading
+        #and for rendering of the range circle
+
+        #set blocking!
+        x, y = pos #this makes sure we don't grab like the center of the tower which is one tile too high!
+        x -= 10
+        y -= 20
+        self.game.map_grid.set(self.game.map_grid.screen_to_grid((x,y)), 3)
+
+        self.shot_timer = 0
+        self.shot_type = Laser
+        self.shot_speed = int(self.base_shoot_speed)
+
+        self.inc_cost()
+
+        for i in self.game.insect_group.objects:
+            i.update_path(self.game.map_grid.screen_to_grid((x, y)))
+
+        self.damage = int(self.base_attack)
+
+        self.upgrade_types = []
+
+    def get_stats_at_next_level(self):
+        return (self.damage + (2 + int(self.damage/2)),#damage
+                5 + self.range,#range
+                self.shot_speed) #speed
+
+    def inc_cost(self):
+        self.money_cost = int(self.money_cost * 1.75)
+        self.scrap_cost = int(self.scrap_cost * 1.75)
+
+    def upgrade(self):
+        self.level += 1
+        self.game.money -= self.money_cost
+        self.game.scraps -= self.scrap_cost
+        self.damage += 2 + int(self.damage/2)
+        self.range += 5
+        self.inc_cost()
+        self.game.update_money()
+
+    def update(self):
+        diso = (None, self.range+1)
+        for i in self.game.insect_group.objects:
+            if not i.immune:
+                x = misc.distance(self.rect.center, i.rect.center)
+                if x < diso[1]:
+                    diso = (i, x)
+
+        if diso[0] and diso[1] < self.range:
+            self.shot_timer += 1
+            if self.shot_timer >= self.shot_speed:
+                self.shot_timer = 0
+                target = diso[0]
+                self.shot_type(self.game, self.rect.center, self.range+20, target, self.damage)
+                self.game.audio.sounds[self.fire_sound].play()
+        else:
+            self.shot_timer = int(self.shot_speed/2)
 
 class Bullet(GameObject):
     def __init__(self, game, pos, range, target, damage):
@@ -634,6 +715,58 @@ class SwoopingBird(Bullet):
         Bullet.render(self)
         self.image = _image
         self.rect = _image.get_rect(center=self.rect.center)
+
+class Laser(Bullet):
+    def __init__(self, game, pos, range, target, damage):
+        self.groups = game.main_group, game.bullet_group
+        Bullet.__init__(self, game, pos, range, target, damage)
+
+        self.pos = pos
+        self.speed = 6
+        self.to_die = False
+        self.die_counter = 0
+
+    def update(self):
+        if self.target.was_killed:
+            self.kill()
+        ydiff = self.target.rect.centery - self.pos[1]
+        xdiff = self.target.rect.centerx - self.pos[0]
+        angle = math.degrees(math.atan2(xdiff, ydiff))
+
+        if abs(angle-self.angle) <= 25:
+            self.angle = angle
+        
+        if angle< self.angle:
+            self.angle -= 20
+        else:
+            self.angle += 20
+        x = math.sin(math.radians(self.angle))
+        y = math.cos(math.radians(self.angle))
+        self.direction = (x, y)
+
+        self.age += 1
+        if self.age > self.range/self.speed:
+            self.kill()
+
+        x, y = self.pos
+        x += self.direction[0] * self.speed
+        y += self.direction[1] * self.speed
+
+        self.pos = (x, y)
+
+        self.rect.center = self.pos
+
+        if self.to_die:
+            self.die_counter += 1
+            if self.die_counter >= 20:
+                self.kill()
+
+        self.target.hit(self.damage)
+        Explosion(self.game, self.target.rect.center)
+        self.to_die = True
+
+    def render(self):
+        pygame.draw.line(self.game.screen, (255,0,0), self.pos, self.target.rect.center, 4)
 
 class BirdFoodPellet(Bullet):
     def __init__(self, game, pos, range, target, damage):

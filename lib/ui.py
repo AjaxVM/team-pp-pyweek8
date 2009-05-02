@@ -349,6 +349,8 @@ class TowerInfo(Widget):
                         to_build = objects.MissileTower
                     elif target == "Bird Food Tower":
                         to_build = objects.BirdFoodTower
+                    elif target == "Laser Tower":
+                        to_build = objects.LaserTower
                     else:
                         to_build = objects.MissileTower
                     if to_build.money_cost <= self.tower.game.money and\
@@ -375,7 +377,7 @@ class TowerInfo(Widget):
                         n = "Upgrade "
                     else:
                         n = ""
-                    x = "\ncost:\n  money: %s\n  scraps: %s\n----------\nattack: %s\nrange: %s\nspeed: %s"
+                    x = "\ncost:\n  money: %s\n  scraps: %s\n----------\ndamage: %s\nrange: %s\nspeed: %s"
                     return n + target + x % (cost[0], cost[1], damage, range, speed)
 
     def render(self):
