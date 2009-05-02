@@ -357,6 +357,7 @@ class TowerInfo(Widget):
                         for i in self.tower.game.bot_group.objects:
                             i.reset_target()
                         self.kill()
+                        self.tower.game.selected_ui = None
 
     def get_status(self):
         if self.hover:
