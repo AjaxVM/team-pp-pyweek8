@@ -512,7 +512,7 @@ class BirdFoodTower(TowerBase):
 
 class LaserTower(TowerBase):
     ui_icon = "data/tower-laser.png" #the ui needs these :S
-    fire_sound = 'gun1.ogg'
+    fire_sound = 'lazor1.ogg'
     time_cost = 250
     money_cost = 100
     scrap_cost = 100
@@ -591,7 +591,7 @@ class LaserTower(TowerBase):
 
 class ElectroTower(LaserTower):
     ui_icon = "data/tower-electro.png" #the ui needs these :S
-    fire_sound = 'gun1.ogg'
+    fire_sound = 'zap1.ogg'
     time_cost = 400
     money_cost = 220
     scrap_cost = 220
