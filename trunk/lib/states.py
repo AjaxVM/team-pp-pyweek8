@@ -318,6 +318,17 @@ class Game(GameState):
                       anchor="topleft")
         self.build_cage_trap_button = b
 
+        b = ui.Button(self.app, image=objects.BombTrap.ui_icon, pos=b.rect.inflate(8,0).topright,
+                  callback=self.build_bomb_trap,
+                      status_message=("Build a Bomb Trap\ncost:\n  money: %s\n  scraps: %s"+\
+                                      "\n----------\nattack: %s\nuses: %s\nspecial: %s")%(objects.BombTrap.money_cost,
+                                                                                      objects.BombTrap.scrap_cost,
+                                                                                      objects.BombTrap.base_damage,
+                                                                                      objects.BombTrap.base_usage_count,
+                                                                                      objects.BombTrap.special),
+                      anchor="topleft")
+        self.build_bomb_trap_button = b
+
 
         #Ooh, techs, gotta love them!
         l = ui.Label(self.app, "  Techs   ", pos=(520, 520))
@@ -456,6 +467,16 @@ class Game(GameState):
                                                                   test.special)
             self.build_cage_trap_button.status_message = b
 
+            test = objects.BombTrap(self, (0,0))
+            test.kill() #we don't want to leave this laying around O.o
+            b = ("Build a Bomb Trap\ncost:\n  money: %s\n  scraps: %s"+\
+                  "\n----------\nattack: %s\nuses: %s\nspecial: %s")%(test.money_cost,
+                                                                  test.scrap_cost,
+                                                                  test.damage,
+                                                                  test.max_times,
+                                                                  test.special)
+            self.build_bomb_trap_button.status_message = b
+
     def build_tower(self):
         if self.money >= objects.TowerBase.money_cost and self.scraps >= objects.TowerBase.scrap_cost:
             self.build_active = True
@@ -501,6 +522,22 @@ class Game(GameState):
     def build_cage_trap(self):
         if self.money >= objects.CageTrap.money_cost and self.scraps >= objects.CageTrap.scrap_cost:
             self.building = objects.CageTrap
+            self.build_active = True
+
+            bo = pygame.Surface((800,500)).convert_alpha()
+            bo.fill((0,0,0,0))
+            for x in xrange(self.map_grid.size[0]):
+                for y in xrange(self.map_grid.size[1]):
+                    if not self.map_grid.is_open((x, y)):
+                        pygame.draw.rect(bo, (200,0,0,125), (self.map_grid.grid_to_screen((x, y)), (20,20)))
+            pygame.draw.rect(bo, (200,0,0,125), ((0,0), (11*20,11*20)))
+            pygame.draw.rect(bo, (200,0,0,125), ((800-9*20,500-9*20), (9*20,9*20)))
+
+            self.build_overlay = bo
+
+    def build_bomb_trap(self):
+        if self.money >= objects.BombTrap.money_cost and self.scraps >= objects.BombTrap.scrap_cost:
+            self.building = objects.BombTrap
             self.build_active = True
 
             bo = pygame.Surface((800,500)).convert_alpha()
