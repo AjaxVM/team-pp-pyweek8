@@ -221,7 +221,7 @@ class Hero(GameObject):
 
     def hit(self, damage):
         GameObject.hit(self, damage)
-        DamageNote(self.game, self.rect.midbottom, (255, 0, 0), damage, True)
+        FloatingMessage(self.game, self.rect.midtop, "EEP!!!")
 
     def render(self):
         GameObject.render(self)
@@ -259,7 +259,7 @@ class Hive(GameObject):
 
     def hit(self, damage):
         GameObject.hit(self, damage)
-        DamageNote(self.game, self.rect.midbottom, (0, 255, 0), damage, True)
+        FloatingMessage(self.game, self.rect.midbottom, "Hurrah!!!")
 
     def update(self):
         self.counter += 1
@@ -1566,6 +1566,47 @@ class DamageNote(GameObject):
             self.lifespan = 50
             self.waft_dir = random.choice((-1,1))*.5
             self.vert_dir = 1
+        self.move_counter = 0
+
+    def update(self):
+        self.age += 1
+        if self.age > self.lifespan:
+            self.kill()
+
+        self.move_counter += 1
+        if self.move_counter >= 3:
+            self.move_counter = 0
+            x, y = self.pos
+            x += self.waft_dir
+            y -= self.vert_dir
+            self.pos = x, y
+            self.rect.center = self.pos
+
+
+class FloatingMessage(GameObject):
+    def __init__(self, game, pos, text):
+        self.groups = [game.damage_notes_group]
+        GameObject.__init__(self, game)
+
+        size = 32
+
+        font = data.font("data/font.ttf", size, True)
+
+        my_surf = data.image("data/floating_message.png").copy()
+        x = font.render(text, 1, (0,0,0))
+        r = x.get_rect(center=my_surf.get_rect().center)
+        my_surf.blit(x, r)
+
+        self.image = my_surf
+        self.rect = self.image.get_rect()
+        self.rect.center = pos
+
+        self.pos = pos
+
+        self.age = 0
+        self.lifespan = 75
+        self.waft_dir = 0
+        self.vert_dir = 3
         self.move_counter = 0
 
     def update(self):
