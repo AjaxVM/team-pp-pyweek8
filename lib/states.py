@@ -371,7 +371,7 @@ class Game(GameState):
 
         l = ui.Label(self.app, "Specials    ", pos=(610, 500))
         ui.LinesGroup(self.app, l)
-        i = pygame.transform.scale(data.image("data/spray_can.png"), (35, 70))
+        i = pygame.transform.scale(data.image("data/spray_can.png"), (35, 60))
         self.special_spray = ui.Button(self.app, image=i, pos=l.rect.inflate(0,2).bottomleft,
                       callback=self.use_spray_special,
                       status_message="Insects whooping on you?\nUse your spray can - kills all baddies!",
@@ -394,7 +394,7 @@ class Game(GameState):
             self.hero.worker_level += 1
             self.money -= self.hero.tech_worker_upgrade_cost
             self.hero.tech_worker_upgrade_cost = int(self.hero.tech_worker_upgrade_cost * 2.25)
-            self.upg_worker.status_message = "Upgrade Workers\ncurrent level: %s\ncost: %s"%(self.hero.worker_level,
+            self.upg_worker.status_message = "Upgrade Workers\ncurrent level: %s\ncost:\n  money: %s"%(self.hero.worker_level,
                                                                                              self.hero.tech_worker_upgrade_cost)
 
             for i in self.bot_group.objects:
@@ -525,6 +525,10 @@ class Game(GameState):
             self.build_overlay = bo
 
     def update_money(self):
+        if self.money < 0:
+            self.money = 0 #why would this happen?!?!
+        if self.scraps < 0:
+            self.scraps = 0 #again, why?
         self.money_ui = self.font.render("money: %s"%self.money, 1, (255,255,255))
         self.scraps_ui = self.font.render("scraps: %s"%self.scraps, 1, (255,255,255))
         self.kills_ui = self.font.render("kills: %s"%self.kills, 1, (255,255,255))
