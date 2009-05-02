@@ -234,7 +234,7 @@ class Game(GameState):
         #Make build objects gui
         #TODO: implement multiple kinds of warriors/traps!!!
 
-        l = ui.Label(self.app, "Basic", pos=(215, 520))
+        l = ui.Label(self.app, "Basic", pos=(215, 500))
         ui.LinesGroup(self.app, l)
         b = ui.Button(self.app, image=objects.TowerBase.ui_icon, pos=l.rect.inflate(0,2).bottomleft,
                   callback=self.build_tower,
@@ -257,7 +257,7 @@ class Game(GameState):
                       anchor="topleft")
         self.build_worker_button = b
 
-        l = ui.Label(self.app, "Warriors ", pos=(300, 520))
+        l = ui.Label(self.app, "Warriors ", pos=(300, 500))
         ui.LinesGroup(self.app, l)
         b = ui.Button(self.app, image=objects.BattleBot.ui_icon, pos=l.rect.inflate(0,2).bottomleft,
                   callback=self.build_warrior,
@@ -296,7 +296,7 @@ class Game(GameState):
         self.build_guard_button = b
         
 
-        l = ui.Label(self.app, "Traps", pos=(430, 520))
+        l = ui.Label(self.app, " Traps ", pos=(430, 500))
         ui.LinesGroup(self.app, l)
         b = ui.Button(self.app, image=objects.SpikeTrap.ui_icon, pos=l.rect.inflate(0,2).bottomleft,
                   callback=self.build_spike_trap,
@@ -333,7 +333,7 @@ class Game(GameState):
 
 
         #Ooh, techs, gotta love them!
-        l = ui.Label(self.app, "  Techs   ", pos=(520, 520))
+        l = ui.Label(self.app, "  Techs   ", pos=(540, 500))
         ui.LinesGroup(self.app, l)
         i = pygame.Surface((30,30)).convert_alpha()
         i.fill((0,0,0,0))
@@ -686,6 +686,6 @@ class Game(GameState):
         new.fill((75,75,255,50))
         pygame.draw.rect(new, (0,0,0), ((0,0),new.get_size()), 2)
         new.blit(text, (4, 4))
-        self.screen.blit(new, (75,3))
+        self.screen.blit(new, (85,3))
 
         pygame.display.flip()
