@@ -183,8 +183,11 @@ class Widget(object):
 
 class Label(Widget):
     def __init__(self, app, text, image=None, pos=(0,0), anchor="topleft",
-                 text_color=(255,255,255)):
+                 text_color=(255,255,255), small_text=False):
         Widget.__init__(self, app, anchor, text_color)
+
+        if small_text:
+            self.font = data.font("data/font.ttf", 20)
 
         self.text, self.image, self.rect = self.load_text_and_image(text, image)
         self.set_pos(pos)
