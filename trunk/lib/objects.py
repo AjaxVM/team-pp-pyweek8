@@ -944,7 +944,7 @@ class Worker(Animation):
     diesound = 'boom2.ogg'
 
     base_speed = 4
-    base_hp = 5
+    base_hp = 20
     base_damage = 1
     def __init__(self, game):
         self.groups = game.main_group, game.bot_group
@@ -988,8 +988,8 @@ class Worker(Animation):
         self.path = None
 
     def upgrade_level(self):
-        self.max_hp += 5
-        self.hp += 5
+        self.max_hp += 7 + int(self.level*.2)
+        self.hp += 7 + int(self.level*.2)
         self.damage += 1
         self.speed -= 1
         if self.speed < 1:
@@ -1026,7 +1026,13 @@ class Worker(Animation):
                 self.attack_timer = 0
                 for i in do_hit:
                     i.hit(self.damage)
-            return #we can't move anymore ;)
+            if not (self.target == self.game.hero and self.path):
+                self.target = self.game.hero
+                start = self.game.map_grid.screen_to_grid(self.rect.center)
+                self.path = self.game.map_grid.calculate_path(start, self.game.map_grid.screen_to_grid(self.target.rect.center), False, False)
+            else:
+                start = self.path[0]
+                self.path = self.game.map_grid.calculate_path(start, self.game.map_grid.screen_to_grid(self.target.rect.center), False, False)
         else:
             self.attack_timer = 0
 
@@ -1146,8 +1152,9 @@ class Worker(Animation):
                 start = self.game.map_grid.screen_to_grid(self.rect.center)
                 self.path = self.game.map_grid.calculate_path(start, self.game.map_grid.screen_to_grid(self.target.rect.center), False, False)
             elif isinstance(self.target, Hero):
-                self.have_scraps = False
-                self.game.scraps += self.scrap_load
+                if self.have_scraps:
+                    self.game.scraps += self.scrap_load
+                    self.have_scraps = False
                 self.game.update_money()
                 self.reset_target()
                 self.target = None
