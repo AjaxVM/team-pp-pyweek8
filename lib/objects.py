@@ -795,7 +795,7 @@ class ElectroBolt(Laser):
 
         self.used_insects = used_insects
         for i in self.game.insect_group.objects:
-            if not i in self.used_insects:
+            if not (i in self.used_insects or i.immune):
                 if misc.distance(base_pos, i.rect.center) < self.range:
                     self.used_insects.append(i)
                     ElectroBolt(self.game, self.target.rect.center, self.range,
