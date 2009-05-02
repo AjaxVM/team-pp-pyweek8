@@ -451,6 +451,7 @@ class MissileTower(TowerBase):
         self.damage += 7 + int(self.damage/7)
         self.range += 20
         self.inc_cost()
+        self.game.update_money()
 
 class Bullet(GameObject):
     def __init__(self, game, pos, range, target, damage):
@@ -502,7 +503,7 @@ class Missile(Bullet):
         self.groups = game.main_group, game.bullet_group
         Bullet.__init__(self, game, pos, range*2, target, damage)
         self.angle = random.randrange(360)
-        self.image.fill((255,0,0))
+        self.image = data.image("data/missile.png")
         self.damage = damage
         self.speed = 2
 
@@ -525,6 +526,14 @@ class Missile(Bullet):
         self.direction = (x, y)
         
         Bullet.update(self)
+
+    def render(self):
+        _image = self.image
+        self.image = pygame.transform.rotate(self.image, 180-self.angle)
+        self.rect = self.image.get_rect(center=self.rect.center)
+        Bullet.render(self)
+        self.image = _image
+        self.rect = _image.get_rect(center=self.rect.center)
 
 class Net(Bullet):
     def __init__(self, game, pos, range, target, damage, duration):
