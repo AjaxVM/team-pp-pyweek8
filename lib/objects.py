@@ -1018,7 +1018,8 @@ class Worker(Animation):
 
     def hit(self, damage):
         Animation.hit(self, damage)
-        DamageNote(self.game, self.rect.midtop, (255,0,0), damage)
+        if not self.was_killed:
+            DamageNote(self.game, self.rect.midtop, (255,0,0), damage)
 
     def reset_target(self):
         if not self.target == self.game.hero:
@@ -1234,7 +1235,6 @@ class Ant(Animation):
 
     def hit(self, damage):
         Animation.hit(self, damage)
-        DamageNote(self.game, self.rect.midtop, (100,100,255), damage)
         if self.hp <= 0:
             self.game.audio.sounds[self.diesound].play()
             self.game.money += self.worth
@@ -1242,6 +1242,8 @@ class Ant(Animation):
             self.game.update_money()
             DamageNote(self.game, self.rect.midtop, (220, 200, 50), self.worth, True)
             Fadeout(self.game, self.rect.center, self.image)
+            return
+        DamageNote(self.game, self.rect.midtop, (100,100,255), damage)
 
     def update(self):
 
@@ -2225,7 +2227,7 @@ class PoisonSpray(GameObject):
     def update(self):
         for i in self.game.insect_group.objects:
             if self.rect.colliderect(i.rect):
-                i.kill()
+                i.hit(99999999)
 
         self.rect.move_ip(-1,0)
         if self.rect.right <= 0:
@@ -2330,7 +2332,7 @@ class BroomSpecial(GameObject):
 
         for i in self.game.insect_group.objects + self.game.bot_group.objects:
             if r.colliderect(i.rect):
-                i.kill()
+                i.hit(99999999)
 
         if not self.hit_hive:
             if r.colliderect(self.game.hive.rect):
@@ -2379,7 +2381,7 @@ class MowerSpecial(GameObject):
         for i in self.game.insect_group.objects + self.game.bot_group.objects +\
             self.game.tower_group.objects + self.game.build_tower_group.objects:
             if self.rect.colliderect(i.rect):
-                i.kill()
+                i.hit(99999999)
 
         if not self.hit_hive:
             if self.rect.colliderect(self.game.hive.rect):
