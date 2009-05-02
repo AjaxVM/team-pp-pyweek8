@@ -2335,8 +2335,56 @@ class BroomSpecial(GameObject):
         if not self.hit_hive:
             if r.colliderect(self.game.hive.rect):
                 self.game.hive.hit(random.randint(2,4))
-                self.kill()
                 self.hit_hive = True
 
         if self.rect.left <= -100 and self.rect.top <= -100:
+            self.kill()
+
+class MowerSpecial(GameObject):
+    def __init__(self, game):
+        self.groups = game.main_group, game.special_group
+        GameObject.__init__(self, game)
+
+        self.image = pygame.transform.rotate(data.image("data/mower.png"), 90)
+        self.rect = self.image.get_rect()
+        self.rect.topright = 800,0
+
+        self.d = -1
+
+        self.throw_dust_counter = 0
+        self.hit_hive = False
+
+    def update(self):
+        self.rect.move_ip(self.d, 0)
+
+        self.rect.move_ip(self.d*10, 0)
+        if self.rect.right < 0 and self.d == -1:
+            self.d = 1
+            self.rect.move_ip(0, 100)
+            self.image = pygame.transform.flip(self.image, 1, 0)
+        elif self.rect.left > 800 and self.d == 1:
+            self.d = -1
+            self.rect.move_ip(0, 100)
+            self.image = pygame.transform.flip(self.image, 1, 0)
+
+        self.throw_dust_counter += 1
+        if self.throw_dust_counter >= 10:
+            for i in (self.rect.topleft, self.rect.topright,
+                      self.rect.midtop, self.rect.midright,
+                      self.rect.bottomright, self.rect.midbottom,
+                      self.rect.midleft):
+                Dust(self.game, i)
+                self.throw_dust_counter = 0
+
+        for i in self.game.insect_group.objects + self.game.bot_group.objects +\
+            self.game.tower_group.objects + self.game.build_tower_group.objects:
+            if self.rect.colliderect(i.rect):
+                i.kill()
+
+        if not self.hit_hive:
+            if self.rect.colliderect(self.game.hive.rect):
+                self.game.hive.hit(random.randint(4,8))
+                self.hit_hive = True
+
+        if self.rect.centery > 500:
             self.kill()
