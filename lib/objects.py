@@ -1145,10 +1145,13 @@ class Wasp(Ant):
 
 class Explosion(Animation):
     
-    def __init__(self, game, pos):
+    def __init__(self, game, pos, big=False):
         self.groups = [game.main_group]
         Animation.__init__(self, game)
-        self.imgs = [data.image("data/exp-%d.png" % i) for i in range(1, 5)]
+        if big:
+            self.imgs = [pygame.transform.scale(data.image("data/exp-%d.png" % i), (50,50)) for i in range(1, 5)]
+        else:
+            self.imgs = [data.image("data/exp-%d.png" % i) for i in range(1, 5)]
         self.image = self.imgs[0]
         self.add_animation("anim", self.imgs)
         self.rect = self.image.get_rect(center = pos)
@@ -1298,7 +1301,7 @@ class CageTrap(GameObject):
 
     base_usage_count = 200
     base_damage = 0
-    special = None
+    special = "traps"
     def __init__(self, game, pos):
         self.groups = game.main_group, game.trap_group
         GameObject.__init__(self, game)
@@ -1348,6 +1351,69 @@ class CageTrap(GameObject):
                 if self.times >= self.max_times:
                     self.kill()
                     return
+
+class BombTrap(GameObject):
+    money_cost = 125
+    scrap_cost = 75
+    ui_icon = "data/bomb.png"
+    diesound = 'boom1.ogg'
+
+    base_usage_count = 1
+    base_damage = 50
+    special = "splash damage"
+    def __init__(self, game, pos):
+        self.groups = game.main_group, game.trap_group
+        GameObject.__init__(self, game)
+
+        self.image = data.image("data/bomb.png")
+
+        self.rect = self.image.get_rect()
+        x, y = pos
+        x += 10
+        y += 20 #so we can put it at center...
+        self.rect.midbottom = x, y
+
+        self.game.money -= self.money_cost
+        self.game.scraps -= self.scrap_cost
+        self.game.update_money()
+
+        self.damage = int(self.base_damage)
+
+        self.level = 1
+
+        self.times = 0
+        self.max_times = int(self.base_usage_count)
+
+        #set blocking!
+        self.game.map_grid.set(self.game.map_grid.screen_to_grid(pos), 1)
+
+        for i in xrange(self.game.hero.trap_level-1):
+            self.upgrade_level()
+
+    def upgrade_level(self):
+        self.damage += 30 + self.level
+        self.level += 1
+
+    def kill(self):
+        GameObject.kill(self)
+        self.game.audio.sounds[self.diesound].play()
+        self.game.map_grid.set(self.game.map_grid.screen_to_grid(self.rect.topleft), 0)
+
+    def update(self):
+        targets = []
+        shoot = False
+        for i in self.game.insect_group.objects:
+            if misc.distance(self.rect.center, i.rect.center) < 100:
+                targets.append(i)
+            if misc.distance(self.rect.center, i.rect.center) <= 22:
+                shoot = True
+
+        if shoot:
+            for i in targets:
+                i.hit(self.damage)
+                Explosion(self.game, i.rect.center)
+            self.kill()
+            Explosion(self.game, self.rect.center, big=True)
 
 
 class BattleBot(Worker):
