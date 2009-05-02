@@ -202,6 +202,11 @@ class Hero(GameObject):
             self.building = TrapperBot
             self.build_timer = 0
 
+    def build_guard(self):
+        if not self.building:
+            self.building = GuardBot
+            self.build_timer = 0
+
     def update(self):
         if self.building:
             self.build_timer += 1
@@ -621,6 +626,8 @@ class Worker(Animation):
 
         self.rect = self.image.get_rect()
         self.rect.center = self.game.hero.rect.topleft
+
+        self.name = "Worker"
 
         self.level = 1
 
@@ -1284,13 +1291,13 @@ class Trap(GameObject):
 
 class BattleBot(Worker):
     time_cost = 75
-    money_cost = 20
+    money_cost = 35
     scrap_cost = 35
     ui_icon = "data/warrior-1.png"
 
-    base_speed = 2
-    base_hp = 25
-    base_damage = 5
+    base_speed = 3
+    base_hp = 30
+    base_damage = 8
     special = None
     def __init__(self, game):
         self.groups = game.main_group, game.bot_group
@@ -1305,6 +1312,8 @@ class BattleBot(Worker):
         self.image = self.walk_images[0]
         self.add_animation("walk", self.walk_images)
         self.add_animation("stand", self.stand_images)
+
+        self.name = "Warrior"
 
         self.level = 1
 
@@ -1329,9 +1338,9 @@ class BattleBot(Worker):
         self.count = 0
 
     def upgrade_level(self):
-        self.max_hp += 7
-        self.hp += 7
-        self.damage += 2
+        self.max_hp += 8 + self.level
+        self.hp += 8 + self.level
+        self.damage += 2 * self.level
         self.level += 1
 
     def update(self):
@@ -1442,12 +1451,12 @@ class BattleBot(Worker):
 
 class TrapperBot(BattleBot):
     time_cost = 75
-    money_cost = 35
-    scrap_cost = 45
+    money_cost = 40
+    scrap_cost = 55
     ui_icon = "data/trapper-1.png"
 
     base_speed = 2
-    base_hp = 20
+    base_hp = 25
     base_damage = 3
     base_range=110
     base_net_duration=175
@@ -1464,6 +1473,8 @@ class TrapperBot(BattleBot):
         self.throw_net_wait = 50
         self.range = int(self.base_range)
         self.net_duration=int(self.base_net_duration)
+
+        self.name = "Trapper"
 
         BattleBot.__init__(self, game)
 
@@ -1507,5 +1518,154 @@ class TrapperBot(BattleBot):
             if self.throw_net_counter >= self.throw_net_wait:
                 self.throw_net_counter = 0
                 Net(self.game, self.rect.center, self.range+20, target[0], self.net_duration)
+
+class GuardBot(BattleBot):
+    time_cost = 100
+    money_cost = 75
+    scrap_cost = 45
+    ui_icon = "data/guard-1.png"
+
+    base_speed = 4
+    base_hp = 40
+    base_damage = 6
+    special = "guard workers"
+    def __init__(self, game):
+
+        self.damage = int(self.base_damage)
+        self.max_hp = int(self.base_hp)
+        self.hp = int(self.max_hp)
+        self.show_hp_bar = True
+        self.attack_timer = 0
+        self.speed = int(self.base_speed)
+
+        BattleBot.__init__(self, game)
+
+        self.walk_images = [
+            data.image("data/guard-1.png"),
+            data.image("data/guard-2.png"),
+            ]
+        self.stand_images = [
+            data.image("data/guard-1.png"),
+            ]
+        self.image = self.walk_images[0]
+        self.add_animation("walk", self.walk_images)
+        self.add_animation("stand", self.stand_images)
+
+        self.name = "Guard"
+
+        self.rect = self.image.get_rect()
+        self.rect.center = self.game.hero.rect.topleft
+
+    def upgrade_level(self):
+        self.max_hp += 10 + self.level
+        self.hp += 10 + self.level
+        self.damage += 2 + int(self.level*.5)
+        self.level += 1
+
+    def update(self):
+        #Battling first, because we gotta stop movement for that!
+        do_hit = []
+
+        if self.rect.colliderect(self.game.hive):
+            self.game.hive.hit(1)
+            self.kill()
+
+        for i in self.game.insect_group.objects:
+            if not (i.immune or i.flying):
+                if self.rect.inflate(6,6).colliderect(i.rect.inflate(6,6)):
+                    do_hit.append(i)
+
+        if do_hit:
+            self.attack_timer += 1
+            if self.attack_timer >= 25:
+                self.attack_timer = 0
+                for i in do_hit:
+                    i.hit(self.damage)
+            return #we can't move anymore ;)
+        else:
+            self.attack_timer = 0
+
+        old_target = self.target
+        diso = None
+        for i in self.game.bot_group.objects:
+            if i.name == "Worker":
+                if not diso:
+                    diso = (i, misc.distance(self.rect.center, i.rect.center))
+                    continue
+                x = misc.distance(self.rect.center, i.rect.center)
+                if x < diso[1]:
+                    diso = (i, x)
+
+        for i in self.game.insect_group.objects:
+            if not (i.immune or i.flying):
+                if not diso:
+                    diso = (i, misc.distance(self.rect.center, i.rect.center))
+                    continue
+                x = misc.distance(self.rect.center, i.rect.center)
+                if x < diso[1]*3:
+                    diso = (i, x)
+
+        if diso:
+            if (not diso[0] == old_target) or (not self.path):
+                self.target = diso[0]
+                if not self.path:
+                    start = self.game.map_grid.screen_to_grid(self.rect.center)
+                else:
+                    start = self.path[0]
+                self.path = self.game.map_grid.calculate_path(start,
+                                self.game.map_grid.screen_to_grid(self.target.rect.center), False, False)
+        else:
+            #what?!?! this really shouldn't happen...
+            if (not self.target == self.game.hive) or (not self.path):
+                self.target = self.game.hive
+                if not self.path:
+                    start = self.game.map_grid.screen_to_grid(self.rect.center)
+                else:
+                    start = self.path[0]
+                self.path = self.game.map_grid.calculate_path(start,
+                                self.game.map_grid.screen_to_grid(self.target.rect.center), False, False)
+
+        print self.target, bool(self.path)
+
+        #later!
+        if self.target.was_killed:
+            self.reset_target()
+            self.path = None
+            self.animate("stand", 1, 1)
+            return
+
+        if not self.rect.inflate(3,3).colliderect(self.target.rect):
+            grid_pos = None
+            if self.path:
+                x, y = self.game.map_grid.grid_to_screen(self.path[0])
+                grid_pos = x+10, y+10
+                if self.rect.centerx == grid_pos[0] and self.rect.centery == grid_pos[1]:
+                    self.path.pop(0)
+                    if self.path:
+                        x, y = self.game.map_grid.grid_to_screen(self.path[0])
+                        grid_pos = x+10, y+10
+                    else:
+                        grid_pos = None
+            if grid_pos:
+                self.move_timer += 1
+                if self.move_timer >= self.speed:
+                    self.animate("walk", int(15/self.speed), 1)
+                    ydiff = grid_pos[1] - self.rect.centery
+                    xdiff = grid_pos[0] - self.rect.centerx
+                    self.angle = math.degrees(math.atan2(xdiff, ydiff)) + 180
+                    self.move_timer = 0
+                    if grid_pos[0] < self.rect.centerx:
+                        self.rect.move_ip(-1, 0)
+                    elif grid_pos[0] > self.rect.centerx:
+                        self.rect.move_ip(1, 0)
+
+                    if grid_pos[1] < self.rect.centery:
+                        self.rect.move_ip(0, -1)
+                    elif grid_pos[1] > self.rect.centery:
+                        self.rect.move_ip(0, 1)
+        else:
+            if isinstance(self.target, Hive):
+                self.target.hit(1)
+                self.kill()
 
         
