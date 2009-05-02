@@ -381,6 +381,11 @@ class Game(GameState):
                       callback=self.use_broom_special,
                       status_message="Wah! They are too strong!\nCall down some major beatdown\nfrom your mom's broom!",
                       anchor="topleft")
+        i = pygame.transform.scale(data.image("data/mower.png"), (50, 50))
+        self.special_mower = ui.Button(self.app, image=i, pos=self.special_broom.rect.inflate(8,0).topright,
+                      callback=self.use_mower_special,
+                      status_message="Get off my lawn already!!\nFine. I can do some major damage to you, ya punks!\nVrrrrm!",
+                      anchor="topleft")
 
         self.status_message = ui.PopupManager(self.app)
         self.status_message.set("Testing, 1,2,3")
@@ -419,6 +424,10 @@ class Game(GameState):
     def use_broom_special(self):
         self.special_broom.kill() #because you can't do it twice!
         objects.BroomSpecial(self)
+
+    def use_mower_special(self):
+        self.special_mower.kill() #because you can't do it twice!
+        objects.MowerSpecial(self)
 
     def upgrade_warrior(self):
         if self.money >= self.hero.tech_warrior_upgrade_cost:
