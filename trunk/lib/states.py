@@ -63,12 +63,14 @@ class Menu(GameState):
             self.bg.blit(data.image("data/worker-1.png"), (random.randint(0,800), random.randint(200,300)))
             self.bg.blit(data.image("data/tower-base.png"), (random.randint(0,800), random.randint(200,300)))
 
-        for i in xrange(300):
-            self.bg.blit(data.image("data/ant-1.png"), (random.randint(0,800), random.randint(350,600)))
-
         n = self.bg.copy()
         n.fill((255,228,196,65))
         self.bg.blit(n, (0,0))
+
+        for i in xrange(300):
+            i = random.choice(("ant-1.png", "beetle-1.png", "worm-1.png", "wasp-1.png"))
+            self.bg.blit(data.image("data/"+i), (random.randint(0,800), random.randint(350,600)))
+
         self.killed = False
 
     def _kill(self):
@@ -132,7 +134,8 @@ class YouLostMenu(GameState):
 
         self.bg = data.image("data/background1.png").copy()
         for i in xrange(500):
-            self.bg.blit(data.image("data/ant-1.png"), (random.randint(0,800), random.randint(200,600)))
+            i = random.choice("ant-1.png", "beetle-1.png", "worm-1.png", "wasp-1.png")
+            self.bg.blit(data.image("data/"+i), (random.randint(0,800), random.randint(350,600)))
         n = self.bg.copy()
         n.fill((0,0,0,75))
         self.bg.blit(n, (0,0))

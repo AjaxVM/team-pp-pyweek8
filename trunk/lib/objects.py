@@ -235,9 +235,15 @@ class Hive(GameObject):
     def update(self):
         self.counter += 1
         if self.fast:
-            num = 40
+            num = 65
+            num -= self.level * 5
+            if num < 40:
+                num = 40
         else:
-            num = 220
+            num = 300
+            num -= self.level * 15
+            if num < 75:
+                num = 75
         if self.counter >= num:
             if not random.randrange(3):
                 self.fast = True
@@ -954,6 +960,7 @@ class Worm(Ant):
         self.wait = random.randint(250, 500)
         self.wait_counter = 0
         self.ani_speed = 50
+        self.immune_distance = random.randint(475, 550)
 
     def update(self):
         if self.immune:
@@ -973,7 +980,7 @@ class Worm(Ant):
                     self.immune_start = self.rect.center
 
         if self.immune:
-            if misc.distance(self.rect.center, self.immune_start) >= 425:
+            if misc.distance(self.rect.center, self.immune_start) >= self.immune_distance:
                 self.immune = False
 
 class Wasp(Ant):
