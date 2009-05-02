@@ -174,6 +174,12 @@ class Hero(GameObject):
         self.rect = self.image.get_rect()
         self.rect.bottomright = (800,500) #bottom 100 is the ui bar!
 
+        self.hero_image = data.image("data/hero.png")
+        self.hero_image_hover = data.image("data/hero_hover.png")
+        self.hero_rect = self.hero_image.get_rect()
+        self.hero_rect.midbottom = self.rect.center
+        self.hero_rect.move_ip(0,15)
+
         self.worker_level = 1
         self.warrior_level = 1
         self.trap_level = 1
@@ -221,15 +227,20 @@ class Hero(GameObject):
 
     def hit(self, damage):
         GameObject.hit(self, damage)
-        FloatingMessage(self.game, self.rect.midtop, "EEP!!!")
+        FloatingMessage(self.game, self.hero_rect.topleft, "EEP!!!")
 
     def render(self):
         GameObject.render(self)
 
+        if self.hero_rect.collidepoint(pygame.mouse.get_pos()):
+            self.game.screen.blit(self.hero_image_hover, self.hero_rect)
+        else:
+            self.game.screen.blit(self.hero_image, self.hero_rect)
+
         t = data.font("data/font.ttf", 45)
         t1 = t.render(str(self.hp), 1, (0,255,0))
         t2 = t.render(str(self.hp), 1, (0,0,0))
-        r = t2.get_rect(center=self.rect.center)
+        r = t2.get_rect(midbottom=self.rect.inflate(0,-8).midbottom)
         self.game.screen.blit(t2, r)
         self.game.screen.blit(t1, r.move(1,1))
 

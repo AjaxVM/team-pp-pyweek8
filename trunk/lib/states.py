@@ -369,14 +369,14 @@ class Game(GameState):
                                                                                    self.hero.tech_trap_upgrade_cost),
                       anchor="topleft")
 
-        l = ui.Label(self.app, "Specials     ", pos=(610, 500))
+        l = ui.Label(self.app, "Specials    ", pos=(610, 500))
         ui.LinesGroup(self.app, l)
         i = pygame.transform.scale(data.image("data/spray_can.png"), (35, 70))
         self.special_spray = ui.Button(self.app, image=i, pos=l.rect.inflate(0,2).bottomleft,
                       callback=self.use_spray_special,
                       status_message="Insects whooping on you?\nUse your spray can - kills all baddies!",
                       anchor="topleft")
-        i = pygame.transform.scale(data.image("data/broom.png"), (35, 70))
+        i = pygame.transform.scale(data.image("data/broom.png"), (35, 60))
         self.special_broom = ui.Button(self.app, image=i, pos=self.special_spray.rect.inflate(8,0).topright,
                       callback=self.use_broom_special,
                       status_message="Wah! They are too strong!\nCall down some major beatdown\nfrom your mom's broom!",
