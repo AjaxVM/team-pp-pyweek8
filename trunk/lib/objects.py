@@ -168,13 +168,10 @@ class Hero(GameObject):
         self.groups = game.main_group, game.hero_group
         GameObject.__init__(self, game)
 
-        self.image = pygame.Surface((50,50)).convert_alpha()
-        self.image.fill((0,0,0,0))
-        pygame.draw.circle(self.image, (255,0,0), (25,25), 25)
-        pygame.draw.circle(self.image, (0,0,255), (30,20), 7, 2)
+        self.image = data.image("data/steps.png")
 
         self.rect = self.image.get_rect()
-        self.rect.bottomright = (800,500) #bottom 100 is the ui bar!
+        self.rect.bottomright = (842,525) #bottom 100 is the ui bar!
 
         self.worker_level = 1
         self.warrior_level = 1
@@ -233,7 +230,7 @@ class Hive(GameObject):
         self.flying = False
         self.immune = False
 
-        self.choice_list = [Ant]*4 + [Beetle]*2 + [Worm]*1
+        self.choice_list = [Ant]*10 + [Beetle]*8 + [Worm]*6 + [Wasp]*4
 
     def update(self):
         self.counter += 1
@@ -978,6 +975,90 @@ class Worm(Ant):
         if self.immune:
             if misc.distance(self.rect.center, self.immune_start) >= 425:
                 self.immune = False
+
+class Wasp(Ant):
+    def __init__(self, game, level=1):
+        self.groups = game.main_group, game.insect_group
+        Ant.__init__(self, game, level)
+
+        self.walk_images = [
+            data.image("data/wasp-1.png"),
+            data.image("data/wasp-1.png"),
+            ]
+        self.image = self.walk_images[0]
+        self.add_animation("walk", self.walk_images)
+        self.rect = self.image.get_rect()
+        self.rect.center = self.game.hive.rect.center
+
+        self.max_hp = 10 + 5*self.level
+        self.hp = int(self.max_hp)
+        self.show_hp_bar = True
+        self.worth = 25 * self.level
+        self.damage = 2 * self.level
+
+        self.speed = 1
+        self.flying = True
+
+    def update(self):
+
+        do_hit = []
+
+        for i in self.game.build_tower_group.objects:
+            if self.rect.inflate(6,6).colliderect(i.rect.inflate(6,6)):
+                i.kill()
+
+        for i in self.game.bot_group.objects:
+            if self.rect.inflate(6,6).colliderect(i.rect.inflate(6,6)):
+                do_hit.append(i)
+
+        if do_hit:
+            self.attack_timer += 1
+            if self.attack_timer >= 5:
+                self.attack_timer = 0
+                for i in do_hit:
+                    i.hit(self.damage)
+        else:
+            self.attack_timer = 0
+
+        if self.path == None or not self.target:
+            self.target = self.game.hero
+            if not self.path:
+                start = self.game.map_grid.screen_to_grid(self.rect.center)
+            else:
+                start = self.path[0]
+            self.path = self.game.map_grid.calculate_path(start, self.game.map_grid.screen_to_grid(self.game.hero.rect.center))
+           
+
+        if not self.rect.colliderect(self.target.rect):
+            grid_pos = None
+            if self.path:
+                x, y = self.game.map_grid.grid_to_screen(self.path[0])
+                grid_pos = x+10, y+10
+                if self.rect.centerx == grid_pos[0] and self.rect.centery == grid_pos[1]:
+                    self.path.pop(0)
+                    if self.path:
+                        x, y = self.game.map_grid.grid_to_screen(self.path[0])
+                        grid_pos = x+10, y+10
+                    else:
+                        grid_pos = None
+            if grid_pos:
+                self.move_timer += 1
+                if self.move_timer >= self.speed:
+                    self.animate("walk", int(self.ani_speed/self.speed), 1)
+                    self.angle = 0
+                    self.move_timer = 0
+                    if grid_pos[0] < self.rect.centerx:
+                        self.rect.move_ip(-1, 0)
+                    elif grid_pos[0] > self.rect.centerx:
+                        self.rect.move_ip(1, 0)
+
+                    if grid_pos[1] < self.rect.centery:
+                        self.rect.move_ip(0, -1)
+                    elif grid_pos[1] > self.rect.centery:
+                        self.rect.move_ip(0, 1)
+        else:
+            self.target.hit(1)
+            self.kill()
 
 class Explosion(Animation):
     
