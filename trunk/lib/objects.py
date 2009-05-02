@@ -219,6 +219,10 @@ class Hero(GameObject):
                 self.building = None
                 self.game.update_money()
 
+    def hit(self, damage):
+        GameObject.hit(self, damage)
+        DamageNote(self.game, self.rect.midbottom, (255, 0, 0), damage, True)
+
     def render(self):
         GameObject.render(self)
 
@@ -251,7 +255,11 @@ class Hive(GameObject):
         self.flying = False
         self.immune = False
 
-        self.choice_list = [Ant]*10 + [Beetle]*8 + [Worm]*6 + [Wasp]*4
+        self.choice_list = [Ant]*15 + [Beetle]*8 + [Worm]*6 + [Wasp]*4
+
+    def hit(self, damage):
+        GameObject.hit(self, damage)
+        DamageNote(self.game, self.rect.midbottom, (0, 255, 0), damage, True)
 
     def update(self):
         self.counter += 1
@@ -2147,6 +2155,38 @@ class PoisonSpray(GameObject):
         self.image = _image
         self.rect = self.image.get_rect(center=self.rect.center)
 
+
+class Dust(GameObject):
+    def __init__(self, game, pos):
+        self.groups = game.main_group, game.special_group
+        GameObject.__init__(self, game)
+
+        self.image = data.image("data/grey_cloud.png")
+        self.rot = 0
+        self.add_rot = random.choice((-1,1))
+        self.rect = self.image.get_rect()
+        self.rect.center = pos
+
+        self.age = 0
+
+    def update(self):
+
+        self.rect.move_ip(random.randint(-2,2), -1)
+
+        self.age += 1
+        if self.age >= 150:
+            self.kill()
+
+        self.rot += self.add_rot
+
+    def render(self):
+        _image = self.image
+        self.image = pygame.transform.rotate(self.image, self.rot)
+        self.rect = self.image.get_rect(center=self.rect.center)
+        GameObject.render(self)
+        self.image = _image
+        self.rect = self.image.get_rect(center=self.rect.center)
+
         
 class SprayCanSpecial(GameObject):
     def __init__(self, game):
@@ -2169,4 +2209,48 @@ class SprayCanSpecial(GameObject):
 
         self.rect.move_ip(0,4)
         if self.rect.top > 500:
+            self.kill()
+
+
+class BroomSpecial(GameObject):
+    def __init__(self, game):
+        self.groups = game.main_group, game.special_group
+        GameObject.__init__(self, game)
+
+        self.image = data.image("data/broom.png")
+        self.rect = self.image.get_rect()
+        self.rect.bottomright = self.game.hero.rect.topleft
+
+        self.d = (-10,20) #bottomleft first!
+
+        self.throw_dust_counter = 0
+        self.hit_hive = False
+
+    def update(self):
+        self.rect.move_ip(self.d)
+
+        r = pygame.Rect(0,0,self.rect.width, self.rect.width)
+        r.midbottom = self.rect.midbottom
+        if r.centery >= 475 or r.centerx <= 25:
+            self.d = (10,-20)
+        elif r.centerx >= 775 or r.centery <= 25:
+            self.d = (-10,20)
+            self.rect.move_ip(-45,0)
+
+        self.throw_dust_counter += 1
+        if self.throw_dust_counter >= 5:
+            Dust(self.game, r.midbottom)
+            self.throw_dust_counter = 0
+
+        for i in self.game.insect_group.objects + self.game.bot_group.objects:
+            if r.colliderect(i.rect):
+                i.kill()
+
+        if not self.hit_hive:
+            if r.colliderect(self.game.hive.rect):
+                self.game.hive.hit(random.randint(2,4))
+                self.kill()
+                self.hit_hive = True
+
+        if self.rect.left <= -100 and self.rect.top <= -100:
             self.kill()
