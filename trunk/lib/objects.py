@@ -1215,6 +1215,7 @@ class Ant(Animation):
             self.game.kills += 1
             self.game.update_money()
             DamageNote(self.game, self.rect.midtop, (220, 200, 50), self.worth, True)
+            Fadeout(self.game, self.rect.center, self.image)
 
     def update(self):
 
@@ -1492,6 +1493,24 @@ class Explosion(Animation):
     def on_animation_end(self):
         self.kill()
 
+class Fadeout(GameObject):
+    
+    def __init__(self, game, pos, image):
+        self.groups = [game.main_group]
+        GameObject.__init__(self, game)
+        self.image = pygame.Surface(image.get_size())
+        self.image.fill((255, 53, 255))
+        self.image.set_colorkey((255, 53, 255), RLEACCEL)
+        self.image.blit(image, (0, 0))
+        self.rect = self.image.get_rect(center = pos)
+        self.alpha = 255
+
+    def render(self):
+        self.alpha -= 5
+        if self.alpha <= 0:
+            self.kill()
+        self.image.set_alpha(self.alpha)
+        self.game.screen.blit(self.image, self.rect)
 
 class DamageNote(GameObject):
     def __init__(self, game, pos, color, amount, _big=False):

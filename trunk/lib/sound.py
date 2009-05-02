@@ -17,5 +17,6 @@ class SoundManager(object):
 ##        print "Loaded sounds:", `_.sounds.keys()`
 
     def __del__(_):
-        pygame.mixer.quit()
+        pass
+        #pygame.mixer.quit()
 

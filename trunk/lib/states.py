@@ -159,8 +159,11 @@ class Game(GameState):
         self.screen = self.get_root().screen
 
         self.audio = sound.SoundManager('data')
-        self.audio.sounds['ants_on_my_lawn.ogg'].set_volume(0.6)
-        self.audio.sounds['ants_on_my_lawn.ogg'].play(loops=-1)
+        pygame.mixer.music.load("data/ants_on_my_lawn.ogg")
+        pygame.mixer.music.set_volume(0.6)
+        pygame.mixer.music.play(-1)
+        #self.audio.sounds['ants_on_my_lawn.ogg'].set_volume(0.6)
+        #self.audio.sounds['ants_on_my_lawn.ogg'].play(loops=-1)
 
         self.background = data.image("data/background1.png")
         self.ui_background = data.image("data/porch_ui.png")
