@@ -1307,7 +1307,7 @@ class Beetle(Ant):
 
         self.walk_images = [
             data.image("data/beetle-1.png"),
-            data.image("data/beetle-1.png"),
+            data.image("data/beetle-2.png"),
             ]
         self.image = self.walk_images[0]
         self.add_animation("walk", self.walk_images)
@@ -1389,7 +1389,7 @@ class Wasp(Ant):
 
         self.walk_images = [
             data.image("data/wasp-1.png"),
-            data.image("data/wasp-1.png"),
+            data.image("data/wasp-2.png"),
             ]
         self.image = self.walk_images[0]
         self.add_animation("walk", self.walk_images)
