@@ -296,16 +296,27 @@ class Game(GameState):
 
         l = ui.Label(self.app, "Traps", pos=(430, 520))
         ui.LinesGroup(self.app, l)
-        b = ui.Button(self.app, image=objects.Trap.ui_icon, pos=l.rect.inflate(0,2).bottomleft,
-                  callback=self.build_trap,
-                      status_message=("Build a Trap\ncost:\n  money: %s\n  scraps: %s"+\
-                                      "\n----------\nattack: %s\nuses: %s\nspecial: %s")%(objects.Trap.money_cost,
-                                                                                      objects.Trap.scrap_cost,
-                                                                                      objects.Trap.base_damage,
-                                                                                      objects.Trap.base_usage_count,
-                                                                                      objects.Trap.special),
+        b = ui.Button(self.app, image=objects.SpikeTrap.ui_icon, pos=l.rect.inflate(0,2).bottomleft,
+                  callback=self.build_spike_trap,
+                      status_message=("Build a Spike Trap\ncost:\n  money: %s\n  scraps: %s"+\
+                                      "\n----------\nattack: %s\nuses: %s\nspecial: %s")%(objects.SpikeTrap.money_cost,
+                                                                                      objects.SpikeTrap.scrap_cost,
+                                                                                      objects.SpikeTrap.base_damage,
+                                                                                      objects.SpikeTrap.base_usage_count,
+                                                                                      objects.SpikeTrap.special),
                       anchor="topleft")
-        self.build_trap_button = b
+        self.build_spike_trap_button = b
+
+        b = ui.Button(self.app, image=objects.CageTrap.ui_icon, pos=b.rect.inflate(8,0).topright,
+                  callback=self.build_cage_trap,
+                      status_message=("Build a Cage Trap\ncost:\n  money: %s\n  scraps: %s"+\
+                                      "\n----------\nattack: %s\nuses: %s\nspecial: %s")%(objects.CageTrap.money_cost,
+                                                                                      objects.CageTrap.scrap_cost,
+                                                                                      objects.CageTrap.base_damage,
+                                                                                      objects.CageTrap.base_usage_count,
+                                                                                      objects.CageTrap.special),
+                      anchor="topleft")
+        self.build_cage_trap_button = b
 
 
         #Ooh, techs, gotta love them!
@@ -425,15 +436,25 @@ class Game(GameState):
                 i.upgrade_level()
             self.update_money()
 
-            test = objects.Trap(self, (0,0))
+            test = objects.SpikeTrap(self, (0,0))
             test.kill() #we don't want to leave this laying around O.o
-            b = ("Build a Trap\ncost:\n  money: %s\n  scraps: %s"+\
+            b = ("Build a Spike Trap\ncost:\n  money: %s\n  scraps: %s"+\
                   "\n----------\nattack: %s\nuses: %s\nspecial: %s")%(test.money_cost,
                                                                   test.scrap_cost,
                                                                   test.damage,
                                                                   test.max_times,
                                                                   test.special)
-            self.build_trap_button.status_message = b
+            self.build_spike_trap_button.status_message = b
+
+            test = objects.CageTrap(self, (0,0))
+            test.kill() #we don't want to leave this laying around O.o
+            b = ("Build a Cage Trap\ncost:\n  money: %s\n  scraps: %s"+\
+                  "\n----------\nattack: %s\nuses: %s\nspecial: %s")%(test.money_cost,
+                                                                  test.scrap_cost,
+                                                                  test.damage,
+                                                                  test.max_times,
+                                                                  test.special)
+            self.build_cage_trap_button.status_message = b
 
     def build_tower(self):
         if self.money >= objects.TowerBase.money_cost and self.scraps >= objects.TowerBase.scrap_cost:
@@ -461,10 +482,25 @@ class Game(GameState):
            len(self.bot_group.objects) < 20:
             self.hero.build_worker()
 
-    def build_trap(self):
-        #TODO: replace with trap type picker
-        if self.money >= objects.Trap.money_cost and self.scraps >= objects.Trap.scrap_cost:
-            self.building = objects.Trap
+    def build_spike_trap(self):
+        if self.money >= objects.SpikeTrap.money_cost and self.scraps >= objects.SpikeTrap.scrap_cost:
+            self.building = objects.SpikeTrap
+            self.build_active = True
+
+            bo = pygame.Surface((800,500)).convert_alpha()
+            bo.fill((0,0,0,0))
+            for x in xrange(self.map_grid.size[0]):
+                for y in xrange(self.map_grid.size[1]):
+                    if not self.map_grid.is_open((x, y)):
+                        pygame.draw.rect(bo, (200,0,0,125), (self.map_grid.grid_to_screen((x, y)), (20,20)))
+            pygame.draw.rect(bo, (200,0,0,125), ((0,0), (11*20,11*20)))
+            pygame.draw.rect(bo, (200,0,0,125), ((800-9*20,500-9*20), (9*20,9*20)))
+
+            self.build_overlay = bo
+
+    def build_cage_trap(self):
+        if self.money >= objects.CageTrap.money_cost and self.scraps >= objects.CageTrap.scrap_cost:
+            self.building = objects.CageTrap
             self.build_active = True
 
             bo = pygame.Surface((800,500)).convert_alpha()
