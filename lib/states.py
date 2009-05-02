@@ -134,7 +134,7 @@ class YouLostMenu(GameState):
 
         self.bg = data.image("data/background1.png").copy()
         for i in xrange(500):
-            i = random.choice("ant-1.png", "beetle-1.png", "worm-1.png", "wasp-1.png")
+            i = random.choice(("ant-1.png", "beetle-1.png", "worm-1.png", "wasp-1.png"))
             self.bg.blit(data.image("data/"+i), (random.randint(0,800), random.randint(350,600)))
         n = self.bg.copy()
         n.fill((0,0,0,75))

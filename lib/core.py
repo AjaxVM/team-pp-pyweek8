@@ -33,4 +33,4 @@ class GameStateEngine(states.GameState):
             self.do_update()
             self.clock.tick(60)
 
-            pygame.display.set_caption("FPS: %0.01f" % (self.clock.get_fps()))
+##            pygame.display.set_caption("FPS: %0.01f" % (self.clock.get_fps()))
