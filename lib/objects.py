@@ -1913,16 +1913,23 @@ class BattleBot(Worker):
         else:
             self.attack_timer = 0
 
+        if not self.target:
+            self.target = self.game.hive
+
+            self.path = self.game.map_grid.calculate_path(self.game.map_grid.screen_to_grid(self.rect.center),
+                                self.game.map_grid.screen_to_grid(self.target.rect.center), False, False)
+
         old_target = self.target
         diso = None
-        for i in self.game.insect_group.objects+self.game.hive_group.objects:
+        for i in self.game.insect_group.objects:
             if not (i.immune or i.flying):
-                if not diso:
-                    diso = (i, misc.distance(self.rect.center, i.rect.center))
-                    continue
                 x = misc.distance(self.rect.center, i.rect.center)
-                if x < diso[1]:
-                    diso = (i, x)
+                if x < 125:
+                    if not diso:
+                        diso = (i, x)
+                        continue
+                    if x < diso[1]:
+                        diso = (i, x)
 
         if diso:
             if not (diso[0] == old_target and self.path):
@@ -1945,15 +1952,11 @@ class BattleBot(Worker):
                                     self.game.map_grid.screen_to_grid(self.target.rect.center), False, False)
                     self.count = 0
         else:
-            #what?!?! this really shouldn't happen...
-            self.target = self.game.hive
-            if not self.path:
-                start = self.game.map_grid.screen_to_grid(self.rect.center)
-            else:
-                start = self.path[0]
-            self.path = self.game.map_grid.calculate_path(start,
-                            self.game.map_grid.screen_to_grid(self.target.rect.center), False, False)
-            self.count = 0
+            if not self.target == self.game.hive:
+                self.target = self.game.hive
+
+                self.path = self.game.map_grid.calculate_path(self.game.map_grid.screen_to_grid(self.rect.center),
+                                    self.game.map_grid.screen_to_grid(self.target.rect.center), False, False)
 
         #later!
         if self.target.was_killed:
