@@ -1362,6 +1362,7 @@ class Beetle(Ant):
         self.speed = 4
 
 class Worm(Ant):
+    diesound = 'die2.ogg'
     def __init__(self, game, level=1):
         self.groups = game.main_group, game.insect_group
         Ant.__init__(self, game, level)
@@ -1418,6 +1419,7 @@ class Worm(Ant):
                 self.immune = False
 
 class Wasp(Ant):
+    diesound = 'die2.ogg'
     def __init__(self, game, level=1):
         Ant.__init__(self, game, level)
         self.kill()
@@ -1851,6 +1853,7 @@ class BattleBot(Worker):
     money_cost = 35
     scrap_cost = 35
     ui_icon = "data/warrior-1.png"
+    diesound = 'boom2.ogg'
 
     base_speed = 3
     base_hp = 35
