@@ -741,40 +741,50 @@ class SwoopingBird(Bullet):
 
         self.angle = 0
         self.speed = 6
+        self.hit_target = False
 
     def update(self):
-        if self.target.was_killed:
-            self.kill()
-        ydiff = self.target.rect.centery - self.pos[1]
-        xdiff = self.target.rect.centerx - self.pos[0]
-        angle = math.degrees(math.atan2(xdiff, ydiff))
 
-        if abs(angle-self.angle) <= 25:
-            self.angle = angle
-        
-        if angle< self.angle:
-            self.angle -= 20
+        if self.hit_target or self.target.was_killed:
+            x, y = self.pos
+            x += self.direction[0] * self.speed*2
+            y += self.direction[1] * self.speed*2
+
+            self.pos = (x, y)
+
+            self.rect.center = self.pos
+
+            if not self.rect.colliderect(pygame.Rect(0,0,800,500)):
+                self.kill()
+
         else:
-            self.angle += 20
-        x = math.sin(math.radians(self.angle))
-        y = math.cos(math.radians(self.angle))
-        self.direction = (x, y)
+            ydiff = self.target.rect.centery - self.pos[1]
+            xdiff = self.target.rect.centerx - self.pos[0]
+            angle = math.degrees(math.atan2(xdiff, ydiff))
 
-        self.age += 1
-        if self.age > self.range/self.speed:
-            self.kill()
+            if abs(angle-self.angle) <= 25:
+                self.angle = angle
+            
+            if angle< self.angle:
+                self.angle -= 20
+            else:
+                self.angle += 20
+            x = math.sin(math.radians(self.angle))
+            y = math.cos(math.radians(self.angle))
+            self.direction = (x, y)
 
-        x, y = self.pos
-        x += self.direction[0] * self.speed
-        y += self.direction[1] * self.speed
 
-        self.pos = (x, y)
+            x, y = self.pos
+            x += self.direction[0] * self.speed
+            y += self.direction[1] * self.speed
 
-        self.rect.center = self.pos
+            self.pos = (x, y)
 
-        if self.rect.colliderect(self.target.rect):
-            self.target.hit(self.damage)
-            self.kill()
+            self.rect.center = self.pos
+
+            if self.rect.colliderect(self.target.rect):
+                self.target.hit(self.damage)
+                self.hit_target = True
 
     def render(self):
         _image = self.image
@@ -838,7 +848,7 @@ class BirdFoodPellet(Bullet):
         Bullet.__init__(self, game, pos, range, target, damage)
 
         self.image = data.image("data/bird_food_bullet.png")
-        self.speed = 3
+        self.speed = 5
 
     def update(self):
         self.age += 1
