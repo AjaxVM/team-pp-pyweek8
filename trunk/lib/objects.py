@@ -184,7 +184,7 @@ class Hero(GameObject):
         self.warrior_level = 1
         self.trap_level = 1
 
-        self.tech_worker_upgrade_cost = 75
+        self.tech_worker_upgrade_cost = 35
         self.tech_warrior_upgrade_cost = 50
         self.tech_trap_upgrade_cost = 25
 
@@ -268,7 +268,7 @@ class Hive(GameObject):
         self.flying = False
         self.immune = False
 
-        self.choice_list = [Ant]*10 + [Beetle]*3 + [Worm]*2 + [Wasp]
+        self.choice_list = [Ant]*10 + [Beetle]*2 + [Worm] + [Wasp]
 
     def hit(self, damage):
         GameObject.hit(self, damage)
@@ -277,27 +277,28 @@ class Hive(GameObject):
     def update(self):
         self.counter += 1
         if self.fast:
-            num = 65
+            num = 100
             num -= self.level * 5
-            if num < 40:
-                num = 40
+            if num < 70:
+                num = 70
         else:
-            num = 300
+            num = 350
             num -= self.level * 15
-            if num < 75:
-                num = 75
+            if num < 200:
+                num = 200
 
         fast_chance = self.fast_chance - int(self.level*.5)
         if fast_chance <= 3:
             fast_chance = 3
         if self.counter >= num:
-            if not random.randrange(fast_chance):
-                self.fast = True
-            else:
-                self.fast = False
-            self.counter = 0
-            random.choice(self.choice_list)(self.game, self.level)
-            self.num_spawned += 1
+            if len(self.game.insect_group.objects) < 15:
+                if not random.randrange(fast_chance):
+                    self.fast = True
+                else:
+                    self.fast = False
+                self.counter = 0
+                random.choice(self.choice_list)(self.game, self.level)
+                self.num_spawned += 1
 
         if self.num_spawned >= self.wait_for:
             self.wait_for += 10
@@ -361,7 +362,7 @@ class TowerBase(GameObject):
     money_cost = 50
     scrap_cost = 50
     name = "Base Tower"
-    base_attack = 5
+    base_attack = 10
     base_shoot_speed = 45
     base_range = 100
     def __init__(self, game, pos):
@@ -453,7 +454,7 @@ class MissileTower(TowerBase):
     money_cost = 100
     scrap_cost = 100
     name = "Missile Tower"
-    base_attack = 13
+    base_attack = 25
     base_shoot_speed = 60
     base_range = 150
     def __init__(self, game, pos):
@@ -494,7 +495,7 @@ class BirdFoodTower(TowerBase):
     money_cost = 250
     scrap_cost = 250
     name = "Bird Food Tower"
-    base_attack = 40
+    base_attack = 100
     base_shoot_speed = 100
     base_range = 175
     def __init__(self, game, pos):
@@ -535,7 +536,7 @@ class LaserTower(TowerBase):
     money_cost = 100
     scrap_cost = 100
     name = "Laser Tower"
-    base_attack = 5
+    base_attack = 11
     base_shoot_speed = 20
     base_range = 120
     def __init__(self, game, pos):
@@ -577,8 +578,8 @@ class LaserTower(TowerBase):
                 self.shot_speed) #speed
 
     def inc_cost(self):
-        self.money_cost = int(self.money_cost * 1.75)
-        self.scrap_cost = int(self.scrap_cost * 1.75)
+        self.money_cost = int(self.money_cost * 1.25)
+        self.scrap_cost = int(self.scrap_cost * 1.25)
 
     def upgrade(self):
         self.level += 1
@@ -614,7 +615,7 @@ class ElectroTower(LaserTower):
     money_cost = 220
     scrap_cost = 220
     name = "Electro Tower"
-    base_attack = 10
+    base_attack = 25
     base_shoot_speed = 35
     base_range = 130
     def __init__(self, game, pos):
@@ -634,8 +635,8 @@ class ElectroTower(LaserTower):
                 self.shot_speed) #speed
 
     def inc_cost(self):
-        self.money_cost = int(self.money_cost * 1.75)
-        self.scrap_cost = int(self.scrap_cost * 1.75)
+        self.money_cost = int(self.money_cost * 1.25)
+        self.scrap_cost = int(self.scrap_cost * 1.25)
 
     def upgrade(self):
         self.level += 1
@@ -822,7 +823,7 @@ class ElectroBolt(Laser):
         self.used_insects = used_insects
         for i in self.game.insect_group.objects:
             if not (i in self.used_insects or i.immune):
-                if misc.distance(base_pos, i.rect.center) < self.range:
+                if misc.distance(base_pos, i.rect.center) < self.range*1.5:
                     self.used_insects.append(i)
                     ElectroBolt(self.game, self.target.rect.center, self.range,
                                 i, self.damage, self.used_insects, self.base_pos)
@@ -962,7 +963,7 @@ class Worker(Animation):
     diesound = 'boom2.ogg'
 
     base_speed = 4
-    base_hp = 20
+    base_hp = 25
     base_damage = 1
     def __init__(self, game):
         self.groups = game.main_group, game.bot_group
@@ -1214,11 +1215,11 @@ class Ant(Animation):
         self.attack_timer = 0
         self.path = None
 
-        self.max_hp = 15 * self.level
+        self.max_hp = 5 * self.level + self.level
         self.hp = int(self.max_hp)
         self.show_hp_bar = True
         self.worth = 5 * self.level
-        self.damage = 1 * self.level
+        self.damage = self.level
 
         self.speed = 2
 
@@ -1342,13 +1343,13 @@ class Beetle(Ant):
         self.rect = self.image.get_rect()
         self.rect.center = self.game.hive.rect.center
 
-        self.max_hp = 35 * self.level
+        self.max_hp = 15 * self.level
         self.hp = int(self.max_hp)
         self.show_hp_bar = True
-        self.worth = 6 * self.level
-        self.damage = 3 * self.level
+        self.worth = 5 * self.level
+        self.damage = 2 * self.level
 
-        self.speed = 3
+        self.speed = 4
 
 class Worm(Ant):
     def __init__(self, game, level=1):
@@ -1371,13 +1372,13 @@ class Worm(Ant):
         self.rect = self.image.get_rect()
         self.rect.center = self.game.hive.rect.center
 
-        self.max_hp = 30 * self.level
+        self.max_hp = 13 * self.level
         self.hp = int(self.max_hp)
         self.show_hp_bar = True
-        self.worth = 6 * self.level
-        self.damage = 4 * self.level
+        self.worth = 5 * self.level
+        self.damage = int(self.level*1.75)
 
-        self.speed = 3
+        self.speed = 4
         self.immune_start = None
         self.went_immune = False
         self.wait = random.randint(250, 500)
@@ -1390,7 +1391,7 @@ class Worm(Ant):
             self.speed = 5
             self.ani_speed = 65
         else:
-            self.speed = 3
+            self.speed = 4
             self.ani_speed = 50
         Ant.update(self)
 
@@ -1424,11 +1425,11 @@ class Wasp(Ant):
         self.rect = self.image.get_rect()
         self.rect.center = self.game.hive.rect.center
 
-        self.max_hp = 10 + 5*(self.level-1)
+        self.max_hp = 5 + self.level
         self.hp = int(self.max_hp)
         self.show_hp_bar = True
-        self.worth = 7 * self.level
-        self.damage = 2 * self.level
+        self.worth = 5 * self.level
+        self.damage = self.level+1
 
         self.speed = 1
         self.flying = True
@@ -1690,7 +1691,7 @@ class SpikeTrap(GameObject):
             self.upgrade_level()
 
     def upgrade_level(self):
-        self.damage += int(self.level/2)
+        self.damage += int(self.level)
         self.max_times = int(self.max_times * 1.5)
         self.level += 1
 
@@ -1751,7 +1752,7 @@ class CageTrap(GameObject):
             self.upgrade_level()
 
     def upgrade_level(self):
-        self.max_times = int(self.max_times * 1.5)
+        self.max_times = 200 * self.level
         self.level += 1
 
     def kill(self):
@@ -1772,8 +1773,8 @@ class CageTrap(GameObject):
                     return
 
 class BombTrap(GameObject):
-    money_cost = 125
-    scrap_cost = 75
+    money_cost = 75
+    scrap_cost = 65
     ui_icon = "data/bomb.png"
     diesound = 'boom1.ogg'
 
@@ -1810,7 +1811,7 @@ class BombTrap(GameObject):
             self.upgrade_level()
 
     def upgrade_level(self):
-        self.damage += 30 + self.level
+        self.damage += 50 + self.level
         self.level += 1
 
     def kill(self):
@@ -1842,8 +1843,8 @@ class BattleBot(Worker):
     ui_icon = "data/warrior-1.png"
 
     base_speed = 3
-    base_hp = 30
-    base_damage = 8
+    base_hp = 35
+    base_damage = 10
     special = None
     def __init__(self, game):
         self.groups = game.main_group, game.bot_group
@@ -1884,9 +1885,9 @@ class BattleBot(Worker):
         self.count = 0
 
     def upgrade_level(self):
-        self.max_hp += 8 + self.level
-        self.hp += 8 + self.level
-        self.damage += 2 * self.level
+        self.max_hp += 15 + self.level
+        self.hp += 15 + self.level
+        self.damage += 3 * self.level
         self.level += 1
 
     def update(self):
@@ -2002,8 +2003,8 @@ class TrapperBot(BattleBot):
     ui_icon = "data/trapper-1.png"
 
     base_speed = 2
-    base_hp = 25
-    base_damage = 4
+    base_hp = 20
+    base_damage = 8
     base_range=110
     base_net_duration=175
     special = "traps"
@@ -2039,11 +2040,11 @@ class TrapperBot(BattleBot):
         self.rect.center = self.game.hero.rect.topleft
 
     def upgrade_level(self):
-        self.max_hp += 4
-        self.hp += 4
-        self.damage += 1
-        self.range += 5
-        self.net_duration += 2
+        self.max_hp += 12
+        self.hp += 12
+        self.damage += 3 + int(self.level/2)
+        self.range += 8
+        self.net_duration += 25
         self.level += 1
 
     def update(self):
@@ -2072,8 +2073,8 @@ class GuardBot(BattleBot):
     ui_icon = "data/guard-1.png"
 
     base_speed = 4
-    base_hp = 40
-    base_damage = 6
+    base_hp = 50
+    base_damage = 7
     special = "guard workers"
     def __init__(self, game):
 
@@ -2103,9 +2104,9 @@ class GuardBot(BattleBot):
         self.rect.center = self.game.hero.rect.topleft
 
     def upgrade_level(self):
-        self.max_hp += 10 + self.level
-        self.hp += 10 + self.level
-        self.damage += 2 + int(self.level*.5)
+        self.max_hp += 20 + self.level*2
+        self.hp += 20 + self.level*2
+        self.damage += 5 + self.level
         self.level += 1
 
     def update(self):
@@ -2380,6 +2381,7 @@ class MowerSpecial(GameObject):
         for i in self.game.insect_group.objects + self.game.bot_group.objects +\
             self.game.tower_group.objects + self.game.build_tower_group.objects:
             if self.rect.colliderect(i.rect):
+                self.game.scraps += 50
                 i.hit(99999999)
 
         if not self.hit_hive:
