@@ -1051,6 +1051,8 @@ class Worker(Animation):
                     do_hit.append(i)
 
         if do_hit:
+            if isinstance(self.target, Scraps):
+                self.reset_target()
             self.attack_timer += 1
             if self.attack_timer >= 25:
                 self.attack_timer = 0
