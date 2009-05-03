@@ -1,0 +1,13 @@
+This game is under the LGPL license.
+You can get a copy of the license from:
+
+http://www.gnu.org/copyleft/lesser.html
+
+Copyright (c) 2009 Matthew <RB[0]> Roe and team PyedPypers:
+http://pyweek.org/e/pyedpypers-2/
+
+
+Exceptions:
+
+font.ttf is from:
+http://www.dafont.com/font.php?file=onomatoshark&page=1&nb_ppp_old=10&text=Build+Tower!&nb_ppp=10&psize=m&classt=alpha
